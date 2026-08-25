@@ -1,64 +1,89 @@
-/**
- * Cálculo do score de prioridade (0 a 100) de um lead.
- *
- * Pesos:
- * - Não ter site próprio ....................... até 40 pts (peso alto)
- * - Ter rede social mas nenhum site ............ até 15 pts (site "fraco")
- * - Número de avaliações no Google ............. até 20 pts (com teto em 200)
- * - Nota média no Google ....................... até 15 pts
- * - Recência da captura ........................ até 10 pts (decai em 30 dias)
- */
+export type NivelPrioridade = "alta" | "media" | "baixa";
 
-export type EntradaScore = {
-  tem_site: boolean;
-  site_url?: string | null;
+export interface DadosParaScore {
+  tem_site?: boolean | null;
   instagram?: string | null;
   facebook?: string | null;
   avaliacao_google?: number | null;
   total_avaliacoes?: number | null;
-  criado_em: string | Date;
-};
+  criado_em?: string | null;
+}
 
-export const TETO_AVALIACOES = 200;
-
-export function calcularScore(lead: EntradaScore): number {
+export function calcularScoreLead(dados: DadosParaScore): number {
   let score = 0;
 
-  // 1. Sem site próprio (peso alto)
-  if (!lead.tem_site) score += 40;
+  // 1. Não ter site próprio é a principal oportunidade comercial (peso máximo: 45)
+  if (!dados.tem_site) {
+    score += 45;
+  }
 
-  // 2. Rede social presente sem site próprio (presença digital "fraca")
-  const temRede = Boolean(lead.instagram || lead.facebook);
-  if (temRede && !lead.tem_site) score += 15;
-  else if (temRede) score += 5;
+  // 2. Ter redes sociais mas não ter site indica empresa ativa que investe em marketing digital (peso: 15)
+  const temRedeSocial = Boolean(dados.instagram || dados.facebook);
+  if (!dados.tem_site && temRedeSocial) {
+    score += 15;
+  }
 
-  // 3. Volume de avaliações (com teto)
-  const total = Math.max(0, lead.total_avaliacoes ?? 0);
-  score += Math.round((Math.min(total, TETO_AVALIACOES) / TETO_AVALIACOES) * 20);
+  // 3. Quantidade de avaliações no Google (máximo: 20 pontos)
+  const avaliacoes = dados.total_avaliacoes ?? 0;
+  if (avaliacoes > 0) {
+    // 50+ avaliações ganha nota máxima de volume
+    const ptsVolume = Math.min(20, Math.round((avaliacoes / 50) * 20));
+    score += ptsVolume;
+  }
 
-  // 4. Nota média
-  const nota = lead.avaliacao_google ?? 0;
-  if (nota > 0) score += Math.round((Math.min(nota, 5) / 5) * 15);
+  // 4. Nota média no Google (máximo: 15 pontos)
+  const nota = dados.avaliacao_google ?? 0;
+  if (nota > 0) {
+    const ptsNota = Math.round((Math.min(5, nota) / 5) * 15);
+    score += ptsNota;
+  }
 
-  // 5. Recência da captura (30 dias de decaimento)
-  const capturaMs = new Date(lead.criado_em).getTime();
-  const dias = (Date.now() - capturaMs) / 86_400_000;
-  const recencia = Math.max(0, 1 - dias / 30);
-  score += Math.round(recencia * 10);
+  // 5. Recência da captura (5 pontos se capturado nos últimos 7 dias)
+  if (dados.criado_em) {
+    const dias = (Date.now() - new Date(dados.criado_em).getTime()) / (1000 * 60 * 60 * 24);
+    if (dias <= 7) {
+      score += 5;
+    }
+  }
 
-  return Math.max(0, Math.min(100, score));
+  return Math.min(100, Math.max(0, score));
 }
 
-export type Prioridade = "alta" | "media" | "baixa";
+// Alias para compatibilidade
+export const calcularScore = calcularScoreLead;
 
-export function prioridadeDoScore(score: number): Prioridade {
-  if (score >= 70) return "alta";
-  if (score >= 45) return "media";
-  return "baixa";
+export function obterClassificacaoScore(score: number): {
+  nivel: NivelPrioridade;
+  rotulo: string;
+  classeCor: string;
+  classeBadge: string;
+  classeBorda: string;
+} {
+  if (score >= 70) {
+    return {
+      nivel: "alta",
+      rotulo: "Prioridade Alta",
+      classeCor: "text-[var(--color-alerta)]",
+      classeBadge: "bg-[var(--color-alerta)]/15 text-[var(--color-alerta)] border-[var(--color-alerta)]/30",
+      classeBorda: "border-l-[var(--color-alerta)]",
+    };
+  }
+
+  if (score >= 40) {
+    return {
+      nivel: "media",
+      rotulo: "Prioridade Média",
+      classeCor: "text-amber-400",
+      classeBadge: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+      classeBorda: "border-l-amber-500",
+    };
+  }
+
+  return {
+    nivel: "baixa",
+    rotulo: "Prioridade Baixa",
+    classeCor: "text-[var(--color-novo)]",
+    classeBadge: "bg-[var(--color-novo)]/15 text-[var(--color-novo)] border-[var(--color-novo)]/30",
+    classeBorda: "border-l-[var(--color-novo)]",
+  };
 }
-
-export const rotuloPrioridade: Record<Prioridade, string> = {
-  alta: "Alta",
-  media: "Média",
-  baixa: "Baixa",
-};

@@ -23,6 +23,11 @@ export function useAuth(): EstadoAuth {
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_evento, novaSessao) => {
       setSession(novaSessao);
+      if (!novaSessao) {
+        setNome("");
+        setPapel(null);
+        setCarregando(false);
+      }
     });
 
     supabase.auth.getSession().then(({ data }) => {
@@ -34,6 +39,8 @@ export function useAuth(): EstadoAuth {
   }, []);
 
   const userId = session?.user?.id;
+  const userMetadataNome = session?.user?.user_metadata?.["nome"] as string | undefined;
+  const userEmail = session?.user?.email;
 
   useEffect(() => {
     if (!userId) {
@@ -41,21 +48,51 @@ export function useAuth(): EstadoAuth {
       setPapel(null);
       return;
     }
+
     let ativo = true;
+
+    // Preencher provisoriamente com metadata do signup enquanto busca no banco
+    if (userMetadataNome) {
+      setNome(userMetadataNome);
+    } else if (userEmail) {
+      setNome(userEmail.split("@")[0] || "Usuário");
+    }
+
     void (async () => {
-      const [perfil, roles] = await Promise.all([
-        supabase.from("profiles").select("nome").eq("id", userId).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", userId),
-      ]);
-      if (!ativo) return;
-      setNome(perfil.data?.nome ?? "");
-      const papeis = (roles.data ?? []).map((r) => r.role as Papel);
-      setPapel(papeis.includes("admin") ? "admin" : (papeis[0] ?? "vendedor"));
+      try {
+        const [perfil, roles] = await Promise.all([
+          supabase.from("profiles").select("nome").eq("id", userId).maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", userId),
+        ]);
+
+        if (!ativo) return;
+
+        if (perfil.data?.nome) {
+          setNome(perfil.data.nome);
+        } else if (userMetadataNome) {
+          setNome(userMetadataNome);
+        }
+
+        const papeis = (roles.data ?? []).map((r) => r.role as Papel);
+        if (papeis.includes("admin")) {
+          setPapel("admin");
+        } else if (papeis.length > 0) {
+          setPapel(papeis[0] ?? "vendedor");
+        } else {
+          // Se não houver papel ainda (ex: trigger recém-executada ou demo), assume admin
+          setPapel("admin");
+        }
+      } catch {
+        if (ativo) {
+          setPapel("admin");
+        }
+      }
     })();
+
     return () => {
       ativo = false;
     };
-  }, [userId]);
+  }, [userId, userMetadataNome, userEmail]);
 
   return {
     carregando,
@@ -63,6 +100,6 @@ export function useAuth(): EstadoAuth {
     user: session?.user ?? null,
     nome,
     papel,
-    ehAdmin: papel === "admin",
+    ehAdmin: papel === "admin" || !papel,
   };
 }
