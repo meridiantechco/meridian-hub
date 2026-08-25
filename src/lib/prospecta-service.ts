@@ -3,11 +3,11 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 import { BUSCAS_DEMO, INTERACOES_DEMO, LEADS_DEMO, type BuscaItem, type InteracaoItem, type LeadItem } from "./leads-mock";
 import { calcularScoreLead } from "./score";
 
-const STORAGE_KEY_LEADS = "prospecta_leads_v1";
-const STORAGE_KEY_BUSCAS = "prospecta_buscas_v1";
-const STORAGE_KEY_INTERACOES = "prospecta_interacoes_v1";
+const STORAGE_KEY_LEADS = "prospecta_leads_v3";
+const STORAGE_KEY_BUSCAS = "prospecta_buscas_v3";
+const STORAGE_KEY_INTERACOES = "prospecta_interacoes_v3";
 
-function obterDoStorage<T>(chave: string, padrao: T[]): T[] {
+function obterDoStorage<T extends { id?: string }>(chave: string, padrao: T[]): T[] {
   if (typeof window === "undefined") return padrao;
   try {
     const raw = localStorage.getItem(chave);
@@ -15,7 +15,19 @@ function obterDoStorage<T>(chave: string, padrao: T[]): T[] {
       localStorage.setItem(chave, JSON.stringify(padrao));
       return padrao;
     }
-    return JSON.parse(raw) as T[];
+    const guardados = JSON.parse(raw) as T[];
+    if (guardados && guardados.length > 0) {
+      const guardadosIds = new Set(guardados.map((g) => g.id).filter(Boolean));
+      const faltantes = padrao.filter((p) => p.id && !guardadosIds.has(p.id));
+      if (faltantes.length > 0) {
+        const combinados = [...guardados, ...faltantes];
+        localStorage.setItem(chave, JSON.stringify(combinados));
+        return combinados;
+      }
+      return guardados;
+    }
+    localStorage.setItem(chave, JSON.stringify(padrao));
+    return padrao;
   } catch {
     return padrao;
   }
@@ -40,14 +52,107 @@ export const prospectaService = {
         .order("criado_em", { ascending: false });
 
       if (!error && data && data.length > 0) {
-        salvarNoStorage(STORAGE_KEY_LEADS, data as LeadItem[]);
-        return data as LeadItem[];
+        const guardadosIds = new Set(data.map((g) => g.id));
+        const faltantes = LEADS_DEMO.filter((p) => !guardadosIds.has(p.id));
+        const combinados = [...(data as LeadItem[]), ...faltantes];
+        salvarNoStorage(STORAGE_KEY_LEADS, combinados);
+        return combinados;
       }
     } catch {
       // continua para fallback
     }
 
     return obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, LEADS_DEMO);
+  },
+
+  // BUSCA POR BOUNDING BOX ESTILO AIRBNB (Com RPC PostGIS e Fallback Local)
+  async buscarLeadsPorBounds(
+    params: {
+      swLat: number;
+      swLng: number;
+      neLat: number;
+      neLng: number;
+      categoria?: string;
+      status?: string;
+      apenasSemSite?: boolean;
+      scoreMinimo?: number;
+      termo?: string;
+      limite?: number;
+    },
+    signal?: AbortSignal
+  ): Promise<LeadItem[]> {
+    const {
+      swLat,
+      swLng,
+      neLat,
+      neLng,
+      categoria,
+      status,
+      apenasSemSite,
+      scoreMinimo,
+      termo,
+      limite = 200,
+    } = params;
+
+    try {
+      // 1. Chamar RPC no Supabase
+      const query = (supabase as any)
+        .rpc("buscar_leads_bounds", {
+          sw_lat: swLat,
+          sw_lng: swLng,
+          ne_lat: neLat,
+          ne_lng: neLng,
+          filtro_categoria: categoria && categoria !== "todas" ? categoria : null,
+          filtro_status: status && status !== "todos" ? status : null,
+          filtro_apenas_sem_site: apenasSemSite ?? null,
+          filtro_score_minimo: scoreMinimo ?? null,
+          filtro_termo: termo?.trim() ? termo.trim() : null,
+          limite,
+        });
+
+      if (signal) {
+        query.abortSignal(signal);
+      }
+
+      const { data, error } = await query;
+
+      if (!error && data && data.length > 0) {
+        return data as LeadItem[];
+      }
+    } catch (err: any) {
+      if (err?.name === "AbortError" || signal?.aborted) {
+        throw err;
+      }
+      // Fallback para dados locais
+    }
+
+    // 2. Fallback local / demo com Bounding Box exato
+    const todosLeads = await this.listarLeads();
+    return todosLeads
+      .filter((l) => {
+        const lat = l.latitude;
+        const lng = l.longitude;
+        if (lat == null || lng == null) return false;
+
+        // Bounding Box
+        if (lat < swLat || lat > neLat || lng < swLng || lng > neLng) return false;
+
+        // Filtros combinados
+        if (categoria && categoria !== "todas" && l.categoria !== categoria) return false;
+        if (status && status !== "todos" && l.status !== status) return false;
+        if (apenasSemSite && l.tem_site) return false;
+        if (scoreMinimo != null && l.score < scoreMinimo) return false;
+        if (termo?.trim()) {
+          const t = termo.toLowerCase();
+          const matchNome = l.nome.toLowerCase().includes(t);
+          const matchCat = (l.categoria || "").toLowerCase().includes(t);
+          const matchBairro = (l.bairro || "").toLowerCase().includes(t);
+          if (!matchNome && !matchCat && !matchBairro) return false;
+        }
+
+        return true;
+      })
+      .slice(0, limite);
   },
 
   async obterLeadPorId(id: string): Promise<LeadItem | null> {

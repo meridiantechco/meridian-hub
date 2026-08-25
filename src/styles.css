@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -163,3 +164,41 @@
   background-image: var(--background-image-grade-mapa);
   background-size: 32px 32px;
 }
+
+/* LEAFLET AIRBNB-STYLE CUSTOM PINS & CONTROLS */
+.leaflet-container {
+  font-family: var(--font-sans) !important;
+  background-color: #0d1214 !important;
+}
+
+.custom-lead-pin,
+.airbnb-marker-pin,
+.mira-radar-center {
+  background: transparent !important;
+  border: none !important;
+}
+
+.airbnb-badge-pin {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+  user-select: none;
+}
+
+.airbnb-badge-pin:hover {
+  transform: scale(1.15) translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+}
+
+@keyframes radarSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar-sweep {
+  animation: radarSweep 8s linear infinite;
+  transform-origin: center center;
+}
+

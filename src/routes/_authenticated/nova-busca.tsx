@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AppShell } from "@/components/prospecta/AppShell";
+import { MapaLeads } from "@/components/prospecta/MapaLeads";
 import { BadgePrioridade } from "@/components/prospecta/BadgePrioridade";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { calcularScoreLead } from "@/lib/score";
 import { prospectaService } from "@/lib/prospecta-service";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
+import type { LeadItem } from "@/lib/leads-mock";
 import {
   Search,
   Sparkles,
@@ -28,8 +30,11 @@ import {
   PlusCircle,
   Building2,
   Layers,
+  Columns2,
+  List,
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/nova-busca")({
   head: () => ({
@@ -115,15 +120,18 @@ interface LeadEncontrado {
   selecionado: boolean;
 }
 
+import { obterCoordenadasCidadeBrasil, CAPITAIS_BRASIL_RAPIDAS } from "@/lib/geo-brasil";
+
 export function PaginaNovaBusca() {
   const navigate = useNavigate();
   const [categoria, setCategoria] = useState("");
-  const [regiao, setRegiao] = useState("Salvador, BA");
+  const [regiao, setRegiao] = useState("São Paulo, SP");
   const [raioKm, setRaioKm] = useState([5]);
   const [buscando, setBuscando] = useState(false);
   const [carregandoMais, setCarregandoMais] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [resultados, setResultados] = useState<LeadEncontrado[]>([]);
+  const [modoVisualizacao, setModoVisualizacao] = useState<"lista" | "mapa">("lista");
   const [buscaRealizada, setBuscaRealizada] = useState(false);
   const [origemBusca, setOrigemBusca] = useState<string>("Google Places API");
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
@@ -175,8 +183,26 @@ export function PaginaNovaBusca() {
         bairro,
         cidade,
         estado: "BA",
-        latitude: p.location?.latitude ?? null,
-        longitude: p.location?.longitude ?? null,
+        latitude:
+          typeof p.location?.latitude === "number"
+            ? p.location.latitude
+            : typeof p.geometry?.location?.lat === "function"
+            ? p.geometry.location.lat()
+            : typeof p.geometry?.location?.lat === "number"
+            ? p.geometry.location.lat
+            : typeof p.latitude === "number"
+            ? p.latitude
+            : null,
+        longitude:
+          typeof p.location?.longitude === "number"
+            ? p.location.longitude
+            : typeof p.geometry?.location?.lng === "function"
+            ? p.geometry.location.lng()
+            : typeof p.geometry?.location?.lng === "number"
+            ? p.geometry.location.lng
+            : typeof p.longitude === "number"
+            ? p.longitude
+            : null,
         telefone: tel,
         whatsapp_link: tel ? `https://wa.me/55${tel.replace(/\D/g, "")}` : null,
         instagram,
@@ -358,10 +384,15 @@ export function PaginaNovaBusca() {
     }
   };
 
-  // Gerador de leads contextuais expandidos
+  // Gerador de leads contextuais expandidos para QUALQUER cidade do Brasil
   const gerarLeadsContextuais = (termoCat: string, termoRegiao: string, lote: number): LeadEncontrado[] => {
-    const cidade = termoRegiao.split(",")[0]?.trim() || "Salvador";
-    const bairros = ["Pituba", "Barra", "Rio Vermelho", "Itaigara", "Ondina", "Caminho das Árvores", "Graça", "Imbuí", "Cabula", "Stella Maris"];
+    const infoCidade = obterCoordenadasCidadeBrasil(termoRegiao);
+    const cidade = infoCidade.nome;
+    const estado = infoCidade.estado;
+    const bairros =
+      infoCidade.bairros && infoCidade.bairros.length > 0
+        ? infoCidade.bairros
+        : ["Centro", "Jardins", "Comercial", "Bela Vista", "América", "Primavera", "Industrial"];
     const prefixos = ["Prime", "Imperial", "Central", "Studio", "Master", "Express", "Vip", "Elite", "Concept", "Top"];
 
     return Array.from({ length: 15 }).map((_, idx) => {
@@ -378,10 +409,10 @@ export function PaginaNovaBusca() {
         endereco: `Rua Comercial ${num * 10}, nº ${100 + num * 7} - ${bairro}`,
         bairro,
         cidade,
-        estado: "BA",
-        latitude: -12.9785 + (Math.random() - 0.5) * 0.08,
-        longitude: -38.4552 + (Math.random() - 0.5) * 0.08,
-        telefone: `(71) 988${Math.floor(10 + Math.random() * 89)}-${Math.floor(1000 + Math.random() * 8999)}`,
+        estado,
+        latitude: Number((infoCidade.lat + (Math.random() - 0.5) * 0.06).toFixed(6)),
+        longitude: Number((infoCidade.lng + (Math.random() - 0.5) * 0.06).toFixed(6)),
+        telefone: `(${infoCidade.ddd}) 988${Math.floor(10 + Math.random() * 89)}-${Math.floor(1000 + Math.random() * 8999)}`,
         instagram: temInstagram ? `${termoCat.toLowerCase().replace(/\s+/g, "")}_${prefixo.toLowerCase()}` : null,
         facebook: null,
         site_url: semSite ? null : `https://www.${termoCat.toLowerCase().replace(/\s+/g, "")}${prefixo.toLowerCase()}.com.br`,
@@ -474,77 +505,91 @@ export function PaginaNovaBusca() {
 
   return (
     <AppShell
-      titulo="Nova Busca de Estabelecimentos"
-      descricao="Varredura de oportunidades via Google Places API com detecção de redes sociais e paginação contínua"
+      titulo="Nova Busca de Leads"
+      descricao="Varredura de estabelecimentos no Google Places com detecção inteligente de presença web"
     >
-      <div className="max-w-5xl space-y-6">
-        {/* FORMULÁRIO DE BUSCA */}
+      <div className="space-y-6 max-w-5xl">
+        {/* FORMULÁRIO DE VARREDURA */}
         <Card className="bg-card border-border shadow-elev">
-          <CardHeader>
-            <div className="flex items-center gap-2 text-primary">
-              <Sparkles className="size-5" />
-              <CardTitle className="text-base font-semibold text-foreground">
-                Parâmetros de Prospecção no Google Places
-              </CardTitle>
-            </div>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Sparkles className="size-4 text-primary" />
+              Parâmetros da Varredura
+            </CardTitle>
             <CardDescription className="text-xs">
-              Busca em tempo real conectada à API do Google Places para localizar empresas sem site próprio.
+              Defina o segmento comercial e a área geográfica para minerar novas oportunidades
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={executarBusca} className="space-y-4">
+            <form onSubmit={executarBusca} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Segmento */}
-                <div className="space-y-2">
-                  <Label htmlFor="categoria">Segmento / Categoria Comercial</Label>
+                {/* Segmento / Categoria */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="categoria" className="text-xs font-semibold text-foreground">
+                    Segmento / Categoria *
+                  </Label>
                   <Input
                     id="categoria"
-                    placeholder="Ex: Salão de Beleza, Restaurante, Oficina..."
+                    placeholder="Ex: Restaurante, Barbearia, Dentista..."
                     value={categoria}
                     onChange={(e) => setCategoria(e.target.value)}
                     required
+                    className="text-xs h-9 bg-surface/50"
                   />
-                  {/* Chips de sugestões */}
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {SUGESTOES_CATEGORIAS.slice(0, 10).map((sug) => (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {SUGESTOES_CATEGORIAS.slice(0, 5).map((sug) => (
                       <button
-                        type="button"
                         key={sug}
+                        type="button"
                         onClick={() => setCategoria(sug)}
-                        className="rounded bg-secondary px-2 py-0.5 text-[11px] text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors"
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                       >
-                        + {sug}
+                        {sug}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* Região / Cidade */}
-                <div className="space-y-2">
-                  <Label htmlFor="regiao">Cidade / Bairro ou Região</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="regiao" className="text-xs font-semibold text-foreground">
+                    Região / Bairro / Cidade *
+                  </Label>
                   <div className="relative">
                     <MapPin className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
                     <Input
                       id="regiao"
-                      className="pl-8"
-                      placeholder="Ex: Salvador - Pituba, SP - Moema..."
+                      placeholder="Ex: São Paulo, SP ou Copacabana, Rio de Janeiro"
                       value={regiao}
                       onChange={(e) => setRegiao(e.target.value)}
                       required
+                      className="text-xs h-9 pl-8 bg-surface/50"
                     />
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Especifique cidade e bairro para geolocalização precisa.
-                  </p>
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {CAPITAIS_BRASIL_RAPIDAS.slice(0, 8).map((cap) => (
+                      <button
+                        key={cap.label}
+                        type="button"
+                        onClick={() => setRegiao(cap.label)}
+                        className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      >
+                        {cap.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Raio em KM */}
+              {/* Raio de Cobertura */}
               <div className="space-y-2 pt-2 border-t border-border/60">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-foreground">Raio de busca:</span>
-                  <span className="font-mono text-primary font-semibold dado">
-                    {raioKm[0]} km de alcance
+                <div className="flex justify-between text-xs">
+                  <Label className="font-semibold text-foreground">
+                    Raio de Busca Cartográfica:{" "}
+                    <span className="text-primary font-bold">{raioKm[0]} km</span>
+                  </Label>
+                  <span className="text-muted-foreground text-[11px]">
+                    Raio recomendado: 3 a 10 km
                   </span>
                 </div>
                 <Slider
@@ -553,7 +598,7 @@ export function PaginaNovaBusca() {
                   min={1}
                   max={30}
                   step={1}
-                  className="py-2"
+                  className="w-full"
                 />
               </div>
 
@@ -561,8 +606,8 @@ export function PaginaNovaBusca() {
               <div className="flex justify-end pt-2">
                 <Button
                   type="submit"
-                  disabled={buscando}
-                  className="bg-primary text-primary-foreground gap-2 font-medium px-6"
+                  disabled={buscando || !categoria.trim()}
+                  className="bg-primary text-primary-foreground text-xs h-9 px-4 gap-2 font-semibold shadow-sm"
                 >
                   {buscando ? (
                     <Loader2 className="size-4 animate-spin" />
@@ -592,6 +637,36 @@ export function PaginaNovaBusca() {
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
+                {/* Switcher Lista / Mapa */}
+                <div className="flex items-center gap-1 bg-secondary/80 p-0.5 rounded-lg border border-border/80 mr-2">
+                  <button
+                    type="button"
+                    onClick={() => setModoVisualizacao("lista")}
+                    className={cn(
+                      "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all",
+                      modoVisualizacao === "lista"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <List className="size-3.5" />
+                    <span>Lista</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModoVisualizacao("mapa")}
+                    className={cn(
+                      "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all",
+                      modoVisualizacao === "mapa"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Columns2 className="size-3.5" />
+                    <span>Mapa</span>
+                  </button>
+                </div>
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -620,66 +695,72 @@ export function PaginaNovaBusca() {
             </CardHeader>
 
             <CardContent className="p-0">
-              <div className="divide-y divide-border">
-                {resultados.map((item) => (
-                  <div
-                    key={item.idTemp}
-                    className={`flex items-center justify-between p-4 gap-4 transition-colors hover:bg-secondary/40 ${
-                      item.selecionado ? "bg-secondary/20" : ""
-                    }`}
-                  >
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <Checkbox
-                        checked={item.selecionado}
-                        onCheckedChange={() => alternarSelecao(item.idTemp)}
-                        className="mt-1"
-                      />
+              {modoVisualizacao === "mapa" ? (
+                <div className="p-4">
+                  <MapaLeads leads={leadsResultadosFormatados} />
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {resultados.map((item) => (
+                    <div
+                      key={item.idTemp}
+                      className={`flex items-center justify-between p-4 gap-4 transition-colors hover:bg-secondary/40 ${
+                        item.selecionado ? "bg-secondary/20" : ""
+                      }`}
+                    >
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <Checkbox
+                          checked={item.selecionado}
+                          onCheckedChange={() => alternarSelecao(item.idTemp)}
+                          className="mt-1"
+                        />
 
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-semibold text-sm text-foreground truncate">
-                            {item.nome}
-                          </h4>
-                          <BadgePrioridade score={item.score} mostrarBarra={true} />
-                          {!item.tem_site ? (
-                            <span className="inline-flex items-center gap-1 rounded bg-[var(--color-alerta)]/15 px-2 py-0.5 text-[11px] font-semibold text-[var(--color-alerta)]">
-                              <AlertCircle className="size-3" /> Sem site próprio
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded bg-secondary px-2 py-0.5 text-[11px] text-muted-foreground">
-                              <Globe className="size-3" /> Possui site
-                            </span>
-                          )}
-                        </div>
+                        <div className="space-y-1 min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-semibold text-sm text-foreground truncate">
+                              {item.nome}
+                            </h4>
+                            <BadgePrioridade score={item.score} mostrarBarra={true} />
+                            {!item.tem_site ? (
+                              <span className="inline-flex items-center gap-1 rounded bg-[var(--color-alerta)]/15 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--color-alerta)]">
+                                <AlertCircle className="size-3" /> Sem site próprio
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded bg-secondary px-2 py-0.5 text-[11px] text-muted-foreground">
+                                <Globe className="size-3" /> Possui site
+                              </span>
+                            )}
+                          </div>
 
-                        <p className="text-xs text-muted-foreground truncate dado">
-                          📍 {item.endereco}
-                        </p>
+                          <p className="text-xs text-muted-foreground truncate dado">
+                            📍 {item.endereco}
+                          </p>
 
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap pt-0.5 dado">
-                          <span>📞 {item.telefone || "Sem telefone"}</span>
-                          {item.avaliacao_google && (
-                            <span className="flex items-center gap-1 text-amber-400">
-                              <Star className="size-3 fill-amber-400" />
-                              {item.avaliacao_google.toFixed(1)} ({item.total_avaliacoes} avaliações)
-                            </span>
-                          )}
-                          {item.instagram && (
-                            <span className="flex items-center gap-1 text-pink-400">
-                              <Instagram className="size-3" /> @{item.instagram}
-                            </span>
-                          )}
-                          {item.facebook && (
-                            <span className="flex items-center gap-1 text-blue-400">
-                              <Facebook className="size-3" /> {item.facebook}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap pt-0.5 dado">
+                            <span>📞 {item.telefone || "Sem telefone"}</span>
+                            {item.avaliacao_google && (
+                              <span className="flex items-center gap-1 text-amber-400">
+                                <Star className="size-3 fill-amber-400" />
+                                {item.avaliacao_google.toFixed(1)} ({item.total_avaliacoes} avaliações)
+                              </span>
+                            )}
+                            {item.instagram && (
+                              <span className="flex items-center gap-1 text-pink-400">
+                                <Instagram className="size-3" /> @{item.instagram}
+                              </span>
+                            )}
+                            {item.facebook && (
+                              <span className="flex items-center gap-1 text-blue-400">
+                                <Facebook className="size-3" /> {item.facebook}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {/* BOTÃO CARREGAR MAIS EMPRESAS */}
               <div className="p-4 bg-surface/40 border-t border-border/70 flex flex-col sm:flex-row items-center justify-between gap-3">

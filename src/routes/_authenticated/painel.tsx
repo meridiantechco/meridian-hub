@@ -19,6 +19,12 @@ import {
   Flame,
   Star,
   RefreshCw,
+  Zap,
+  Sparkles,
+  ArrowUpRight,
+  ShieldCheck,
+  CheckCircle2,
+  Radio,
 } from "lucide-react";
 import {
   BarChart,
@@ -63,10 +69,11 @@ export function PaginaPainel() {
   const totalLeads = leads.length;
   const leadsSemSite = leads.filter((l) => !l.tem_site).length;
   const percSemSite = totalLeads > 0 ? Math.round((leadsSemSite / totalLeads) * 100) : 0;
-  
-  const scoreMedio = totalLeads > 0
-    ? Math.round(leads.reduce((acc, l) => acc + l.score, 0) / totalLeads)
-    : 0;
+
+  const scoreMedio =
+    totalLeads > 0
+      ? Math.round(leads.reduce((acc, l) => acc + l.score, 0) / totalLeads)
+      : 0;
 
   const fechados = leads.filter((l) => l.status === "fechado").length;
   const taxaConversao = totalLeads > 0 ? ((fechados / totalLeads) * 100).toFixed(1) : "0.0";
@@ -133,7 +140,7 @@ export function PaginaPainel() {
             <RefreshCw className={`size-3.5 ${carregando ? "animate-spin" : ""}`} />
             Atualizar
           </Button>
-          <Button asChild size="sm" className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground">
+          <Button asChild size="sm" className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground shadow-sm">
             <Link to="/nova-busca">
               <Search className="size-3.5" />
               Nova Busca
@@ -143,87 +150,90 @@ export function PaginaPainel() {
       }
     >
       <div className="space-y-6">
-        {/* CARDS DE INDICADORES PRINCIPAIS */}
+        {/* CARDS DE INDICADORES PRINCIPAIS (ESTILO HOMLU / VETRA) */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-card border-border shadow-elev">
+          <Card className="bg-card border-border/80 shadow-elev hover:border-primary/40 transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider rotulo">
                 Total de Leads
               </CardTitle>
-              <div className="size-8 rounded-md bg-blue-500/10 text-blue-400 flex items-center justify-center">
+              <div className="size-9 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center shadow-sm">
                 <Users className="size-4" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-display dado">{totalLeads}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Estabelecimentos monitorados
+              <div className="text-2xl lg:text-3xl font-bold font-display dado">{totalLeads}</div>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                <span>Estabelecimentos monitorados</span>
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border shadow-elev ring-1 ring-[var(--color-alerta)]/30">
+          <Card className="bg-card border-border/80 shadow-elev ring-1 ring-[var(--color-alerta)]/30 hover:border-[var(--color-alerta)]/60 transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-[var(--color-alerta)] uppercase tracking-wider">
+              <CardTitle className="text-xs font-semibold text-[var(--color-alerta)] uppercase tracking-wider rotulo">
                 Sem Site Próprio
               </CardTitle>
-              <div className="size-8 rounded-md bg-[var(--color-alerta)]/15 text-[var(--color-alerta)] flex items-center justify-center">
+              <div className="size-9 rounded-xl bg-[var(--color-alerta)]/15 text-[var(--color-alerta)] border border-[var(--color-alerta)]/30 flex items-center justify-center shadow-sm">
                 <Globe className="size-4" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold font-display text-[var(--color-alerta)] dado">
+                <span className="text-2xl lg:text-3xl font-bold font-display text-[var(--color-alerta)] dado">
                   {leadsSemSite}
                 </span>
-                <span className="text-xs font-medium text-[var(--color-alerta)] dado">
-                  ({percSemSite}%)
+                <span className="text-xs font-semibold text-[var(--color-alerta)] bg-[var(--color-alerta)]/10 px-2 py-0.5 rounded-full border border-[var(--color-alerta)]/20 dado">
+                  {percSemSite}% do total
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Oportunidades quentes para prospecção
+                Oportunidades imediatas de abordagem
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border shadow-elev">
+          <Card className="bg-card border-border/80 shadow-elev hover:border-primary/40 transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider rotulo">
                 Score Médio
               </CardTitle>
-              <div className="size-8 rounded-md bg-amber-500/10 text-amber-400 flex items-center justify-center">
+              <div className="size-9 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shadow-sm">
                 <Award className="size-4" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-display dado">{scoreMedio} <span className="text-xs font-normal text-muted-foreground">/ 100</span></div>
+              <div className="text-2xl lg:text-3xl font-bold font-display text-amber-400 dado">
+                {scoreMedio}{" "}
+                <span className="text-xs font-normal text-muted-foreground">/ 100</span>
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Índice de potencial de conversão
+                Índice ponderado de conversão
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border shadow-elev">
+          <Card className="bg-card border-border/80 shadow-elev hover:border-primary/40 transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider rotulo">
                 Taxa de Conversão
               </CardTitle>
-              <div className="size-8 rounded-md bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+              <div className="size-9 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shadow-sm">
                 <TrendingUp className="size-4" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-display text-emerald-400 dado">
+              <div className="text-2xl lg:text-3xl font-bold font-display text-emerald-400 dado">
                 {taxaConversao}%
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {fechados} contratos fechados
+                {fechados} contratos fechados com sucesso
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* MAPA CARTOGRÁFICO DE LEADS */}
+        {/* MAPA CARTOGRÁFICO DE LEADS (AIRBNB STYLE) */}
         <MapaLeads leads={leads} />
 
         {/* GRÁFICOS: CATEGORIAS + FUNIL */}
@@ -346,11 +356,11 @@ export function PaginaPainel() {
               {leadsMaisQuentes.map((lead) => (
                 <div
                   key={lead.id}
-                  className="rounded-lg border border-border bg-surface/60 p-3.5 space-y-3 hover:border-primary/40 transition-colors flex flex-col justify-between"
+                  className="rounded-xl border border-border bg-surface/60 p-3.5 space-y-3 hover:border-primary/50 hover:bg-card transition-all flex flex-col justify-between shadow-sm"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-1">
-                      <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider rotulo">
                         {lead.categoria}
                       </span>
                       <BadgePrioridade score={lead.score} />
@@ -378,7 +388,7 @@ export function PaginaPainel() {
                   <div className="pt-2 border-t border-border/60 flex items-center gap-2">
                     <Button
                       size="sm"
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white h-7 text-xs gap-1.5"
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white h-7 text-xs gap-1.5 font-semibold"
                       onClick={() => {
                         setLeadParaWhatsApp(lead);
                         setModalWhatsAppAberto(true);
@@ -391,7 +401,7 @@ export function PaginaPainel() {
                       variant="outline"
                       size="sm"
                       asChild
-                      className="h-7 text-xs px-2.5"
+                      className="h-7 text-xs px-2.5 border-border/80 hover:border-primary/40"
                     >
                       <Link to="/leads/$id" params={{ id: lead.id }}>
                         Ver
@@ -421,3 +431,4 @@ export function PaginaPainel() {
     </AppShell>
   );
 }
+
