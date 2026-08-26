@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquare, ExternalLink, Send, Copy, Check } from "lucide-react";
@@ -7,6 +14,7 @@ import { toast } from "sonner";
 import { gerarLinkWhatsApp, gerarMensagemPadrao, limparTelefone } from "@/lib/whatsapp";
 import type { LeadItem } from "@/lib/leads-mock";
 import { prospectaService } from "@/lib/prospecta-service";
+import { auditoriaService } from "@/lib/auditoria-service";
 
 interface ModalMensagemWhatsAppProps {
   lead: LeadItem | null;
@@ -29,7 +37,7 @@ export function ModalMensagemWhatsApp({
       nomeEmpresa: lead.nome,
       categoria: lead.categoria,
       cidadeOuBairro: lead.bairro || lead.cidade,
-    })
+    }),
   );
   const [copiado, setCopiado] = useState(false);
 
@@ -41,7 +49,7 @@ export function ModalMensagemWhatsApp({
         nomeEmpresa: lead.nome,
         categoria: lead.categoria,
         cidadeOuBairro: lead.bairro || lead.cidade,
-      })
+      }),
     );
   };
 
@@ -67,7 +75,7 @@ export function ModalMensagemWhatsApp({
         telefone: lead.telefone,
         nomeEmpresa: lead.nome,
       },
-      mensagem
+      mensagem,
     );
 
     // Registrar interação
@@ -76,6 +84,15 @@ export function ModalMensagemWhatsApp({
       tipo: "whatsapp",
       descricao: "Abordagem comercial inicial via WhatsApp",
       resultado: "Link wa.me gerado e aberto no navegador",
+    });
+
+    // Registrar no log de auditoria de movimentações
+    await auditoriaService.registrarAtividade({
+      tipo: "whatsapp",
+      titulo: `Abordagem WhatsApp: ${lead.nome}`,
+      descricao: `Iniciou conversa via WhatsApp com ${lead.nome} (${lead.telefone || "Telefone comercial"}). Mensagem pré-formatada enviada.`,
+      lead_id: lead.id,
+      lead_nome: lead.nome,
     });
 
     // Se o lead ainda estava como novo, sugerir ou marcar como contatado
@@ -100,7 +117,8 @@ export function ModalMensagemWhatsApp({
             </DialogTitle>
           </div>
           <DialogDescription className="text-muted-foreground text-xs">
-            Destinatário: <strong className="text-foreground">{lead.nome}</strong> ({lead.telefone || "Sem telefone"})
+            Destinatário: <strong className="text-foreground">{lead.nome}</strong> (
+            {lead.telefone || "Sem telefone"})
           </DialogDescription>
         </DialogHeader>
 
@@ -126,7 +144,9 @@ export function ModalMensagemWhatsApp({
           />
 
           <div className="rounded-md bg-secondary/50 p-2.5 text-[11px] text-muted-foreground border border-border/50">
-            💡 <strong className="text-foreground">Dica comercial:</strong> O link abrirá o WhatsApp Web / App diretamente com esta mensagem pré-formatada. O status do lead será atualizado para <em>Contatado</em>.
+            💡 <strong className="text-foreground">Dica comercial:</strong> O link abrirá o WhatsApp
+            Web / App diretamente com esta mensagem pré-formatada. O status do lead será atualizado
+            para <em>Contatado</em>.
           </div>
         </div>
 
@@ -138,7 +158,11 @@ export function ModalMensagemWhatsApp({
             onClick={copiarTexto}
             className="gap-1.5 text-xs"
           >
-            {copiado ? <Check className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
+            {copiado ? (
+              <Check className="size-3.5 text-green-400" />
+            ) : (
+              <Copy className="size-3.5" />
+            )}
             {copiado ? "Copiado" : "Copiar texto"}
           </Button>
 

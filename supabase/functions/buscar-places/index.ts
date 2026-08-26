@@ -94,7 +94,7 @@ serve(async (req) => {
     if (!categoria || !regiao) {
       return new Response(
         JSON.stringify({ error: "Parâmetros 'categoria' e 'regiao' são obrigatórios." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -137,8 +137,8 @@ serve(async (req) => {
           ehSocial && rawWebsite?.includes("instagram.com")
             ? extrairInstagram(rawWebsite)
             : rawWebsite?.includes("instagram")
-            ? rawWebsite
-            : null;
+              ? rawWebsite
+              : null;
 
         const facebook =
           ehSocial && (rawWebsite?.includes("facebook.com") || rawWebsite?.includes("fb.com"))
@@ -159,9 +159,48 @@ serve(async (req) => {
         });
 
         const endereco = p.formattedAddress || p.shortFormattedAddress || regiao;
+        const ufs = [
+          "AC",
+          "AL",
+          "AP",
+          "AM",
+          "BA",
+          "CE",
+          "DF",
+          "ES",
+          "GO",
+          "MA",
+          "MT",
+          "MS",
+          "MG",
+          "PA",
+          "PB",
+          "PR",
+          "PE",
+          "PI",
+          "RJ",
+          "RN",
+          "RS",
+          "RO",
+          "RR",
+          "SC",
+          "SP",
+          "SE",
+          "TO",
+        ];
+
+        let estadoDetectado = "SP";
+        for (const uf of ufs) {
+          const re = new RegExp(`(?:[,-/\\s]|^)\\s*(${uf})(?:[,-/\\s]|$|\\d)`, "i");
+          if (re.test(endereco) || re.test(regiao)) {
+            estadoDetectado = uf;
+            break;
+          }
+        }
+
         const partes = endereco.split("-");
         const bairro = partes.length > 1 ? partes[1].split(",")[0].trim() : regiao;
-        const cidade = regiao.split(",")[0].trim();
+        const cidade = regiao.split(/[,-]/)[0].trim();
 
         return {
           idTemp: `gp-${p.id}`,
@@ -170,7 +209,7 @@ serve(async (req) => {
           endereco,
           bairro,
           cidade,
-          estado: "BA",
+          estado: estadoDetectado,
           latitude: p.location?.latitude ?? null,
           longitude: p.location?.longitude ?? null,
           telefone: tel,
@@ -184,7 +223,7 @@ serve(async (req) => {
           place_id: p.id,
           score,
           origem: "google_places",
-          selecionado: !tem_site, // Seleciona por padrão as empresas SEM site próprio
+          selecionado: !tem_site,
         };
       });
     }
@@ -202,7 +241,7 @@ serve(async (req) => {
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   } catch (error: any) {
     return new Response(
@@ -210,7 +249,7 @@ serve(async (req) => {
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   }
 });

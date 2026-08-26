@@ -7,8 +7,39 @@ export interface InfoCidadeBrasil {
   bairros?: string[];
 }
 
+export const ESTADOS_BRASIL: Record<string, { nome: string; dddPadrao: string; capital: string }> =
+  {
+    AC: { nome: "Acre", dddPadrao: "68", capital: "Rio Branco" },
+    AL: { nome: "Alagoas", dddPadrao: "82", capital: "Maceió" },
+    AP: { nome: "Amapá", dddPadrao: "96", capital: "Macapá" },
+    AM: { nome: "Amazonas", dddPadrao: "92", capital: "Manaus" },
+    BA: { nome: "Bahia", dddPadrao: "71", capital: "Salvador" },
+    CE: { nome: "Ceará", dddPadrao: "85", capital: "Fortaleza" },
+    DF: { nome: "Distrito Federal", dddPadrao: "61", capital: "Brasília" },
+    ES: { nome: "Espírito Santo", dddPadrao: "27", capital: "Vitória" },
+    GO: { nome: "Goiás", dddPadrao: "62", capital: "Goiânia" },
+    MA: { nome: "Maranhão", dddPadrao: "98", capital: "São Luís" },
+    MT: { nome: "Mato Grosso", dddPadrao: "65", capital: "Cuiabá" },
+    MS: { nome: "Mato Grosso do Sul", dddPadrao: "67", capital: "Campo Grande" },
+    MG: { nome: "Minas Gerais", dddPadrao: "31", capital: "Belo Horizonte" },
+    PA: { nome: "Pará", dddPadrao: "91", capital: "Belém" },
+    PB: { nome: "Paraíba", dddPadrao: "83", capital: "João Pessoa" },
+    PR: { nome: "Paraná", dddPadrao: "41", capital: "Curitiba" },
+    PE: { nome: "Pernambuco", dddPadrao: "81", capital: "Recife" },
+    PI: { nome: "Piauí", dddPadrao: "86", capital: "Teresina" },
+    RJ: { nome: "Rio de Janeiro", dddPadrao: "21", capital: "Rio de Janeiro" },
+    RN: { nome: "Rio Grande do Norte", dddPadrao: "84", capital: "Natal" },
+    RS: { nome: "Rio Grande do Sul", dddPadrao: "51", capital: "Porto Alegre" },
+    RO: { nome: "Rondônia", dddPadrao: "69", capital: "Porto Velho" },
+    RR: { nome: "Roraima", dddPadrao: "95", capital: "Boa Vista" },
+    SC: { nome: "Santa Catarina", dddPadrao: "48", capital: "Florianópolis" },
+    SP: { nome: "São Paulo", dddPadrao: "11", capital: "São Paulo" },
+    SE: { nome: "Sergipe", dddPadrao: "79", capital: "Aracaju" },
+    TO: { nome: "Tocantins", dddPadrao: "63", capital: "Palmas" },
+  };
+
 export const CIDADES_BRASIL: Record<string, InfoCidadeBrasil> = {
-  // SÃO PAULO
+  // SÃO PAULO (SP)
   "sao paulo": {
     nome: "São Paulo",
     estado: "SP",
@@ -71,8 +102,40 @@ export const CIDADES_BRASIL: Record<string, InfoCidadeBrasil> = {
     ddd: "16",
     bairros: ["Jardim Paulista", "Nova Aliança", "Centro", "Ipiranga"],
   },
+  sorocaba: {
+    nome: "Sorocaba",
+    estado: "SP",
+    lat: -23.5015,
+    lng: -47.4526,
+    ddd: "15",
+    bairros: ["Campolim", "Centro", "Além Ponte", "Trujillo"],
+  },
+  jundiai: {
+    nome: "Jundiaí",
+    estado: "SP",
+    lat: -23.1857,
+    lng: -46.8978,
+    ddd: "11",
+    bairros: ["Anhangabaú", "Centro", "Vila Arens", "Elor", "Malota"],
+  },
+  piracicaba: {
+    nome: "Piracicaba",
+    estado: "SP",
+    lat: -22.7253,
+    lng: -47.6492,
+    ddd: "19",
+    bairros: ["Centro", "Nova Piracicaba", "Paulista", "São Dimas"],
+  },
+  "sao jose do rio preto": {
+    nome: "São José do Rio Preto",
+    estado: "SP",
+    lat: -20.8113,
+    lng: -49.3758,
+    ddd: "17",
+    bairros: ["Redentora", "Centro", "Boa Vista", "Nova Redentora"],
+  },
 
-  // RIO DE JANEIRO
+  // RIO DE JANEIRO (RJ)
   "rio de janeiro": {
     nome: "Rio de Janeiro",
     estado: "RJ",
@@ -102,7 +165,7 @@ export const CIDADES_BRASIL: Record<string, InfoCidadeBrasil> = {
     bairros: ["Icaraí", "Ingá", "Centro", "Santa Rosa", "Charitas"],
   },
 
-  // MINAS GERAIS
+  // MINAS GERAIS (MG)
   "belo horizonte": {
     nome: "Belo Horizonte",
     estado: "MG",
@@ -119,25 +182,50 @@ export const CIDADES_BRASIL: Record<string, InfoCidadeBrasil> = {
     ddd: "34",
     bairros: ["Santa Mônica", "Tibery", "Centro", "Martins"],
   },
+  "juiz de fora": {
+    nome: "Juiz de Fora",
+    estado: "MG",
+    lat: -21.7587,
+    lng: -43.3496,
+    ddd: "32",
+    bairros: ["Centro", "São Mateus", "Cascatinha", "Granbery"],
+  },
 
-  // DISTRITO FEDERAL
+  // DISTRITO FEDERAL (DF)
   brasilia: {
     nome: "Brasília",
     estado: "DF",
     lat: -15.7942,
     lng: -47.8822,
     ddd: "61",
-    bairros: ["Asa Sul", "Asa Norte", "Sudoeste", "Noroeste", "Lago Sul", "Lago Norte", "Águas Claras", "Taguatinga"],
+    bairros: [
+      "Asa Sul",
+      "Asa Norte",
+      "Sudoeste",
+      "Noroeste",
+      "Lago Sul",
+      "Lago Norte",
+      "Águas Claras",
+      "Taguatinga",
+    ],
   },
 
-  // PARANÁ
+  // PARANÁ (PR)
   curitiba: {
     nome: "Curitiba",
     estado: "PR",
-    lat: -25.4290,
+    lat: -25.429,
     lng: -49.2671,
     ddd: "41",
-    bairros: ["Batel", "Bigorrilho", "Centro", "Água Verde", "Cabral", "Santa Felicidade", "Juvevê"],
+    bairros: [
+      "Batel",
+      "Bigorrilho",
+      "Centro",
+      "Água Verde",
+      "Cabral",
+      "Santa Felicidade",
+      "Juvevê",
+    ],
   },
   londrina: {
     nome: "Londrina",
@@ -147,15 +235,30 @@ export const CIDADES_BRASIL: Record<string, InfoCidadeBrasil> = {
     ddd: "43",
     bairros: ["Gleba Palhano", "Centro", "Jardim Shangri-lá"],
   },
+  maringa: {
+    nome: "Maringá",
+    estado: "PR",
+    lat: -23.4209,
+    lng: -51.9331,
+    ddd: "44",
+    bairros: ["Zona 01", "Zona 07", "Centro", "Jardim Alvorada"],
+  },
 
-  // RIO GRANDE DO SUL
+  // RIO GRANDE DO SUL (RS)
   "porto alegre": {
     nome: "Porto Alegre",
     estado: "RS",
     lat: -30.0346,
     lng: -51.2177,
     ddd: "51",
-    bairros: ["Moinhos de Vento", "Bela Vista", "Menino Deus", "Centro Histórico", "Petrópolis", "Bom Fim"],
+    bairros: [
+      "Moinhos de Vento",
+      "Bela Vista",
+      "Menino Deus",
+      "Centro Histórico",
+      "Petrópolis",
+      "Bom Fim",
+    ],
   },
   "caxias do sul": {
     nome: "Caxias do Sul",
@@ -166,33 +269,33 @@ export const CIDADES_BRASIL: Record<string, InfoCidadeBrasil> = {
     bairros: ["São Pelegrino", "Centro", "Exposição", "Pio X"],
   },
 
-  // SANTA CATARINA
+  // SANTA CATARINA (SC)
   florianopolis: {
     nome: "Florianópolis",
     estado: "SC",
     lat: -27.5954,
-    lng: -48.5480,
+    lng: -48.548,
     ddd: "48",
-    bairros: ["Centro", "Agronômica", "Itacorubi", "Lagoa da Conceição", "Jurerê Internacional", "Coqueiros"],
+    bairros: ["Centro", "Trindade", "Agronômica", "Lagoa da Conceição", "Jurerê Internacional"],
   },
   joinville: {
     nome: "Joinville",
     estado: "SC",
-    lat: -26.3044,
-    lng: -48.8464,
+    lat: -26.3045,
+    lng: -48.8487,
     ddd: "47",
-    bairros: ["América", "Atiradores", "Centro", "Anita Garibaldi"],
+    bairros: ["Centro", "América", "Anita Garibaldi", "Atiradores", "Glória"],
   },
-  "balneario camboriu": {
-    nome: "Balneário Camboriú",
+  blumenau: {
+    nome: "Blumenau",
     estado: "SC",
-    lat: -26.9926,
-    lng: -48.6349,
+    lat: -26.9194,
+    lng: -49.0661,
     ddd: "47",
-    bairros: ["Centro", "Barra Sul", "Pioneiros", "Praia dos Amores"],
+    bairros: ["Centro", "Victor Konder", "Vila Nova", "Itoupava Seca"],
   },
 
-  // BAHIA
+  // BAHIA (BA)
   salvador: {
     nome: "Salvador",
     estado: "BA",
@@ -201,83 +304,63 @@ export const CIDADES_BRASIL: Record<string, InfoCidadeBrasil> = {
     ddd: "71",
     bairros: [
       "Pituba",
-      "Barra",
-      "Rio Vermelho",
-      "Itaigara",
-      "Ondina",
       "Caminho das Árvores",
-      "Pelourinho",
+      "Barra",
+      "Itaigara",
+      "Rio Vermelho",
+      "Ondina",
       "Graça",
       "Imbuí",
-      "Cabula",
-      "Stella Maris",
-      "Armação",
-      "Costa Azul",
-      "Vitória",
-      "Brotas",
-      "Patamares",
     ],
   },
   "feira de santana": {
     nome: "Feira de Santana",
     estado: "BA",
-    lat: -12.2667,
-    lng: -38.9667,
+    lat: -12.2664,
+    lng: -38.9663,
     ddd: "75",
-    bairros: ["Santa Mônica", "Capuchinhos", "Kalilândia", "Centro"],
+    bairros: ["Centro", "Kalilândia", "Santa Mônica", "Capuchinhos"],
   },
 
-  // PERNAMBUCO
-  recife: {
-    nome: "Recife",
-    estado: "PE",
-    lat: -8.0476,
-    lng: -34.8770,
-    ddd: "81",
-    bairros: ["Boa Viagem", "Graças", "Espinheiro", "Casa Forte", "Pina", "Recife Antigo", "Derby"],
-  },
-
-  // CEARÁ
+  // CEARÁ (CE)
   fortaleza: {
     nome: "Fortaleza",
     estado: "CE",
     lat: -3.7172,
     lng: -38.5433,
     ddd: "85",
-    bairros: ["Meireles", "Aldeota", "Praia de Iracema", "Cocó", "Varjota", "Papicu", "Dionísio Torres"],
+    bairros: ["Meireles", "Aldeota", "Varjota", "Cocó", "Dionísio Torres", "Papicu", "Centro"],
   },
 
-  // GOIÁS
+  // PERNAMBUCO (PE)
+  recife: {
+    nome: "Recife",
+    estado: "PE",
+    lat: -8.0476,
+    lng: -34.877,
+    ddd: "81",
+    bairros: [
+      "Boa Viagem",
+      "Espinheiro",
+      "Graças",
+      "Jaqueira",
+      "Casa Forte",
+      "Pina",
+      "Recife Antigo",
+    ],
+  },
+
+  // GOIÁS (GO)
   goiania: {
     nome: "Goiânia",
     estado: "GO",
     lat: -16.6869,
     lng: -49.2648,
     ddd: "62",
-    bairros: ["Setor Bueno", "Setor Marista", "Setor Oeste", "Jardim Goiás", "Centro", "Setor Sul"],
+    bairros: ["Setor Bueno", "Setor Marista", "Setor Oeste", "Jardim Goiás", "Centro"],
   },
 
-  // AMAZONAS
-  manaus: {
-    nome: "Manaus",
-    estado: "AM",
-    lat: -3.1190,
-    lng: -60.0217,
-    ddd: "92",
-    bairros: ["Adrianópolis", "Ponta Negra", "Vieiralves", "Centro", "Parque 10"],
-  },
-
-  // PARÁ
-  belem: {
-    nome: "Belém",
-    estado: "PA",
-    lat: -1.4558,
-    lng: -48.4902,
-    ddd: "91",
-    bairros: ["Nazaré", "Umarizal", "Batista Campos", "Marco", "Reduto"],
-  },
-
-  // ESPÍRITO SANTO
+  // ESPÍRITO SANTO (ES)
   vitoria: {
     nome: "Vitória",
     estado: "ES",
@@ -287,37 +370,37 @@ export const CIDADES_BRASIL: Record<string, InfoCidadeBrasil> = {
     bairros: ["Praia do Canto", "Jardim da Penha", "Jardim Camburi", "Enseada do Suá", "Centro"],
   },
 
-  // RIO GRANDE DO NORTE
-  natal: {
-    nome: "Natal",
-    estado: "RN",
-    lat: -5.7945,
-    lng: -35.2110,
-    ddd: "84",
-    bairros: ["Ponta Negra", "Petrópolis", "Tirol", "Capim Macio", "Candelária"],
+  // AMAZONAS (AM)
+  manaus: {
+    nome: "Manaus",
+    estado: "AM",
+    lat: -3.119,
+    lng: -60.0217,
+    ddd: "92",
+    bairros: ["Adrianópolis", "Ponta Negra", "Vieiralves", "Centro", "Flores"],
   },
 
-  // PARAÍBA
-  "joao pessoa": {
-    nome: "João Pessoa",
-    estado: "PB",
-    lat: -7.1195,
-    lng: -34.8450,
-    ddd: "83",
-    bairros: ["Manaíra", "Tambaú", "Cabo Branco", "Bessa", "Miramar"],
+  // PARÁ (PA)
+  belem: {
+    nome: "Belém",
+    estado: "PA",
+    lat: -1.4558,
+    lng: -48.4902,
+    ddd: "91",
+    bairros: ["Nazaré", "Umarizal", "Batista Campos", "Marco", "Centro"],
   },
 
-  // ALAGOAS
-  maceio: {
-    nome: "Maceió",
-    estado: "AL",
-    lat: -9.6498,
-    lng: -35.7089,
-    ddd: "82",
-    bairros: ["Pajuçara", "Ponta Verde", "Jatiúca", "Cruz das Almas", "Farol"],
+  // MATO GROSSO (MT)
+  cuiaba: {
+    nome: "Cuiabá",
+    estado: "MT",
+    lat: -15.6014,
+    lng: -56.0979,
+    ddd: "65",
+    bairros: ["Goiabeiras", "Duque de Caxias", "Santa Rosa", "Centro"],
   },
 
-  // MATO GROSSO DO SUL
+  // MATO GROSSO DO SUL (MS)
   "campo grande": {
     nome: "Campo Grande",
     estado: "MS",
@@ -327,27 +410,57 @@ export const CIDADES_BRASIL: Record<string, InfoCidadeBrasil> = {
     bairros: ["Chácara Cachoeira", "Centro", "Jardim dos Estados", "Santa Fé"],
   },
 
-  // MATO GROSSO
-  cuiaba: {
-    nome: "Cuiabá",
-    estado: "MT",
-    lat: -15.6014,
-    lng: -56.0979,
-    ddd: "65",
-    bairros: ["Goiabeiras", "Duque de Caxias", "Bosque da Saúde", "Centro"],
+  // RIO GRANDE DO NORTE (RN)
+  natal: {
+    nome: "Natal",
+    estado: "RN",
+    lat: -5.7945,
+    lng: -35.211,
+    ddd: "84",
+    bairros: ["Ponta Negra", "Petrópolis", "Tirol", "Capim Macio", "Candelária"],
   },
 
-  // MARANHÃO
+  // PARAÍBA (PB)
+  "joao pessoa": {
+    nome: "João Pessoa",
+    estado: "PB",
+    lat: -7.1195,
+    lng: -34.845,
+    ddd: "83",
+    bairros: ["Tambaú", "Manaíra", "Cabo Branco", "Bessa", "Altiplano"],
+  },
+
+  // ALAGOAS (AL)
+  maceio: {
+    nome: "Maceió",
+    estado: "AL",
+    lat: -9.6658,
+    lng: -35.7351,
+    ddd: "82",
+    bairros: ["Ponta Verde", "Pajuçara", "Jatiúca", "Cruz das Almas", "Centro"],
+  },
+
+  // SERGIPE (SE)
+  aracaju: {
+    nome: "Aracaju",
+    estado: "SE",
+    lat: -10.9472,
+    lng: -37.0731,
+    ddd: "79",
+    bairros: ["13 de Julho", "Jardins", "Atalaia", "Garcia", "Centro"],
+  },
+
+  // MARANHÃO (MA)
   "sao luis": {
     nome: "São Luís",
     estado: "MA",
     lat: -2.5307,
     lng: -44.3068,
     ddd: "98",
-    bairros: ["Renascença", "Ponta d'Areia", "Calhau", "Cohama", "Centro"],
+    bairros: ["Ponta d'Areia", "Renascença", "Calhau", "Cohama", "Centro"],
   },
 
-  // PIAUÍ
+  // PIAUÍ (PI)
   teresina: {
     nome: "Teresina",
     estado: "PI",
@@ -357,36 +470,77 @@ export const CIDADES_BRASIL: Record<string, InfoCidadeBrasil> = {
     bairros: ["Jóquei", "Fátima", "Ilhotas", "Centro"],
   },
 
-  // SERGIPE
-  aracaju: {
-    nome: "Aracaju",
-    estado: "SE",
-    lat: -10.9472,
-    lng: -37.0731,
-    ddd: "79",
-    bairros: ["Atalaia", "13 de Julho", "Jardins", "Grageru", "Centro"],
+  // TOCANTINS (TO)
+  palmas: {
+    nome: "Palmas",
+    estado: "TO",
+    lat: -10.1844,
+    lng: -48.3336,
+    ddd: "63",
+    bairros: ["Plano Diretor Sul", "Plano Diretor Norte", "Graciosa", "Taquaralto"],
+  },
+
+  // RONDÔNIA (RO)
+  "porto velho": {
+    nome: "Porto Velho",
+    estado: "RO",
+    lat: -8.7619,
+    lng: -63.9039,
+    ddd: "69",
+    bairros: ["Centro", "Olaria", "Embratel", "São Cristóvão"],
+  },
+
+  // ACRE (AC)
+  "rio branco": {
+    nome: "Rio Branco",
+    estado: "AC",
+    lat: -9.9749,
+    lng: -67.8243,
+    ddd: "68",
+    bairros: ["Bosque", "Centro", "Cerâmica", "Estação Experimental"],
+  },
+
+  // AMAPÁ (AP)
+  macapa: {
+    nome: "Macapá",
+    estado: "AP",
+    lat: 0.0349,
+    lng: -51.0694,
+    ddd: "96",
+    bairros: ["Centro", "Santa Inês", "Central", "Trem"],
+  },
+
+  // RORAIMA (RR)
+  "boa vista": {
+    nome: "Boa Vista",
+    estado: "RR",
+    lat: 2.8235,
+    lng: -60.6758,
+    ddd: "95",
+    bairros: ["São Pedro", "Centro", "Mecejana", "Paraviana"],
   },
 };
 
 export const CAPITAIS_BRASIL_RAPIDAS = [
-  { label: "São Paulo, SP", valor: "sao paulo", lat: -23.5505, lng: -46.6333, zoom: 12 },
-  { label: "Rio de Janeiro, RJ", valor: "rio de janeiro", lat: -22.9068, lng: -43.1729, zoom: 12 },
-  { label: "Belo Horizonte, MG", valor: "belo horizonte", lat: -19.9167, lng: -43.9345, zoom: 12 },
-  { label: "Brasília, DF", valor: "brasilia", lat: -15.7942, lng: -47.8822, zoom: 12 },
-  { label: "Curitiba, PR", valor: "curitiba", lat: -25.4290, lng: -49.2671, zoom: 12 },
-  { label: "Porto Alegre, RS", valor: "porto alegre", lat: -30.0346, lng: -51.2177, zoom: 12 },
-  { label: "Salvador, BA", valor: "salvador", lat: -12.9785, lng: -38.4552, zoom: 12 },
-  { label: "Fortaleza, CE", valor: "fortaleza", lat: -3.7172, lng: -38.5433, zoom: 12 },
-  { label: "Recife, PE", valor: "recife", lat: -8.0476, lng: -34.8770, zoom: 12 },
-  { label: "Goiânia, GO", valor: "goiania", lat: -16.6869, lng: -49.2648, zoom: 12 },
-  { label: "Florianópolis, SC", valor: "florianopolis", lat: -27.5954, lng: -48.5480, zoom: 12 },
-  { label: "Manaus, AM", valor: "manaus", lat: -3.1190, lng: -60.0217, zoom: 12 },
-  { label: "Belém, PA", valor: "belem", lat: -1.4558, lng: -48.4902, zoom: 12 },
-  { label: "Vitória, ES", valor: "vitoria", lat: -20.3155, lng: -40.3128, zoom: 12 },
-  { label: "Brasil Inteiro", valor: "brasil", lat: -14.2350, lng: -51.9253, zoom: 4 },
+  { label: "São Paulo, SP", valor: "sao paulo" },
+  { label: "Rio de Janeiro, RJ", valor: "rio de janeiro" },
+  { label: "Belo Horizonte, MG", valor: "belo horizonte" },
+  { label: "Curitiba, PR", valor: "curitiba" },
+  { label: "Porto Alegre, RS", valor: "porto alegre" },
+  { label: "Brasília, DF", valor: "brasilia" },
+  { label: "Salvador, BA", valor: "salvador" },
+  { label: "Fortaleza, CE", valor: "fortaleza" },
+  { label: "Recife, PE", valor: "recife" },
+  { label: "Goiânia, GO", valor: "goiania" },
+  { label: "Florianópolis, SC", valor: "florianopolis" },
+  { label: "Manaus, AM", valor: "manaus" },
+  { label: "Belém, PA", valor: "belem" },
+  { label: "Vitória, ES", valor: "vitoria" },
+  { label: "Cuiabá, MT", valor: "cuiaba" },
+  { label: "Natal, RN", valor: "natal" },
 ];
 
-function normalizarTexto(texto: string): string {
+export function normalizarTexto(texto: string): string {
   return texto
     .toLowerCase()
     .normalize("NFD")
@@ -394,38 +548,178 @@ function normalizarTexto(texto: string): string {
     .trim();
 }
 
+/**
+ * Detecta e extrai dinamicamente a UF de qualquer estado brasileiro contido na string
+ */
+export function extrairUfString(texto: string): string | null {
+  const ufsValidas = [
+    "AC",
+    "AL",
+    "AP",
+    "AM",
+    "BA",
+    "CE",
+    "DF",
+    "ES",
+    "GO",
+    "MA",
+    "MT",
+    "MS",
+    "MG",
+    "PA",
+    "PB",
+    "PR",
+    "PE",
+    "PI",
+    "RJ",
+    "RN",
+    "RS",
+    "RO",
+    "RR",
+    "SC",
+    "SP",
+    "SE",
+    "TO",
+  ];
+
+  // 1. Procurar por formato ", SP", "- SP", "/ SP" ou " SP "
+  for (const uf of ufsValidas) {
+    const regex = new RegExp(`(?:[,-/\\s]|^)\\s*(${uf})(?:[,-/\\s]|$|\\d)`, "i");
+    if (regex.test(texto)) {
+      return uf;
+    }
+  }
+
+  // 2. Procurar pelo nome completo do estado
+  const norm = normalizarTexto(texto);
+  for (const [uf, info] of Object.entries(ESTADOS_BRASIL)) {
+    const nomeNorm = normalizarTexto(info.nome);
+    if (norm.includes(nomeNorm)) {
+      return uf;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Obtém informações completas da cidade brasileira digitada ou do endereço retornado
+ */
 export function obterCoordenadasCidadeBrasil(busca: string): InfoCidadeBrasil {
   const norm = normalizarTexto(busca);
+  const ufEncontrada = extrairUfString(busca);
 
+  // 1. Buscar correspondência exata em nosso catálogo de cidades
   for (const [chave, info] of Object.entries(CIDADES_BRASIL)) {
     const chaveNorm = normalizarTexto(chave);
     const nomeNorm = normalizarTexto(info.nome);
-    if (norm.includes(chaveNorm) || norm.includes(nomeNorm) || chaveNorm.includes(norm)) {
+
+    if (norm === chaveNorm || norm === nomeNorm) {
+      return info;
+    }
+
+    if (norm.includes(chaveNorm) || norm.includes(nomeNorm)) {
+      if (ufEncontrada && info.estado !== ufEncontrada) {
+        continue;
+      }
       return info;
     }
   }
 
-  // Estados
-  if (norm.includes("sp") || norm.includes("paulo")) return CIDADES_BRASIL["sao paulo"]!;
-  if (norm.includes("rj") || norm.includes("rio")) return CIDADES_BRASIL["rio de janeiro"]!;
-  if (norm.includes("mg") || norm.includes("minas") || norm.includes("horizonte"))
-    return CIDADES_BRASIL["belo horizonte"]!;
-  if (norm.includes("pr") || norm.includes("curitiba") || norm.includes("parana"))
-    return CIDADES_BRASIL["curitiba"]!;
-  if (norm.includes("rs") || norm.includes("gaucho") || norm.includes("alegre"))
-    return CIDADES_BRASIL["porto alegre"]!;
-  if (norm.includes("df") || norm.includes("brasilia")) return CIDADES_BRASIL["brasilia"]!;
-  if (norm.includes("ce") || norm.includes("fortaleza") || norm.includes("ceara"))
-    return CIDADES_BRASIL["fortaleza"]!;
-  if (norm.includes("pe") || norm.includes("recife") || norm.includes("pernambuco"))
-    return CIDADES_BRASIL["recife"]!;
-  if (norm.includes("ba") || norm.includes("salvador") || norm.includes("bahia"))
-    return CIDADES_BRASIL["salvador"]!;
-  if (norm.includes("sc") || norm.includes("florianopolis") || norm.includes("catarina"))
-    return CIDADES_BRASIL["florianopolis"]!;
-  if (norm.includes("go") || norm.includes("goias") || norm.includes("goiania"))
-    return CIDADES_BRASIL["goiania"]!;
+  // 2. Se tiver UF definida, usar a capital desse estado como referência geográfica
+  if (ufEncontrada && ESTADOS_BRASIL[ufEncontrada]) {
+    const est = ESTADOS_BRASIL[ufEncontrada]!;
+    const capitalKey = normalizarTexto(est.capital);
+    const capitalInfo = CIDADES_BRASIL[capitalKey];
 
-  // Default: São Paulo como centro econômico nacional
-  return CIDADES_BRASIL["sao paulo"]!;
+    // Extrair o nome da cidade informado antes da vírgula/hífen
+    const partes = busca.split(/[,-]/);
+    const possivelNome = partes[0]?.trim() || est.capital;
+
+    return {
+      nome: possivelNome,
+      estado: ufEncontrada,
+      lat: capitalInfo?.lat ?? -15.7942,
+      lng: capitalInfo?.lng ?? -47.8822,
+      ddd: est.dddPadrao,
+      bairros: capitalInfo?.bairros ?? ["Centro", "Jardins", "Comercial", "Bela Vista", "América"],
+    };
+  }
+
+  // 3. Fallback inteligente: extrai o nome digitado pelo usuário
+  const partes = busca.split(/[,-]/);
+  const nomeDigitado = partes[0]?.trim() || "São Paulo";
+  const ufPadrao = ufEncontrada || "SP";
+  const dddPadrao = ESTADOS_BRASIL[ufPadrao]?.dddPadrao || "11";
+
+  return {
+    nome: nomeDigitado,
+    estado: ufPadrao,
+    lat: -23.5505,
+    lng: -46.6333,
+    ddd: dddPadrao,
+    bairros: ["Centro", "Jardins", "Comercial", "Bela Vista", "América", "Primavera", "Industrial"],
+  };
+}
+
+/**
+ * Parser inteligente de endereço retornado pelo Google Places para cidades brasileiras
+ */
+export function extrairLocalizacaoCompleta(
+  formattedAddress: string | null | undefined,
+  termoRegiaoDigitado: string,
+): {
+  endereco: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+} {
+  const infoCidadeBuscada = obterCoordenadasCidadeBrasil(termoRegiaoDigitado);
+
+  if (!formattedAddress) {
+    return {
+      endereco: termoRegiaoDigitado,
+      bairro: "Centro",
+      cidade: infoCidadeBuscada.nome,
+      estado: infoCidadeBuscada.estado,
+    };
+  }
+
+  // Exemplo de endereço Google Places:
+  // "Av. Paulista, 1578 - Bela Vista, São Paulo - SP, 01310-200, Brasil"
+  // "Rua XV de Novembro, 100 - Centro, Blumenau - SC, 89010-000, Brasil"
+  const partesVirgula = formattedAddress.split(",").map((p) => p.trim());
+  const ufDetectada = extrairUfString(formattedAddress) || infoCidadeBuscada.estado;
+
+  let endereco = partesVirgula[0] || termoRegiaoDigitado;
+  let bairro = "Centro";
+  let cidade = infoCidadeBuscada.nome;
+
+  // Tentar extrair bairro e cidade
+  if (formattedAddress.includes("-")) {
+    const partesTraco = formattedAddress.split("-").map((p) => p.trim());
+    if (partesTraco.length > 1) {
+      const parteBairroCidade = partesTraco[1] || "";
+      const subPartes = parteBairroCidade.split(",").map((p) => p.trim());
+      bairro = subPartes[0] || "Centro";
+      if (subPartes.length > 1 && subPartes[1]) {
+        cidade = subPartes[1].replace(/-\s*[A-Z]{2}/i, "").trim() || infoCidadeBuscada.nome;
+      }
+    }
+  } else if (partesVirgula.length >= 3) {
+    bairro = partesVirgula[1] || "Centro";
+    cidade = partesVirgula[2]?.replace(/-\s*[A-Z]{2}/i, "").trim() || infoCidadeBuscada.nome;
+  }
+
+  // Se o nome da cidade extraída contiver número ou CEP, volta para a cidade da busca
+  if (/\d{5}/.test(cidade) || cidade.length < 2) {
+    cidade = infoCidadeBuscada.nome;
+  }
+
+  return {
+    endereco: formattedAddress.replace(/,\s*Brasil$/i, ""),
+    bairro: bairro || "Centro",
+    cidade: cidade || infoCidadeBuscada.nome,
+    estado: ufDetectada,
+  };
 }

@@ -1,5 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Compass, Loader2, Sparkles, Mail, Lock, User } from "lucide-react";
+import {
+  Compass,
+  Loader2,
+  Sparkles,
+  Mail,
+  Lock,
+  User,
+  KeyRound,
+  ShieldCheck,
+  CheckCircle2,
+  ArrowRight,
+  UserCheck,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -7,21 +19,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { auditoriaService } from "@/lib/auditoria-service";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar no Prospecta — Prospecção de Leads sem Site" },
+      { title: "Entrar no Prospecta — Prospecção de Estabelecimentos" },
       {
         name: "description",
         content:
-          "Acesse o Prospecta para localizar, priorizar e gerenciar leads de empresas locais que ainda não têm site próprio.",
-      },
-      { property: "og:title", content: "Entrar no Prospecta" },
-      {
-        property: "og:description",
-        content: "Painel interno de prospecção de empresas locais sem site próprio.",
+          "Acesse o Prospecta Hub para localizar, priorizar e gerenciar estabelecimentos comerciais locais.",
       },
     ],
   }),
@@ -31,33 +40,52 @@ export const Route = createFileRoute("/auth")({
 export function PaginaAuth() {
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState(false);
-  const [abaAtiva, setAbaAtiva] = useState<"entrar" | "criar">("entrar");
+  const [abaAtiva, setAbaAtiva] = useState<"entrar" | "primeiro_acesso" | "criar">("entrar");
 
   // Campos de login
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
-  // Campos de cadastro
+  // Campos de Primeiro Acesso / Definição de Senha
+  const [emailPrimeiroAcesso, setEmailPrimeiroAcesso] = useState("");
+  const [senhaProvisoria, setSenhaProvisoria] = useState("");
+  const [senhaDefinitiva, setSenhaDefinitiva] = useState("");
+  const [confirmarSenhaDefinitiva, setConfirmarSenhaDefinitiva] = useState("");
+
+  // Modal / Tela de obrigatoriedade de senha no primeiro login
+  const [modoDefinirSenhaObrigatoria, setModoDefinirSenhaObrigatoria] = useState(false);
+  const [usuarioPrimeiroLogin, setUsuarioPrimeiroLogin] = useState<any>(null);
+
+  // Campos de cadastro livre
   const [nome, setNome] = useState("");
   const [emailNovo, setEmailNovo] = useState("");
   const [senhaNova, setSenhaNova] = useState("");
 
-  // Estado de aviso de confirmação de e-mail pendente
+  // Estado de confirmação de e-mail pendente
   const [emailConfirmacaoPendente, setEmailConfirmacaoPendente] = useState<string | null>(null);
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) void navigate({ to: "/painel" });
+      if (data.session && !modoDefinirSenhaObrigatoria) {
+        const metadata = data.session.user?.user_metadata;
+        if (metadata?.["primeiro_acesso_pendente"] === true) {
+          setUsuarioPrimeiroLogin(data.session.user);
+          setModoDefinirSenhaObrigatoria(true);
+        } else {
+          void navigate({ to: "/painel" });
+        }
+      }
     });
-  }, [navigate]);
+  }, [navigate, modoDefinirSenhaObrigatoria]);
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
     setCarregando(true);
     setEmailConfirmacaoPendente(null);
 
+    const emailLimpo = email.trim().toLowerCase();
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email: emailLimpo,
       password: senha,
     });
     setCarregando(false);
@@ -65,12 +93,14 @@ export function PaginaAuth() {
     if (error) {
       if (error.message.includes("Email not confirmed")) {
         toast.error("E-mail não confirmado", {
-          description: "Verifique sua caixa de entrada para confirmar seu cadastro antes de entrar.",
+          description:
+            "Verifique sua caixa de entrada para confirmar seu cadastro antes de entrar.",
         });
-        setEmailConfirmacaoPendente(email.trim());
+        setEmailConfirmacaoPendente(emailLimpo);
       } else if (error.message.includes("Invalid login credentials")) {
         toast.error("Credenciais incorretas", {
-          description: "E-mail ou senha incorretos. Verifique e tente novamente.",
+          description:
+            "E-mail ou senha incorretos. Se este é seu primeiro acesso, utilize a aba 'Primeiro Acesso'.",
         });
       } else {
         toast.error("Não foi possível entrar", { description: error.message });
@@ -79,9 +109,136 @@ export function PaginaAuth() {
     }
 
     if (data.session) {
+      const metadata = data.user?.user_metadata;
+      // Verificar se é primeiro acesso com senha provisória
+      if (metadata?.["primeiro_acesso_pendente"] === true) {
+        setUsuarioPrimeiroLogin(data.user);
+        setModoDefinirSenhaObrigatoria(true);
+        toast.info("Primeiro acesso detectado!", {
+          description: "Por favor, cadastre sua senha definitiva pessoal para continuar.",
+        });
+        return;
+      }
+
+      await auditoriaService.registrarAtividade({
+        tipo: "login",
+        titulo: "Login realizado",
+        descricao: `Usuário ${data.user?.email} autenticado com sucesso no sistema.`,
+      });
+
       toast.success("Login realizado com sucesso!");
       void navigate({ to: "/painel" });
     }
+  }
+
+  // Primeiro Acesso com Senha Provisória e Cadastro de Senha Definitiva
+  async function executarPrimeiroAcesso(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (senhaDefinitiva.length < 6) {
+      toast.error("Senha muito curta", {
+        description: "A nova senha deve ter no mínimo 6 caracteres.",
+      });
+      return;
+    }
+
+    if (senhaDefinitiva !== confirmarSenhaDefinitiva) {
+      toast.error("As senhas não coincidem", {
+        description: "Verifique a confirmação da nova senha.",
+      });
+      return;
+    }
+
+    setCarregando(true);
+    const emailLimpo = emailPrimeiroAcesso.trim().toLowerCase();
+
+    // 1. Fazer login com a senha provisória
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+      email: emailLimpo,
+      password: senhaProvisoria,
+    });
+
+    if (loginError) {
+      setCarregando(false);
+      toast.error("Credenciais provisórias inválidas", {
+        description: "Verifique o e-mail e a senha inicial fornecidos pelo administrador.",
+      });
+      return;
+    }
+
+    // 2. Atualizar para a senha definitiva
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: senhaDefinitiva,
+      data: {
+        primeiro_acesso_pendente: false,
+        senha_configurada_em: new Date().toISOString(),
+      },
+    });
+
+    setCarregando(false);
+
+    if (updateError) {
+      toast.error("Erro ao definir senha", { description: updateError.message });
+      return;
+    }
+
+    await auditoriaService.registrarAtividade({
+      tipo: "primeiro_acesso",
+      titulo: "Primeiro acesso concluído",
+      descricao: `Usuário ${emailLimpo} definiu sua senha definitiva e ativou a conta.`,
+      usuario_id: loginData.user?.id,
+      usuario_email: emailLimpo,
+    });
+
+    toast.success("Senha cadastrada com sucesso!", {
+      description: "Sua conta foi ativada. Bem-vindo ao Prospecta!",
+    });
+
+    void navigate({ to: "/painel" });
+  }
+
+  // Salvar senha definitiva quando interceptado no login
+  async function salvarSenhaObrigatoria(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (senhaDefinitiva.length < 6) {
+      toast.error("Senha muito curta", {
+        description: "A nova senha deve ter no mínimo 6 caracteres.",
+      });
+      return;
+    }
+
+    if (senhaDefinitiva !== confirmarSenhaDefinitiva) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
+
+    setCarregando(true);
+    const { error } = await supabase.auth.updateUser({
+      password: senhaDefinitiva,
+      data: {
+        primeiro_acesso_pendente: false,
+        senha_configurada_em: new Date().toISOString(),
+      },
+    });
+    setCarregando(false);
+
+    if (error) {
+      toast.error("Erro ao salvar senha", { description: error.message });
+      return;
+    }
+
+    await auditoriaService.registrarAtividade({
+      tipo: "primeiro_acesso",
+      titulo: "Primeiro acesso concluído",
+      descricao: `Usuário ${usuarioPrimeiroLogin?.email} definiu sua senha definitiva e ativou a conta.`,
+      usuario_id: usuarioPrimeiroLogin?.id,
+      usuario_email: usuarioPrimeiroLogin?.email,
+    });
+
+    toast.success("Senha definitiva cadastrada com sucesso!");
+    setModoDefinirSenhaObrigatoria(false);
+    void navigate({ to: "/painel" });
   }
 
   async function cadastrar(e: React.FormEvent) {
@@ -118,28 +275,14 @@ export function PaginaAuth() {
         return;
       }
 
-      // Se o usuário já existia (Supabase anti-enumeration retorna identities vazio)
-      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-        setCarregando(false);
-        toast.error("Este e-mail já está cadastrado", {
-          description: "Por favor, acesse a aba 'Entrar' e faça login.",
-        });
-        setEmail(emailLimpo);
-        setAbaAtiva("entrar");
-        return;
-      }
-
-      // Caso 1: Sessão criada imediatamente (sem confirmação de email necessária)
       if (data.session) {
         setCarregando(false);
-        toast.success("Conta criada com sucesso!", {
-          description: "Bem-vindo ao Prospecta. Redirecionando...",
-        });
+        toast.success("Conta criada com sucesso!");
         void navigate({ to: "/painel" });
         return;
       }
 
-      // Caso 2: Tentar login automático imediato
+      // Login imediato
       const loginImediato = await supabase.auth.signInWithPassword({
         email: emailLimpo,
         password: senhaNova,
@@ -147,21 +290,16 @@ export function PaginaAuth() {
 
       if (loginImediato.data?.session) {
         setCarregando(false);
-        toast.success("Conta criada e autenticada!", {
-          description: "Redirecionando para o painel comercial...",
-        });
+        toast.success("Conta criada e autenticada!");
         void navigate({ to: "/painel" });
         return;
       }
 
-      // Caso 3: Confirmação de e-mail necessária
       setCarregando(false);
-      setEmailConfirmacaoPendente(emailLimpo);
       setEmail(emailLimpo);
       setAbaAtiva("entrar");
-      toast.success("Conta cadastrada com sucesso!", {
-        description: `Enviamos um link de confirmação para ${emailLimpo}.`,
-        duration: 8000,
+      toast.success("Conta cadastrada!", {
+        description: `Acesse com seu e-mail ${emailLimpo} e senha.`,
       });
     } catch (err: any) {
       setCarregando(false);
@@ -169,230 +307,363 @@ export function PaginaAuth() {
     }
   }
 
-  // Acesso Rápido de Demonstração (Permite entrar e navegar sem barreiras)
-  async function entrarDemo() {
-    setCarregando(true);
-    // Tentar login com admin padrão se existir
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: "admin@prospecta.com.br",
-      password: "adminprospecta",
-    });
-
-    setCarregando(false);
-    if (!error && data.session) {
-      toast.success("Acesso com perfil de Demonstração!");
-      void navigate({ to: "/painel" });
-      return;
-    }
-
-    // Se a conta demo do supabase não estiver criada ainda, podemos criá-la ou navegar
-    const criacaoDemo = await supabase.auth.signUp({
-      email: "admin@prospecta.com.br",
-      password: "adminprospecta",
-      options: { data: { nome: "Administrador Demo" } },
-    });
-
-    if (criacaoDemo.data?.session) {
-      toast.success("Conta de Demonstração inicializada!");
-      void navigate({ to: "/painel" });
-    } else {
-      const login2 = await supabase.auth.signInWithPassword({
-        email: "admin@prospecta.com.br",
-        password: "adminprospecta",
-      });
-      if (login2.data?.session) {
-        toast.success("Entrando no painel...");
-        void navigate({ to: "/painel" });
-      } else {
-        toast.info("Acessando painel...");
-        void navigate({ to: "/painel" });
-      }
-    }
-  }
-
   return (
-    <div className="malha-mapa flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md space-y-4">
-        {/* Marca */}
-        <div className="flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-md bg-primary/12 text-primary ring-1 ring-primary/25">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8 relative overflow-hidden">
+      {/* Background Decorativo */}
+      <div className="absolute -top-40 -left-40 size-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-40 -right-40 size-96 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md space-y-6 relative z-10">
+        {/* LOGO & CABEÇALHO */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 text-primary border border-primary/30 shadow-[0_0_20px_rgba(255,107,53,0.25)] mb-2">
             <Compass className="size-6" />
-          </span>
-          <div>
-            <p className="font-display text-2xl font-semibold tracking-tight text-foreground">
-              Prospecta
-            </p>
-            <p className="rotulo">Prospecção de campo · leads sem site</p>
           </div>
+          <h1 className="text-2xl font-bold font-display tracking-tight text-foreground">
+            Prospecta Hub
+          </h1>
+          <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+            Plataforma de inteligência comercial e mineração de estabelecimentos
+          </p>
         </div>
 
-        {/* Card de Aviso de Confirmação Pendente */}
-        {emailConfirmacaoPendente && (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 space-y-2 text-xs text-amber-200">
-            <div className="flex items-center gap-2 font-semibold text-amber-300">
-              <Mail className="size-4" />
-              <span>Verifique sua caixa de entrada</span>
-            </div>
-            <p className="leading-relaxed">
-              Enviamos um link de confirmação para <strong>{emailConfirmacaoPendente}</strong>.
-              Abra seu e-mail e clique no link para ativar sua conta antes de fazer o primeiro login.
-            </p>
-          </div>
+        {/* TELA DE DEFINIÇÃO DE SENHA OBRIGATÓRIA (PRIMEIRO ACESSO) */}
+        {modoDefinirSenhaObrigatoria ? (
+          <Card className="bg-card border-border shadow-elev">
+            <CardHeader className="text-center pb-4">
+              <div className="size-10 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center mx-auto mb-2">
+                <KeyRound className="size-5" />
+              </div>
+              <CardTitle className="text-lg font-bold text-foreground">
+                Cadastrar Senha Definitiva
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">
+                Olá! Como este é seu primeiro acesso, crie sua senha pessoal definitiva para
+                continuar navegando.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={salvarSenhaObrigatoria} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="senha-def" className="text-xs font-semibold text-foreground">
+                    Nova Senha *
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                    <Input
+                      id="senha-def"
+                      type="password"
+                      placeholder="Mínimo de 6 caracteres"
+                      value={senhaDefinitiva}
+                      onChange={(e) => setSenhaDefinitiva(e.target.value)}
+                      required
+                      className="text-xs h-9 pl-9 bg-surface/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="conf-senha-def" className="text-xs font-semibold text-foreground">
+                    Confirmar Nova Senha *
+                  </Label>
+                  <div className="relative">
+                    <CheckCircle2 className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                    <Input
+                      id="conf-senha-def"
+                      type="password"
+                      placeholder="Repita a nova senha"
+                      value={confirmarSenhaDefinitiva}
+                      onChange={(e) => setConfirmarSenhaDefinitiva(e.target.value)}
+                      required
+                      className="text-xs h-9 pl-9 bg-surface/50"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={carregando || !senhaDefinitiva || !confirmarSenhaDefinitiva}
+                  className="w-full bg-primary text-primary-foreground font-semibold text-xs h-9 gap-2 shadow-sm"
+                >
+                  {carregando ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <ShieldCheck className="size-4" />
+                  )}
+                  Salvar Senha e Acessar
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        ) : (
+          /* CARD PRINCIPAL COM ABAS */
+          <Card className="bg-card border-border shadow-elev">
+            <CardContent className="pt-6">
+              <Tabs
+                value={abaAtiva}
+                onValueChange={(val) => setAbaAtiva(val as any)}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-3 bg-secondary/70 p-1 mb-5">
+                  <TabsTrigger value="entrar" className="text-xs font-medium">
+                    Entrar
+                  </TabsTrigger>
+                  <TabsTrigger value="primeiro_acesso" className="text-xs font-medium">
+                    1º Acesso
+                  </TabsTrigger>
+                  <TabsTrigger value="criar" className="text-xs font-medium">
+                    Criar Conta
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* ABA 1: ENTRAR */}
+                <TabsContent value="entrar">
+                  <form onSubmit={entrar} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="email-login"
+                        className="text-xs font-semibold text-foreground"
+                      >
+                        E-mail
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                          id="email-login"
+                          type="email"
+                          placeholder="seu.email@empresa.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="text-xs h-9 pl-9 bg-surface/50"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <Label htmlFor="senha-login" className="font-semibold text-foreground">
+                          Senha
+                        </Label>
+                      </div>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                          id="senha-login"
+                          type="password"
+                          placeholder="••••••••"
+                          value={senha}
+                          onChange={(e) => setSenha(e.target.value)}
+                          required
+                          className="text-xs h-9 pl-9 bg-surface/50"
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={carregando || !email || !senha}
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs h-9 gap-2 shadow-sm transition-all"
+                    >
+                      {carregando ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <ArrowRight className="size-4" />
+                      )}
+                      Entrar no Sistema
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                {/* ABA 2: PRIMEIRO ACESSO / DEFINIR SENHA */}
+                <TabsContent value="primeiro_acesso">
+                  <form onSubmit={executarPrimeiroAcesso} className="space-y-3.5">
+                    <div className="p-3 rounded-lg bg-secondary/50 border border-border/80 text-[11px] text-muted-foreground">
+                      <strong className="text-foreground block font-semibold">
+                        Foi convidado pelo administrador?
+                      </strong>
+                      Insira o e-mail e a senha inicial fornecidos e cadastre sua senha definitiva.
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="email-pa" className="text-xs font-semibold text-foreground">
+                        Seu E-mail Cadastrado
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                          id="email-pa"
+                          type="email"
+                          placeholder="seu.email@empresa.com"
+                          value={emailPrimeiroAcesso}
+                          onChange={(e) => setEmailPrimeiroAcesso(e.target.value)}
+                          required
+                          className="text-xs h-9 pl-9 bg-surface/50"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="senha-prov" className="text-xs font-semibold text-foreground">
+                        Senha Inicial Provisória
+                      </Label>
+                      <div className="relative">
+                        <KeyRound className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                          id="senha-prov"
+                          type="password"
+                          placeholder="Senha recebida do admin"
+                          value={senhaProvisoria}
+                          onChange={(e) => setSenhaProvisoria(e.target.value)}
+                          required
+                          className="text-xs h-9 pl-9 bg-surface/50"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="senha-def-pa"
+                        className="text-xs font-semibold text-foreground"
+                      >
+                        Criar Nova Senha Pessoal
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                          id="senha-def-pa"
+                          type="password"
+                          placeholder="Mínimo 6 caracteres"
+                          value={senhaDefinitiva}
+                          onChange={(e) => setSenhaDefinitiva(e.target.value)}
+                          required
+                          className="text-xs h-9 pl-9 bg-surface/50"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="conf-senha-def-pa"
+                        className="text-xs font-semibold text-foreground"
+                      >
+                        Confirmar Nova Senha
+                      </Label>
+                      <div className="relative">
+                        <CheckCircle2 className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                          id="conf-senha-def-pa"
+                          type="password"
+                          placeholder="Repita a nova senha"
+                          value={confirmarSenhaDefinitiva}
+                          onChange={(e) => setConfirmarSenhaDefinitiva(e.target.value)}
+                          required
+                          className="text-xs h-9 pl-9 bg-surface/50"
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={
+                        carregando || !emailPrimeiroAcesso || !senhaProvisoria || !senhaDefinitiva
+                      }
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs h-9 gap-2 shadow-sm"
+                    >
+                      {carregando ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <UserCheck className="size-4" />
+                      )}
+                      Ativar Conta e Entrar
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                {/* ABA 3: CRIAR CONTA */}
+                <TabsContent value="criar">
+                  <form onSubmit={cadastrar} className="space-y-3.5">
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="nome-cadastro"
+                        className="text-xs font-semibold text-foreground"
+                      >
+                        Nome Completo
+                      </Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                          id="nome-cadastro"
+                          type="text"
+                          placeholder="Ex: Carlos Silva"
+                          value={nome}
+                          onChange={(e) => setNome(e.target.value)}
+                          required
+                          className="text-xs h-9 pl-9 bg-surface/50"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="email-cadastro"
+                        className="text-xs font-semibold text-foreground"
+                      >
+                        E-mail Profissional
+                      </Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                          id="email-cadastro"
+                          type="email"
+                          placeholder="seu.email@empresa.com"
+                          value={emailNovo}
+                          onChange={(e) => setEmailNovo(e.target.value)}
+                          required
+                          className="text-xs h-9 pl-9 bg-surface/50"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="senha-cadastro"
+                        className="text-xs font-semibold text-foreground"
+                      >
+                        Senha
+                      </Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                        <Input
+                          id="senha-cadastro"
+                          type="password"
+                          placeholder="Mínimo de 6 caracteres"
+                          value={senhaNova}
+                          onChange={(e) => setSenhaNova(e.target.value)}
+                          required
+                          className="text-xs h-9 pl-9 bg-surface/50"
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={carregando || !nome || !emailNovo || !senhaNova}
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs h-9 gap-2 shadow-sm"
+                    >
+                      {carregando ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="size-4" />
+                      )}
+                      Criar Conta
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         )}
-
-        {/* Card Principal */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-elev">
-          <Tabs value={abaAtiva} onValueChange={(v) => setAbaAtiva(v as any)}>
-            <TabsList className="w-full">
-              <TabsTrigger value="entrar" className="flex-1 text-xs">
-                Entrar
-              </TabsTrigger>
-              <TabsTrigger value="criar" className="flex-1 text-xs">
-                Criar conta
-              </TabsTrigger>
-            </TabsList>
-
-            {/* ABA ENTRAR */}
-            <TabsContent value="entrar" className="pt-5">
-              <form className="space-y-4" onSubmit={entrar}>
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="voce@empresa.com.br"
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="senha">Senha</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                    <Input
-                      id="senha"
-                      type="password"
-                      required
-                      autoComplete="current-password"
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                      placeholder="••••••••"
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-primary text-primary-foreground font-medium text-xs h-9"
-                  disabled={carregando}
-                >
-                  {carregando ? <Loader2 className="size-4 animate-spin" /> : null}
-                  Entrar no painel
-                </Button>
-              </form>
-            </TabsContent>
-
-            {/* ABA CRIAR CONTA */}
-            <TabsContent value="criar" className="pt-5">
-              <form className="space-y-4" onSubmit={cadastrar}>
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome completo</Label>
-                  <div className="relative">
-                    <User className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                    <Input
-                      id="nome"
-                      required
-                      value={nome}
-                      onChange={(e) => setNome(e.target.value)}
-                      placeholder="Maria Souza"
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email-novo">E-mail profissional</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                    <Input
-                      id="email-novo"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={emailNovo}
-                      onChange={(e) => setEmailNovo(e.target.value)}
-                      placeholder="maria@empresa.com.br"
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="senha-nova">Senha de acesso</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                    <Input
-                      id="senha-nova"
-                      type="password"
-                      required
-                      minLength={6}
-                      autoComplete="new-password"
-                      value={senhaNova}
-                      onChange={(e) => setSenhaNova(e.target.value)}
-                      placeholder="Mínimo 6 caracteres"
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-primary text-primary-foreground font-medium text-xs h-9"
-                  disabled={carregando}
-                >
-                  {carregando ? <Loader2 className="size-4 animate-spin" /> : null}
-                  Criar conta e acessar
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-[10px] uppercase">
-              <span className="bg-card px-2 text-muted-foreground rotulo">
-                Ou acesso rápido
-              </span>
-            </div>
-          </div>
-
-          {/* Botão de Demonstração / Acesso Rápido */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={entrarDemo}
-            disabled={carregando}
-            className="w-full text-xs h-8 gap-1.5 border-border/80 hover:border-primary/40"
-          >
-            <Sparkles className="size-3.5 text-primary" />
-            Entrar no Modo Demonstração
-          </Button>
-        </div>
-
-        <p className="text-center text-xs text-muted-foreground">
-          O primeiro usuário cadastrado recebe o papel de administrador do sistema.
-        </p>
       </div>
     </div>
   );

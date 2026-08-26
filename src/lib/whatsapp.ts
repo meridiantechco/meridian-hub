@@ -22,7 +22,7 @@ export function gerarMensagemPadrao(params: MensagemWhatsAppParams): string {
   const apresentacao = params.nomeVendedor
     ? `Meu nome é ${params.nomeVendedor}, sou especialista em presença digital.`
     : "Sou especialista em presença digital.";
-  
+
   const segmento = params.categoria ? ` da área de ${params.categoria.toLowerCase()}` : "";
   const local = params.cidadeOuBairro ? ` em ${params.cidadeOuBairro}` : "";
 
@@ -33,7 +33,10 @@ Criamos páginas modernas, rápidas e que posicionam no Google para atrair mais 
 Posso te enviar um modelo rápido de como ficaria o site da ${params.nomeEmpresa}?`;
 }
 
-export function gerarLinkWhatsApp(params: MensagemWhatsAppParams, mensagemCustomizada?: string): string {
+export function gerarLinkWhatsApp(
+  params: MensagemWhatsAppParams,
+  mensagemCustomizada?: string,
+): string {
   const telLimpo = limparTelefone(params.telefone);
   const texto = mensagemCustomizada ?? gerarMensagemPadrao(params);
   return `https://wa.me/${telLimpo}?text=${encodeURIComponent(texto)}`;

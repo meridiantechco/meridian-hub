@@ -6,8 +6,17 @@ import { ModalMensagemWhatsApp } from "@/components/prospecta/ModalMensagemWhats
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { prospectaService } from "@/lib/prospecta-service";
+import { auditoriaService } from "@/lib/auditoria-service";
 import type { LeadItem } from "@/lib/leads-mock";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   MessageSquare,
   ExternalLink,
@@ -18,6 +27,10 @@ import {
   MoveRight,
   MoveLeft,
   Radio,
+  RotateCcw,
+  Trash2,
+  AlertTriangle,
+  Kanban,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,7 +38,10 @@ export const Route = createFileRoute("/_authenticated/funil")({
   head: () => ({
     meta: [
       { title: "Funil de Vendas (Kanban) — Prospecta" },
-      { name: "description", content: "Pipeline visual kanban em tempo real com sincronização do Supabase" },
+      {
+        name: "description",
+        content: "Pipeline visual kanban em tempo real com sincronização do Supabase",
+      },
     ],
   }),
   component: PaginaFunil,
@@ -86,6 +102,8 @@ export function PaginaFunil() {
 
   const [leadParaWhatsApp, setLeadParaWhatsApp] = useState<LeadItem | null>(null);
   const [modalWhatsAppAberto, setModalWhatsAppAberto] = useState(false);
+  const [modalZerarFunilAberto, setModalZerarFunilAberto] = useState(false);
+  const [processandoAcaoFunil, setProcessandoAcaoFunil] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
@@ -94,33 +112,69 @@ export function PaginaFunil() {
     setCarregando(false);
   };
 
+  const executarReiniciarStatus = async () => {
+    setProcessandoAcaoFunil(true);
+    try {
+      const total = await prospectaService.reiniciarFunilLeads();
+      setLeads((prev) => prev.map((l) => ({ ...l, status: "novo" })));
+      setModalZerarFunilAberto(false);
+
+      await auditoriaService.registrarAtividade({
+        tipo: "mudanca_status",
+        titulo: "Funil reiniciado",
+        descricao: `Todos os ${total} estabelecimentos foram movidos de volta para a etapa "Novo".`,
+      });
+
+      toast.success("Todos os leads foram movidos para a etapa 'Novo'!");
+    } catch (err: any) {
+      toast.error("Erro ao reiniciar funil", { description: err?.message || String(err) });
+    } finally {
+      setProcessandoAcaoFunil(false);
+    }
+  };
+
+  const executarLimparFunilCompleto = async () => {
+    setProcessandoAcaoFunil(true);
+    try {
+      const total = await prospectaService.zerarBaseLeads();
+      setLeads([]);
+      setModalZerarFunilAberto(false);
+
+      await auditoriaService.registrarAtividade({
+        tipo: "edicao_lead",
+        titulo: "Funil de estabelecimentos zerado",
+        descricao: `Administrador zerou todos os ${total} estabelecimentos do funil.`,
+      });
+
+      toast.success("Funil e base de estabelecimentos zerados com sucesso!");
+    } catch (err: any) {
+      toast.error("Erro ao zerar funil", { description: err?.message || String(err) });
+    } finally {
+      setProcessandoAcaoFunil(false);
+    }
+  };
+
   useEffect(() => {
     void carregarDados();
 
     // 3. Inscrição em Tempo Real (Supabase Realtime)
     const channel = supabase
       .channel("leads-funil-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "leads" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            const novo = payload.new as LeadItem;
-            setLeads((prev) => [novo, ...prev.filter((l) => l.id !== novo.id)]);
-            toast.info(`Novo lead recebido: ${novo.nome}`);
-          } else if (payload.eventType === "UPDATE") {
-            const atualizado = payload.new as LeadItem;
-            setLeads((prev) =>
-              prev.map((l) => (l.id === atualizado.id ? atualizado : l))
-            );
-          } else if (payload.eventType === "DELETE") {
-            const deletadoId = (payload.old as { id: string })?.id;
-            if (deletadoId) {
-              setLeads((prev) => prev.filter((l) => l.id !== deletadoId));
-            }
+      .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, (payload) => {
+        if (payload.eventType === "INSERT") {
+          const novo = payload.new as LeadItem;
+          setLeads((prev) => [novo, ...prev.filter((l) => l.id !== novo.id)]);
+          toast.info(`Novo lead recebido: ${novo.nome}`);
+        } else if (payload.eventType === "UPDATE") {
+          const atualizado = payload.new as LeadItem;
+          setLeads((prev) => prev.map((l) => (l.id === atualizado.id ? atualizado : l)));
+        } else if (payload.eventType === "DELETE") {
+          const deletadoId = (payload.old as { id: string })?.id;
+          if (deletadoId) {
+            setLeads((prev) => prev.filter((l) => l.id !== deletadoId));
           }
         }
-      )
+      })
       .subscribe((status) => {
         setConectadoRealtime(status === "SUBSCRIBED");
       });
@@ -131,12 +185,25 @@ export function PaginaFunil() {
   }, []);
 
   const moverStatus = async (leadId: string, novoStatus: LeadItem["status"]) => {
+    const leadAlvo = leads.find((l) => l.id === leadId);
+
     // Atualização otimista imediata
-    setLeads((prev) =>
-      prev.map((l) => (l.id === leadId ? { ...l, status: novoStatus } : l))
-    );
+    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: novoStatus } : l)));
 
     await prospectaService.atualizarStatusLead(leadId, novoStatus);
+
+    await auditoriaService.registrarAtividade({
+      tipo: "mudanca_status",
+      titulo: `Funil: ${leadAlvo?.nome || "Lead"} -> ${novoStatus.toUpperCase()}`,
+      descricao: `Status do estabelecimento alterado para "${novoStatus.toUpperCase()}"`,
+      lead_id: leadId,
+      lead_nome: leadAlvo?.nome,
+      metadados: {
+        status_anterior: leadAlvo?.status,
+        novo_status: novoStatus,
+      },
+    });
+
     toast.success(`Estágio alterado para "${novoStatus}"`);
   };
 
@@ -172,9 +239,22 @@ export function PaginaFunil() {
       acoes={
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface border border-border text-[11px] text-muted-foreground dado">
-            <Radio className={`size-3 ${conectadoRealtime ? "text-emerald-400 animate-pulse" : "text-amber-400"}`} />
+            <Radio
+              className={`size-3 ${conectadoRealtime ? "text-emerald-400 animate-pulse" : "text-amber-400"}`}
+            />
             <span>{conectadoRealtime ? "Tempo Real Ativo" : "Conectando..."}</span>
           </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setModalZerarFunilAberto(true)}
+            disabled={leads.length === 0}
+            className="h-8 gap-1.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border-rose-500/30"
+          >
+            <RotateCcw className="size-3.5" />
+            Zerar Funil
+          </Button>
 
           <Button
             variant="outline"
@@ -187,7 +267,11 @@ export function PaginaFunil() {
             Atualizar
           </Button>
 
-          <Button asChild size="sm" className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground">
+          <Button
+            asChild
+            size="sm"
+            className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground"
+          >
             <Link to="/nova-busca">
               <Plus className="size-3.5" />
               Novo Lead
@@ -200,9 +284,10 @@ export function PaginaFunil() {
         <div className="flex gap-4 min-w-[1150px] items-start">
           {COLUNAS.map((coluna, colIdx) => {
             const leadsDaColuna = leads.filter((l) => l.status === coluna.id);
-            const scoreMedioCol = leadsDaColuna.length > 0
-              ? Math.round(leadsDaColuna.reduce((a, b) => a + b.score, 0) / leadsDaColuna.length)
-              : 0;
+            const scoreMedioCol =
+              leadsDaColuna.length > 0
+                ? Math.round(leadsDaColuna.reduce((a, b) => a + b.score, 0) / leadsDaColuna.length)
+                : 0;
 
             const isHover = colunaHover === coluna.id;
             const colAnterior = colIdx > 0 ? COLUNAS[colIdx - 1] : undefined;
@@ -228,7 +313,9 @@ export function PaginaFunil() {
                       Média: {scoreMedioCol} pts
                     </p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold dado border ${coluna.corBadge}`}>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-bold dado border ${coluna.corBadge}`}
+                  >
                     {leadsDaColuna.length}
                   </span>
                 </div>
@@ -309,12 +396,7 @@ export function PaginaFunil() {
                             <MessageSquare className="size-2.5" />
                             WhatsApp
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            asChild
-                            className="size-6"
-                          >
+                          <Button variant="outline" size="icon" asChild className="size-6">
                             <Link to="/leads/$id" params={{ id: lead.id }}>
                               <ExternalLink className="size-3" />
                             </Link>
@@ -357,6 +439,86 @@ export function PaginaFunil() {
         onOpenChange={setModalWhatsAppAberto}
         onMensagemEnviada={carregarDados}
       />
+
+      {/* Modal de Zerar / Reiniciar Funil */}
+      <Dialog open={modalZerarFunilAberto} onOpenChange={setModalZerarFunilAberto}>
+        <DialogContent className="max-w-md bg-card border-border">
+          <DialogHeader>
+            <div className="size-10 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center mb-1">
+              <RotateCcw className="size-5" />
+            </div>
+            <DialogTitle className="text-base font-bold text-foreground">
+              Zerar / Reiniciar Funil de Vendas
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Você possui <strong>{leads.length} estabelecimentos</strong> no funil. Escolha a ação
+              desejada:
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 pt-2">
+            {/* Opção 1: Reiniciar Status */}
+            <div className="p-3.5 rounded-xl bg-surface/50 border border-border/80 space-y-2 hover:border-primary/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 font-semibold text-xs text-foreground">
+                  <Kanban className="size-4 text-primary" />
+                  <span>Reiniciar Etapas para "Novo"</span>
+                </div>
+                <span className="text-[10px] rotulo text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                  Recomendado
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Mantém todos os estabelecimentos cadastrados na base, mas move todos eles de volta
+                para a primeira coluna ("Novo").
+              </p>
+              <Button
+                type="button"
+                onClick={executarReiniciarStatus}
+                disabled={processandoAcaoFunil}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs h-8 gap-1.5"
+              >
+                <RotateCcw className="size-3.5" />
+                {processandoAcaoFunil ? "Processando..." : "Reiniciar Estágios para 'Novo'"}
+              </Button>
+            </div>
+
+            {/* Opção 2: Limpar Tudo */}
+            <div className="p-3.5 rounded-xl bg-rose-500/5 border border-rose-500/20 space-y-2">
+              <div className="flex items-center gap-2 font-semibold text-xs text-rose-400">
+                <Trash2 className="size-4" />
+                <span>Excluir e Limpar Todos os Estabelecimentos</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Remove permanentemente todos os estabelecimentos do funil e da base de dados.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={executarLimparFunilCompleto}
+                disabled={processandoAcaoFunil}
+                className="w-full border-rose-500/30 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 font-semibold text-xs h-8 gap-1.5"
+              >
+                <Trash2 className="size-3.5" />
+                {processandoAcaoFunil ? "Excluindo..." : "Zerar e Excluir Estabelecimentos"}
+              </Button>
+            </div>
+          </div>
+
+          <DialogFooter className="pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setModalZerarFunilAberto(false)}
+              disabled={processandoAcaoFunil}
+              className="text-xs h-8 w-full sm:w-auto"
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

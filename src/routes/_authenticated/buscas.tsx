@@ -5,23 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { prospectaService } from "@/lib/prospecta-service";
 import type { BuscaItem } from "@/lib/leads-mock";
-import {
-  Map,
-  Search,
-  RotateCw,
-  Plus,
-  Calendar,
-  Layers,
-  Globe,
-  Compass,
-} from "lucide-react";
+import { Map, Search, RotateCw, Plus, Calendar, Layers, Globe, Compass } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/buscas")({
   head: () => ({
     meta: [
       { title: "Histórico de Buscas — Prospecta" },
-      { name: "description", content: "Registro de varreduras cartográficas realizadas no Google Places" },
+      {
+        name: "description",
+        content: "Registro de varreduras cartográficas realizadas no Google Places",
+      },
     ],
   }),
   component: PaginaBuscas,
@@ -53,7 +47,11 @@ export function PaginaBuscas() {
       titulo="Varreduras e Buscas Realizadas"
       descricao="Histórico das regiões e categorias já mapeadas na API Google Places"
       acoes={
-        <Button asChild size="sm" className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground">
+        <Button
+          asChild
+          size="sm"
+          className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground"
+        >
           <Link to="/nova-busca">
             <Plus className="size-3.5" />
             Nova Varredura
@@ -78,9 +76,10 @@ export function PaginaBuscas() {
               </thead>
               <tbody className="divide-y divide-border">
                 {buscas.map((b) => {
-                  const percSemSite = b.total_resultados > 0
-                    ? Math.round((b.total_sem_site / b.total_resultados) * 100)
-                    : 0;
+                  const percSemSite =
+                    b.total_resultados > 0
+                      ? Math.round((b.total_sem_site / b.total_resultados) * 100)
+                      : 0;
 
                   return (
                     <tr key={b.id} className="hover:bg-secondary/30 transition-colors">
@@ -97,9 +96,7 @@ export function PaginaBuscas() {
                         📍 {b.regiao || "Região metropolitana"}
                       </td>
 
-                      <td className="p-3 dado text-foreground font-medium">
-                        {b.raio_km} km
-                      </td>
+                      <td className="p-3 dado text-foreground font-medium">{b.raio_km} km</td>
 
                       <td className="p-3 dado text-foreground font-medium">
                         <span className="flex items-center gap-1">

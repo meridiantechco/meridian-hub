@@ -8,9 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prospectaService } from "@/lib/prospecta-service";
+import { auditoriaService } from "@/lib/auditoria-service";
 import type { InteracaoItem, LeadItem } from "@/lib/leads-mock";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -67,7 +74,9 @@ export function PaginaDetalheLead() {
   const [salvandoObs, setSalvandoObs] = useState(false);
 
   // Nova interação
-  const [tipoInteracao, setTipoInteracao] = useState<"whatsapp" | "ligacao" | "email" | "visita" | "outro">("whatsapp");
+  const [tipoInteracao, setTipoInteracao] = useState<
+    "whatsapp" | "ligacao" | "email" | "visita" | "outro"
+  >("whatsapp");
   const [descInteracao, setDescInteracao] = useState("");
   const [resInteracao, setResInteracao] = useState("");
   const [salvandoInteracao, setSalvandoInteracao] = useState(false);
@@ -110,6 +119,19 @@ export function PaginaDetalheLead() {
     if (!lead) return;
     await prospectaService.atualizarStatusLead(lead.id, novoStatus);
     setLead((prev) => (prev ? { ...prev, status: novoStatus } : null));
+
+    await auditoriaService.registrarAtividade({
+      tipo: "mudanca_status",
+      titulo: `Status: ${lead.nome} -> ${novoStatus.toUpperCase()}`,
+      descricao: `Status comercial de ${lead.nome} alterado para "${novoStatus.toUpperCase()}"`,
+      lead_id: lead.id,
+      lead_nome: lead.nome,
+      metadados: {
+        status_anterior: lead.status,
+        novo_status: novoStatus,
+      },
+    });
+
     toast.success(`Status alterado para ${novoStatus}`);
   };
 
@@ -126,6 +148,15 @@ export function PaginaDetalheLead() {
       tipo: tipoInteracao,
       descricao: descInteracao,
       resultado: resInteracao || null,
+    });
+
+    await auditoriaService.registrarAtividade({
+      tipo: "interacao",
+      titulo: `Interação (${tipoInteracao}): ${lead.nome}`,
+      descricao: `${descInteracao}${resInteracao ? ` · Resultado: ${resInteracao}` : ""}`,
+      lead_id: lead.id,
+      lead_nome: lead.nome,
+      metadados: { tipo: tipoInteracao, resultado: resInteracao },
     });
 
     setInteracoes((prev) => [nova, ...prev]);
@@ -190,13 +221,13 @@ export function PaginaDetalheLead() {
                 )}
               </div>
 
-              <h2 className="text-2xl font-bold font-display text-foreground">
-                {lead.nome}
-              </h2>
+              <h2 className="text-2xl font-bold font-display text-foreground">{lead.nome}</h2>
 
               <p className="text-xs text-muted-foreground dado">
-                📍 {lead.endereco || "Endereço não informado"} · {lead.bairro ? `${lead.bairro}, ` : ""}
-                {lead.cidade} - {lead.estado || "BA"}
+                📍 {lead.endereco || "Endereço não informado"} ·{" "}
+                {lead.bairro ? `${lead.bairro}, ` : ""}
+                {lead.cidade}
+                {lead.estado ? ` - ${lead.estado}` : ""}
               </p>
             </div>
 
@@ -332,7 +363,8 @@ export function PaginaDetalheLead() {
                       <MapPin className="size-4" />
                     </div>
                     <span className="text-[10px] rotulo text-muted-foreground">
-                      Lat: {lead.latitude?.toFixed(4) ?? "-12.9714"} | Lng: {lead.longitude?.toFixed(4) ?? "-38.5088"}
+                      Lat: {lead.latitude?.toFixed(4) ?? "-12.9714"} | Lng:{" "}
+                      {lead.longitude?.toFixed(4) ?? "-38.5088"}
                     </span>
                   </div>
                 </div>
@@ -384,14 +416,19 @@ export function PaginaDetalheLead() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* FORMULÁRIO DE NOVA INTERAÇÃO */}
-                <form onSubmit={adicionarInteracao} className="p-3.5 rounded-lg border border-border bg-surface/50 space-y-3">
+                <form
+                  onSubmit={adicionarInteracao}
+                  className="p-3.5 rounded-lg border border-border bg-surface/50 space-y-3"
+                >
                   <span className="text-xs font-semibold text-foreground block">
                     + Registrar Nova Interação
                   </span>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-1">
-                      <Label htmlFor="tipo" className="text-[11px]">Tipo de Contato</Label>
+                      <Label htmlFor="tipo" className="text-[11px]">
+                        Tipo de Contato
+                      </Label>
                       <Select
                         value={tipoInteracao}
                         onValueChange={(val) => setTipoInteracao(val as any)}
@@ -410,7 +447,9 @@ export function PaginaDetalheLead() {
                     </div>
 
                     <div className="sm:col-span-2 space-y-1">
-                      <Label htmlFor="resultado" className="text-[11px]">Resultado / Próximo Passo</Label>
+                      <Label htmlFor="resultado" className="text-[11px]">
+                        Resultado / Próximo Passo
+                      </Label>
                       <Input
                         id="resultado"
                         value={resInteracao}
@@ -422,7 +461,9 @@ export function PaginaDetalheLead() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label htmlFor="desc" className="text-[11px]">Resumo do que foi conversado</Label>
+                    <Label htmlFor="desc" className="text-[11px]">
+                      Resumo do que foi conversado
+                    </Label>
                     <Textarea
                       id="desc"
                       value={descInteracao}
@@ -484,7 +525,8 @@ export function PaginaDetalheLead() {
 
                   {interacoes.length === 0 && (
                     <p className="text-xs text-muted-foreground py-4">
-                      Nenhuma interação registrada ainda. Use o formulário acima para registrar contatos.
+                      Nenhuma interação registrada ainda. Use o formulário acima para registrar
+                      contatos.
                     </p>
                   )}
                 </div>

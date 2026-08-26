@@ -4,7 +4,7 @@ import {
   LayoutDashboard,
   ListFilter,
   LogOut,
-  Map as MapIcon,
+  History,
   Menu,
   Search,
   Kanban,
@@ -16,17 +16,14 @@ import {
   Command as CommandIcon,
   Sparkles,
   ExternalLink,
+  Radar,
+  Building2,
 } from "lucide-react";
 import { useState, useEffect, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,10 +58,10 @@ type ItemNav = {
 
 const itens: ItemNav[] = [
   { para: "/painel", rotulo: "Painel Comercial", icone: LayoutDashboard },
-  { para: "/nova-busca", rotulo: "Nova Busca", icone: Search, badge: "Radar" },
-  { para: "/leads", rotulo: "Base de Leads", icone: ListFilter },
+  { para: "/nova-busca", rotulo: "Detectar Empresas", icone: Radar, badge: "Scanner" },
+  { para: "/leads", rotulo: "Base de Estabelecimentos", icone: Building2 },
   { para: "/funil", rotulo: "Funil Comercial", icone: Kanban },
-  { para: "/buscas", rotulo: "Buscas Realizadas", icone: MapIcon },
+  { para: "/buscas", rotulo: "Histórico de Buscas", icone: History },
   { para: "/usuarios", rotulo: "Usuários", icone: Users, somenteAdmin: true },
 ];
 
@@ -168,7 +165,7 @@ export function AppShell({
         <aside
           className={cn(
             "fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-sidebar-border/80 bg-sidebar/95 backdrop-blur-xl transition-all duration-300 ease-in-out lg:flex",
-            colapsada ? "w-20" : "w-64"
+            colapsada ? "w-20" : "w-64",
           )}
         >
           {/* TOPO DA SIDEBAR: LOGO & BOTÃO TOGGLE */}
@@ -185,9 +182,9 @@ export function AppShell({
                     Prospecta
                   </p>
                   <p className="rotulo text-[10px] text-muted-foreground flex items-center gap-1">
-                    <span>12°58'S 38°30'W</span>
+                    <span>Scanner Nacional</span>
                     <span className="size-1 rounded-full bg-primary/60" />
-                    <span>BA</span>
+                    <span>BR</span>
                   </p>
                 </div>
               )}
@@ -245,7 +242,7 @@ export function AppShell({
                         "group relative flex items-center rounded-xl py-2.5 text-sm font-medium transition-all duration-150",
                         colapsada
                           ? "justify-center px-0 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                          : "gap-3 px-3 text-sidebar-foreground/75 hover:bg-sidebar-accent/80 hover:text-sidebar-foreground"
+                          : "gap-3 px-3 text-sidebar-foreground/75 hover:bg-sidebar-accent/80 hover:text-sidebar-foreground",
                       )}
                       activeProps={{
                         className: colapsada
@@ -256,7 +253,7 @@ export function AppShell({
                       <item.icone
                         className={cn(
                           "size-5 shrink-0 transition-transform group-hover:scale-110",
-                          "group-data-[state=active]:text-primary"
+                          "group-data-[state=active]:text-primary",
                         )}
                       />
 
@@ -280,7 +277,10 @@ export function AppShell({
                         <TooltipContent side="right" className="flex items-center gap-2">
                           <span>{item.rotulo}</span>
                           {item.badge && (
-                            <Badge variant="outline" className="text-[10px] py-0 px-1 border-primary/40 text-primary">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] py-0 px-1 border-primary/40 text-primary"
+                            >
                               {item.badge}
                             </Badge>
                           )}
@@ -305,7 +305,7 @@ export function AppShell({
                 <span className="text-[10px] font-mono text-emerald-400 font-bold">ATIVO</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Varredura geolocalizada ativa em Salvador e Região Metropolitana.
+                Varredura geolocalizada ativa para todas as cidades do Brasil.
               </p>
               <Button
                 variant="outline"
@@ -340,7 +340,11 @@ export function AppShell({
                   <TooltipContent side="right">Opções do Usuário</TooltipContent>
                 </Tooltip>
 
-                <DropdownMenuContent side="right" align="end" className="w-56 bg-card border-border p-2">
+                <DropdownMenuContent
+                  side="right"
+                  align="end"
+                  className="w-56 bg-card border-border p-2"
+                >
                   <DropdownMenuLabel className="font-normal">
                     <p className="font-semibold text-xs truncate">{nome || user?.email}</p>
                     <p className="text-[10px] text-muted-foreground capitalize flex items-center gap-1 mt-0.5">
@@ -348,7 +352,10 @@ export function AppShell({
                     </p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={sair} className="text-destructive focus:text-destructive text-xs cursor-pointer">
+                  <DropdownMenuItem
+                    onClick={sair}
+                    className="text-destructive focus:text-destructive text-xs cursor-pointer"
+                  >
                     <LogOut className="size-3.5 mr-2" /> Encerrar Sessão
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -362,7 +369,9 @@ export function AppShell({
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1 leading-tight">
-                    <p className="truncate text-xs font-bold text-foreground">{nome || user?.email}</p>
+                    <p className="truncate text-xs font-bold text-foreground">
+                      {nome || user?.email}
+                    </p>
                     <p className="truncate text-[10px] text-muted-foreground capitalize flex items-center gap-1">
                       <Shield className="size-2.5 text-primary" /> {papel ?? "operador"}
                     </p>
@@ -389,7 +398,7 @@ export function AppShell({
         <div
           className={cn(
             "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 lg:pb-0",
-            colapsada ? "lg:pl-20" : "lg:pl-64"
+            colapsada ? "lg:pl-20" : "lg:pl-64",
           )}
         >
           {/* HEADER PRINCIPAL (ESTILO HOMLU / VETRA COM BACKDROP BLUR) */}
@@ -398,11 +407,18 @@ export function AppShell({
             <div className="flex items-center gap-3 min-w-0">
               <Sheet open={mobileAberto} onOpenChange={setMobileAberto}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden size-9 border-border/80">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="lg:hidden size-9 border-border/80"
+                  >
                     <Menu className="size-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-72 bg-sidebar p-0 border-r border-sidebar-border">
+                <SheetContent
+                  side="left"
+                  className="w-72 bg-sidebar p-0 border-r border-sidebar-border"
+                >
                   <SheetTitle className="sr-only">Navegação Prospecta</SheetTitle>
                   <div className="flex items-center gap-2.5 border-b border-sidebar-border px-4 py-4">
                     <span className="flex size-9 items-center justify-center rounded-xl bg-primary/20 text-primary border border-primary/30">
@@ -423,7 +439,8 @@ export function AppShell({
                           onClick={() => setMobileAberto(false)}
                           className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                           activeProps={{
-                            className: "bg-sidebar-accent text-sidebar-foreground font-semibold border-l-2 border-l-primary",
+                            className:
+                              "bg-sidebar-accent text-sidebar-foreground font-semibold border-l-2 border-l-primary",
                           }}
                         >
                           <div className="flex items-center gap-3">
@@ -431,7 +448,10 @@ export function AppShell({
                             <span>{item.rotulo}</span>
                           </div>
                           {item.badge && (
-                            <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] border-primary/40 text-primary"
+                            >
                               {item.badge}
                             </Badge>
                           )}
@@ -442,7 +462,12 @@ export function AppShell({
                   <div className="absolute bottom-0 inset-x-0 border-t border-sidebar-border p-4 bg-sidebar">
                     <p className="rotulo text-[10px]">Usuário Ativo</p>
                     <p className="truncate text-xs font-semibold">{nome || user?.email}</p>
-                    <Button variant="ghost" size="sm" className="mt-2 w-full justify-start text-xs text-destructive hover:bg-destructive/10" onClick={sair}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-2 w-full justify-start text-xs text-destructive hover:bg-destructive/10"
+                      onClick={sair}
+                    >
                       <LogOut className="size-3.5 mr-2" /> Sair
                     </Button>
                   </div>
@@ -482,7 +507,7 @@ export function AppShell({
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full size-2 bg-emerald-500" />
                 </span>
-                <span>Salvador · Radar Online</span>
+                <span>Brasil · Radar Online</span>
               </div>
 
               {/* Slot de Ações da Página */}
@@ -593,4 +618,3 @@ export function AppShell({
     </TooltipProvider>
   );
 }
-

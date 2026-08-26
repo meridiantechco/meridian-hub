@@ -64,7 +64,8 @@ export function obterClassificacaoScore(score: number): {
       nivel: "alta",
       rotulo: "Prioridade Alta",
       classeCor: "text-[var(--color-alerta)]",
-      classeBadge: "bg-[var(--color-alerta)]/15 text-[var(--color-alerta)] border-[var(--color-alerta)]/30",
+      classeBadge:
+        "bg-[var(--color-alerta)]/15 text-[var(--color-alerta)] border-[var(--color-alerta)]/30",
       classeBorda: "border-l-[var(--color-alerta)]",
     };
   }

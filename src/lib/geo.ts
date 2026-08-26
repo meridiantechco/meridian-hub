@@ -6,7 +6,7 @@ export function calcularDistanciaKm(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const R = 6371; // Raio médio da Terra em km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;

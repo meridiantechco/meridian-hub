@@ -18,15 +18,15 @@ export function BadgePrioridade({
     nivel === "alta"
       ? "bg-[var(--color-alerta)]"
       : nivel === "media"
-      ? "bg-amber-400"
-      : "bg-[var(--color-novo)]";
+        ? "bg-amber-400"
+        : "bg-[var(--color-novo)]";
 
   return (
     <div className={cn("inline-flex flex-col gap-1", className)}>
       <span
         className={cn(
           "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium tracking-tight dado",
-          classeBadge
+          classeBadge,
         )}
       >
         <span className="size-1.5 rounded-full bg-current opacity-90" />

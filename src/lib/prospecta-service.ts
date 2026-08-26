@@ -1,33 +1,21 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import { BUSCAS_DEMO, INTERACOES_DEMO, LEADS_DEMO, type BuscaItem, type InteracaoItem, type LeadItem } from "./leads-mock";
+import { type BuscaItem, type InteracaoItem, type LeadItem } from "./leads-mock";
 import { calcularScoreLead } from "./score";
 
-const STORAGE_KEY_LEADS = "prospecta_leads_v3";
-const STORAGE_KEY_BUSCAS = "prospecta_buscas_v3";
-const STORAGE_KEY_INTERACOES = "prospecta_interacoes_v3";
+const STORAGE_KEY_LEADS = "prospecta_leads_v4";
+const STORAGE_KEY_BUSCAS = "prospecta_buscas_v4";
+const STORAGE_KEY_INTERACOES = "prospecta_interacoes_v4";
 
-function obterDoStorage<T extends { id?: string }>(chave: string, padrao: T[]): T[] {
+function obterDoStorage<T>(chave: string, padrao: T[] = []): T[] {
   if (typeof window === "undefined") return padrao;
   try {
     const raw = localStorage.getItem(chave);
     if (!raw) {
-      localStorage.setItem(chave, JSON.stringify(padrao));
       return padrao;
     }
     const guardados = JSON.parse(raw) as T[];
-    if (guardados && guardados.length > 0) {
-      const guardadosIds = new Set(guardados.map((g) => g.id).filter(Boolean));
-      const faltantes = padrao.filter((p) => p.id && !guardadosIds.has(p.id));
-      if (faltantes.length > 0) {
-        const combinados = [...guardados, ...faltantes];
-        localStorage.setItem(chave, JSON.stringify(combinados));
-        return combinados;
-      }
-      return guardados;
-    }
-    localStorage.setItem(chave, JSON.stringify(padrao));
-    return padrao;
+    return Array.isArray(guardados) ? guardados : padrao;
   } catch {
     return padrao;
   }
@@ -51,139 +39,38 @@ export const prospectaService = {
         .select("*")
         .order("criado_em", { ascending: false });
 
-      if (!error && data && data.length > 0) {
-        const guardadosIds = new Set(data.map((g) => g.id));
-        const faltantes = LEADS_DEMO.filter((p) => !guardadosIds.has(p.id));
-        const combinados = [...(data as LeadItem[]), ...faltantes];
-        salvarNoStorage(STORAGE_KEY_LEADS, combinados);
-        return combinados;
-      }
-    } catch {
-      // continua para fallback
-    }
-
-    return obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, LEADS_DEMO);
-  },
-
-  // BUSCA POR BOUNDING BOX ESTILO AIRBNB (Com RPC PostGIS e Fallback Local)
-  async buscarLeadsPorBounds(
-    params: {
-      swLat: number;
-      swLng: number;
-      neLat: number;
-      neLng: number;
-      categoria?: string;
-      status?: string;
-      apenasSemSite?: boolean;
-      scoreMinimo?: number;
-      termo?: string;
-      limite?: number;
-    },
-    signal?: AbortSignal
-  ): Promise<LeadItem[]> {
-    const {
-      swLat,
-      swLng,
-      neLat,
-      neLng,
-      categoria,
-      status,
-      apenasSemSite,
-      scoreMinimo,
-      termo,
-      limite = 200,
-    } = params;
-
-    try {
-      // 1. Chamar RPC no Supabase
-      const query = (supabase as any)
-        .rpc("buscar_leads_bounds", {
-          sw_lat: swLat,
-          sw_lng: swLng,
-          ne_lat: neLat,
-          ne_lng: neLng,
-          filtro_categoria: categoria && categoria !== "todas" ? categoria : null,
-          filtro_status: status && status !== "todos" ? status : null,
-          filtro_apenas_sem_site: apenasSemSite ?? null,
-          filtro_score_minimo: scoreMinimo ?? null,
-          filtro_termo: termo?.trim() ? termo.trim() : null,
-          limite,
-        });
-
-      if (signal) {
-        query.abortSignal(signal);
-      }
-
-      const { data, error } = await query;
-
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
+        salvarNoStorage(STORAGE_KEY_LEADS, data as LeadItem[]);
         return data as LeadItem[];
       }
-    } catch (err: any) {
-      if (err?.name === "AbortError" || signal?.aborted) {
-        throw err;
-      }
-      // Fallback para dados locais
+    } catch {
+      // continua para fallback do storage local
     }
 
-    // 2. Fallback local / demo com Bounding Box exato
-    const todosLeads = await this.listarLeads();
-    return todosLeads
-      .filter((l) => {
-        const lat = l.latitude;
-        const lng = l.longitude;
-        if (lat == null || lng == null) return false;
-
-        // Bounding Box
-        if (lat < swLat || lat > neLat || lng < swLng || lng > neLng) return false;
-
-        // Filtros combinados
-        if (categoria && categoria !== "todas" && l.categoria !== categoria) return false;
-        if (status && status !== "todos" && l.status !== status) return false;
-        if (apenasSemSite && l.tem_site) return false;
-        if (scoreMinimo != null && l.score < scoreMinimo) return false;
-        if (termo?.trim()) {
-          const t = termo.toLowerCase();
-          const matchNome = l.nome.toLowerCase().includes(t);
-          const matchCat = (l.categoria || "").toLowerCase().includes(t);
-          const matchBairro = (l.bairro || "").toLowerCase().includes(t);
-          if (!matchNome && !matchCat && !matchBairro) return false;
-        }
-
-        return true;
-      })
-      .slice(0, limite);
+    return obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, []);
   },
 
   async obterLeadPorId(id: string): Promise<LeadItem | null> {
     try {
-      const { data, error } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
-
+      const { data, error } = await supabase.from("leads").select("*").eq("id", id).maybeSingle();
       if (!error && data) return data as LeadItem;
     } catch {
-      // fallback
+      // fallback local
     }
 
-    const lista = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, LEADS_DEMO);
+    const lista = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, []);
     return lista.find((l) => l.id === id) ?? null;
   },
 
   async atualizarStatusLead(id: string, status: LeadItem["status"]): Promise<void> {
     const agora = new Date().toISOString();
     try {
-      await supabase
-        .from("leads")
-        .update({ status, atualizado_em: agora })
-        .eq("id", id);
+      await supabase.from("leads").update({ status, atualizado_em: agora }).eq("id", id);
     } catch {
       // continua para atualizar local
     }
 
-    const lista = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, LEADS_DEMO);
+    const lista = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, []);
     const index = lista.findIndex((l) => l.id === id);
     if (index !== -1) {
       const item = lista[index]!;
@@ -192,7 +79,10 @@ export const prospectaService = {
     }
   },
 
-  async atualizarLead(id: string, campos: Partial<TablesUpdate<"leads">>): Promise<LeadItem | null> {
+  async atualizarLead(
+    id: string,
+    campos: Partial<TablesUpdate<"leads">>,
+  ): Promise<LeadItem | null> {
     const agora = new Date().toISOString();
     try {
       const { data } = await supabase
@@ -203,7 +93,7 @@ export const prospectaService = {
         .maybeSingle();
 
       if (data) {
-        const lista = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, LEADS_DEMO);
+        const lista = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, []);
         const index = lista.findIndex((l) => l.id === id);
         if (index !== -1) {
           lista[index] = data as LeadItem;
@@ -215,7 +105,7 @@ export const prospectaService = {
       // fallback local
     }
 
-    const lista = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, LEADS_DEMO);
+    const lista = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, []);
     const index = lista.findIndex((l) => l.id === id);
     if (index !== -1) {
       const item = lista[index]!;
@@ -231,7 +121,22 @@ export const prospectaService = {
     return null;
   },
 
-  async salvarNovosLeads(novosLeads: TablesInsert<"leads">[], dadosBusca?: TablesInsert<"buscas">): Promise<{ importados: number }> {
+  async removerLead(id: string): Promise<boolean> {
+    try {
+      await supabase.from("leads").delete().eq("id", id);
+    } catch {
+      // fallback local
+    }
+    const lista = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, []);
+    const novaLista = lista.filter((l) => l.id !== id);
+    salvarNoStorage(STORAGE_KEY_LEADS, novaLista);
+    return true;
+  },
+
+  async salvarNovosLeads(
+    novosLeads: TablesInsert<"leads">[],
+    dadosBusca?: TablesInsert<"buscas">,
+  ): Promise<{ importados: number }> {
     // 1. Salvar no Supabase se possível
     let importados = 0;
     try {
@@ -240,21 +145,18 @@ export const prospectaService = {
       }
 
       if (novosLeads.length > 0) {
-        const { data, error } = await supabase
-          .from("leads")
-          .insert(novosLeads)
-          .select();
+        const { data, error } = await supabase.from("leads").insert(novosLeads).select();
 
         if (!error && data) {
           importados = data.length;
         }
       }
     } catch (e) {
-      console.warn("Supabase insert falhou, salvando localmente", e);
+      console.warn("Supabase insert falhou, sincronizando localmente", e);
     }
 
     // 2. Sincronizar storage local
-    const listaAtual = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, LEADS_DEMO);
+    const listaAtual = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, []);
     const leadsFormatados: LeadItem[] = novosLeads.map((nl) => ({
       id: nl.id ?? `lead-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       nome: nl.nome,
@@ -285,14 +187,17 @@ export const prospectaService = {
 
     // Prevenir duplicatas por place_id
     const novosFiltrados = leadsFormatados.filter(
-      (novo) => !listaAtual.some((existente) => Boolean(existente.place_id && existente.place_id === novo.place_id))
+      (novo) =>
+        !listaAtual.some((existente) =>
+          Boolean(existente.place_id && existente.place_id === novo.place_id),
+        ),
     );
 
     const listaFinal = [...novosFiltrados, ...listaAtual];
     salvarNoStorage(STORAGE_KEY_LEADS, listaFinal);
 
     if (dadosBusca) {
-      const buscasAtuais = obterDoStorage<BuscaItem>(STORAGE_KEY_BUSCAS, BUSCAS_DEMO);
+      const buscasAtuais = obterDoStorage<BuscaItem>(STORAGE_KEY_BUSCAS, []);
       const novaBusca: BuscaItem = {
         id: dadosBusca.id ?? `busca-${Date.now()}`,
         termo_busca: dadosBusca.termo_busca,
@@ -326,7 +231,7 @@ export const prospectaService = {
       // fallback
     }
 
-    return obterDoStorage<BuscaItem>(STORAGE_KEY_BUSCAS, BUSCAS_DEMO);
+    return obterDoStorage<BuscaItem>(STORAGE_KEY_BUSCAS, []);
   },
 
   // INTERAÇÕES
@@ -345,7 +250,7 @@ export const prospectaService = {
       // fallback
     }
 
-    const interacoes = obterDoStorage<InteracaoItem>(STORAGE_KEY_INTERACOES, INTERACOES_DEMO);
+    const interacoes = obterDoStorage<InteracaoItem>(STORAGE_KEY_INTERACOES, []);
     return interacoes.filter((i) => i.lead_id === leadId);
   },
 
@@ -366,16 +271,57 @@ export const prospectaService = {
       // fallback
     }
 
-    const lista = obterDoStorage<InteracaoItem>(STORAGE_KEY_INTERACOES, INTERACOES_DEMO);
+    const lista = obterDoStorage<InteracaoItem>(STORAGE_KEY_INTERACOES, []);
     salvarNoStorage(STORAGE_KEY_INTERACOES, [nova, ...lista]);
     return nova;
   },
 
-  // REINICIAR DADOS DE DEMONSTRAÇÃO
-  restaurarDemo(): void {
+  /**
+   * Zera completamente a base de estabelecimentos (deleta todos os leads cadastrados)
+   */
+  async zerarBaseLeads(): Promise<number> {
+    const listaAtual = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, []);
+    const total = listaAtual.length;
+
+    try {
+      await supabase.from("interacoes").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("leads").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    } catch (e) {
+      console.warn("Falha ao zerar no Supabase, limpando localmente:", e);
+    }
+
+    salvarNoStorage(STORAGE_KEY_LEADS, []);
+    salvarNoStorage(STORAGE_KEY_INTERACOES, []);
+    return total;
+  },
+
+  /**
+   * Reinicia o funil de vendas (move todos os estabelecimentos para o estágio 'Novo')
+   */
+  async reiniciarFunilLeads(): Promise<number> {
+    const agora = new Date().toISOString();
+    try {
+      await supabase
+        .from("leads")
+        .update({ status: "novo", atualizado_em: agora })
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+    } catch (e) {
+      console.warn("Falha ao reiniciar funil no Supabase, atualizando localmente:", e);
+    }
+
+    const lista = obterDoStorage<LeadItem>(STORAGE_KEY_LEADS, []);
+    const atualizados = lista.map((l) => ({ ...l, status: "novo" as const, atualizado_em: agora }));
+    salvarNoStorage(STORAGE_KEY_LEADS, atualizados);
+    return lista.length;
+  },
+
+  limparDadosLocais(): void {
     if (typeof window === "undefined") return;
-    localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(LEADS_DEMO));
-    localStorage.setItem(STORAGE_KEY_BUSCAS, JSON.stringify(BUSCAS_DEMO));
-    localStorage.setItem(STORAGE_KEY_INTERACOES, JSON.stringify(INTERACOES_DEMO));
+    localStorage.removeItem(STORAGE_KEY_LEADS);
+    localStorage.removeItem(STORAGE_KEY_BUSCAS);
+    localStorage.removeItem(STORAGE_KEY_INTERACOES);
+    localStorage.removeItem("prospecta_leads_v3");
+    localStorage.removeItem("prospecta_buscas_v3");
+    localStorage.removeItem("prospecta_interacoes_v3");
   },
 };

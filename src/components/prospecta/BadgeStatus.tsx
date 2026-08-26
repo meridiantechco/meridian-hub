@@ -46,7 +46,7 @@ export function BadgeStatus({
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium tracking-tight",
         cfg.classe,
-        className
+        className,
       )}
     >
       <span className={cn("size-1.5 rounded-full", cfg.corPonto)} />
