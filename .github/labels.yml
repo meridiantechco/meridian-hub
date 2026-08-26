@@ -1,0 +1,31 @@
+- name: "bug"
+  color: "DC2626"
+  description: "Problema, falha de execução ou comportamento incorreto na aplicação"
+
+- name: "enhancement"
+  color: "2563EB"
+  description: "Melhoria incremental em funcionalidade ou componente existente"
+
+- name: "feature"
+  color: "0284C7"
+  description: "Nova funcionalidade, tela ou integração"
+
+- name: "architecture"
+  color: "4F46E5"
+  description: "Refatoração estrutural, Clean Architecture ou SOLID"
+
+- name: "ui/ux"
+  color: "0EA5E9"
+  description: "Design System, acessibilidade, tokens de estilo e layouts"
+
+- name: "supabase"
+  color: "10B981"
+  description: "Migrações SQL, RLS, banco de dados e integrações server-side"
+
+- name: "security"
+  color: "7C3AED"
+  description: "Relatórios ou melhorias de segurança e autenticação"
+
+- name: "documentation"
+  color: "64748B"
+  description: "Atualizações de documentação, manuais e diretrizes"
