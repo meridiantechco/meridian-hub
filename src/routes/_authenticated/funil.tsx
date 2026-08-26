@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { prospectaService } from "@/lib/prospecta-service";
 import { auditoriaService } from "@/lib/auditoria-service";
+import { financeiroService } from "@/lib/financeiro-service";
 import type { LeadItem } from "@/lib/leads-mock";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -31,6 +32,7 @@ import {
   Trash2,
   AlertTriangle,
   Kanban,
+  Instagram,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -59,9 +61,9 @@ const COLUNAS: ColunaDef[] = [
   {
     id: "novo",
     titulo: "Novos",
-    corBorda: "border-t-blue-500",
-    corBadge: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-    corFundoHover: "hover:bg-blue-500/5",
+    corBorda: "border-t-purple-400",
+    corBadge: "bg-purple-500/15 text-purple-300 border-purple-500/30",
+    corFundoHover: "hover:bg-purple-500/5",
   },
   {
     id: "contatado",
@@ -73,9 +75,9 @@ const COLUNAS: ColunaDef[] = [
   {
     id: "proposta",
     titulo: "Proposta Enviada",
-    corBorda: "border-t-purple-500",
-    corBadge: "bg-purple-500/15 text-purple-300 border-purple-500/30",
-    corFundoHover: "hover:bg-purple-500/5",
+    corBorda: "border-t-purple-600",
+    corBadge: "bg-purple-600/25 text-purple-200 border-purple-500/50",
+    corFundoHover: "hover:bg-purple-600/10",
   },
   {
     id: "fechado",
@@ -204,7 +206,26 @@ export function PaginaFunil() {
       },
     });
 
-    toast.success(`Estágio alterado para "${novoStatus}"`);
+    if (novoStatus === "fechado" && leadAlvo) {
+      toast.success(`🎉 Contrato Fechado com ${leadAlvo.nome}!`, {
+        description: "Deseja lançar a receita deste contrato no Financeiro?",
+        action: {
+          label: "Lançar Receita",
+          onClick: () => {
+            void financeiroService.registrarReceitaLeadFechado(
+              leadAlvo.id,
+              leadAlvo.nome,
+              2500.0,
+              "venda_site",
+              "pontual",
+            );
+            toast.success(`Receita de R$ 2.500,00 lançada no Financeiro para ${leadAlvo.nome}!`);
+          },
+        },
+      });
+    } else {
+      toast.success(`Estágio alterado para "${novoStatus}"`);
+    }
   };
 
   // Funções de Drag & Drop
@@ -358,6 +379,18 @@ export function PaginaFunil() {
                           </span>
                         ) : (
                           <span className="text-muted-foreground">Com site</span>
+                        )}
+
+                        {lead.instagram && (
+                          <a
+                            href={`https://instagram.com/${lead.instagram}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-pink-400 hover:text-pink-300 flex items-center gap-0.5 font-mono"
+                            title={`Instagram: @${lead.instagram}`}
+                          >
+                            <Instagram className="size-2.5" /> @{lead.instagram}
+                          </a>
                         )}
 
                         {lead.avaliacao_google && (

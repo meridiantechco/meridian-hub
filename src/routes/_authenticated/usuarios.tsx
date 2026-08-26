@@ -55,6 +55,7 @@ import {
   TrendingUp,
   AlertCircle,
   Building2,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -82,6 +83,7 @@ const ICONES_ATIVIDADE: Record<TipoAtividade, any> = {
   usuario_criado: UserPlus,
   usuario_papel: Shield,
   primeiro_acesso: KeyRound,
+  financeiro: Wallet,
   login: ShieldCheck,
 };
 
@@ -95,6 +97,7 @@ const CORES_ATIVIDADE: Record<TipoAtividade, string> = {
   usuario_criado: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
   usuario_papel: "text-amber-400 bg-amber-500/10 border-amber-500/30",
   primeiro_acesso: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+  financeiro: "text-pink-400 bg-pink-500/10 border-pink-500/30",
   login: "text-muted-foreground bg-secondary border-border",
 };
 

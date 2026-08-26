@@ -7,11 +7,13 @@ import { ModalMensagemWhatsApp } from "@/components/prospecta/ModalMensagemWhats
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prospectaService } from "@/lib/prospecta-service";
+import { financeiroService, type MetricasFinanceiras } from "@/lib/financeiro-service";
 import type { LeadItem } from "@/lib/leads-mock";
 import {
   Users,
   Globe,
   TrendingUp,
+  TrendingDown,
   Award,
   Search,
   MessageSquare,
@@ -28,6 +30,9 @@ import {
   Building2,
   AlertCircle,
   Plus,
+  Instagram,
+  Wallet,
+  PiggyBank,
 } from "lucide-react";
 import {
   BarChart,
@@ -44,8 +49,11 @@ import {
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
-      { title: "Painel Comercial — Prospecta" },
-      { name: "description", content: "Visão geral da prospecção de estabelecimentos sem site" },
+      { title: "Painel Comercial & Lucratividade — Prospecta" },
+      {
+        name: "description",
+        content: "Visão geral da prospecção de estabelecimentos sem site e controle financeiro",
+      },
     ],
   }),
   component: PaginaPainel,
@@ -53,14 +61,19 @@ export const Route = createFileRoute("/_authenticated/painel")({
 
 export function PaginaPainel() {
   const [leads, setLeads] = useState<LeadItem[]>([]);
+  const [metricasFin, setMetricasFin] = useState<MetricasFinanceiras | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [leadParaWhatsApp, setLeadParaWhatsApp] = useState<LeadItem | null>(null);
   const [modalWhatsAppAberto, setModalWhatsAppAberto] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
-    const lista = await prospectaService.listarLeads();
-    setLeads(lista);
+    const [listaLeads, listaTx] = await Promise.all([
+      prospectaService.listarLeads(),
+      financeiroService.listarTransacoes(),
+    ]);
+    setLeads(listaLeads);
+    setMetricasFin(financeiroService.calcularMetricas(listaTx));
     setCarregando(false);
   };
 
@@ -68,7 +81,15 @@ export function PaginaPainel() {
     void carregarDados();
   }, []);
 
-  // Métricas
+  // Formatação de moeda
+  const formatarMoeda = (val: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(val);
+  };
+
+  // Métricas comerciais
   const totalLeads = leads.length;
   const leadsSemSite = leads.filter((l) => !l.tem_site).length;
   const percSemSite = totalLeads > 0 ? Math.round((leadsSemSite / totalLeads) * 100) : 0;
@@ -118,11 +139,11 @@ export function PaginaPainel() {
   // Dados para Funil
   const dadosFunil = useMemo(() => {
     const etapas = [
-      { status: "novo", nome: "Novos", cor: "#5B8CFF" },
-      { status: "contatado", nome: "Contatados", cor: "#F59E0B" },
-      { status: "proposta", nome: "Propostas", cor: "#A855F7" },
-      { status: "fechado", nome: "Fechados", cor: "#3ECF8E" },
-      { status: "recusado", nome: "Recusados", cor: "#F43F5E" },
+      { status: "novo", nome: "Novos", cor: "#c084fc" },
+      { status: "contatado", nome: "Contatados", cor: "#f59e0b" },
+      { status: "proposta", nome: "Propostas", cor: "#a855f7" },
+      { status: "fechado", nome: "Fechados", cor: "#34d399" },
+      { status: "recusado", nome: "Recusados", cor: "#f43f5e" },
     ];
 
     return etapas.map((e) => ({
@@ -135,7 +156,7 @@ export function PaginaPainel() {
   return (
     <AppShell
       titulo="Painel Comercial"
-      descricao="Monitoramento de estabelecimentos minerados, oportunidades sem site e taxas de conversão"
+      descricao="Monitoramento de estabelecimentos minerados, oportunidades sem site, lucratividade real e taxas de conversão"
       acoes={
         <div className="flex items-center gap-2">
           <Button
@@ -169,7 +190,7 @@ export function PaginaPainel() {
               <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider rotulo">
                 Total de Estabelecimentos
               </CardTitle>
-              <div className="size-9 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center shadow-sm">
+              <div className="size-9 rounded-xl bg-purple-500/10 text-primary border border-purple-500/20 flex items-center justify-center shadow-sm">
                 <Building2 className="size-4" />
               </div>
             </CardHeader>
@@ -243,31 +264,52 @@ export function PaginaPainel() {
           </Card>
         </div>
 
-        {/* BANNER RÁPIDO DE SCANNER */}
-        <div className="rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 via-card to-card p-5 shadow-elev flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Radar className="size-4 text-primary animate-pulse" />
-              <h3 className="text-base font-bold text-foreground font-display">
-                Detecção Rápida de Estabelecimentos
-              </h3>
+        {/* WIDGET DE GESTÃO FINANCEIRA & LUCRO (DESTAQUE) */}
+        {metricasFin && (
+          <div className="rounded-2xl border border-primary/40 bg-gradient-to-r from-primary/15 via-card to-card p-5 shadow-elev flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <Wallet className="size-5 text-primary" />
+                <h3 className="text-base font-bold text-foreground font-display flex items-center gap-2">
+                  Gestão Financeira & Apuração de Lucro
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-mono">
+                    Margem: {metricasFin.margemLucroPercentual}%
+                  </span>
+                </h3>
+              </div>
+              <p className="text-xs text-muted-foreground max-w-2xl">
+                Controle integral de todos os tipos de gastos (Google Places API, Servidores,
+                WhatsApp, Equipe, Impostos) vs. Contratos faturados.
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground max-w-2xl">
-              Execute novas varreduras automatizadas no Google Places para descobrir novos
-              estabelecimentos sem site e gerar contatos imediatos.
-            </p>
-          </div>
 
-          <Button
-            asChild
-            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-9 px-4 gap-2 font-semibold shrink-0"
-          >
-            <Link to="/nova-busca">
-              <Search className="size-3.5" />
-              Iniciar Detecção
-            </Link>
-          </Button>
-        </div>
+            <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
+              <div className="text-right">
+                <p className="rotulo text-[10px]">Lucro Líquido Real</p>
+                <p className="text-xl font-bold font-display text-emerald-400 dado">
+                  {formatarMoeda(metricasFin.lucroLiquido)}
+                </p>
+              </div>
+
+              <div className="text-right">
+                <p className="rotulo text-[10px]">Gastos Totais</p>
+                <p className="text-xl font-bold font-display text-pink-400 dado">
+                  {formatarMoeda(metricasFin.despesaTotal)}
+                </p>
+              </div>
+
+              <Button
+                asChild
+                className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-9 px-4 gap-1.5 font-semibold shrink-0"
+              >
+                <Link to="/financeiro">
+                  Acessar Financeiro
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* GRÁFICOS: CATEGORIAS + FUNIL */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -288,13 +330,13 @@ export function PaginaPainel() {
                   >
                     <XAxis
                       dataKey="categoria"
-                      stroke="#888888"
+                      stroke="#a19cb2"
                       fontSize={11}
                       tickLine={false}
                       axisLine={false}
                     />
                     <YAxis
-                      stroke="#888888"
+                      stroke="#a19cb2"
                       fontSize={11}
                       tickLine={false}
                       axisLine={false}
@@ -302,10 +344,10 @@ export function PaginaPainel() {
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#1A2226",
-                        borderColor: "#2B363B",
+                        backgroundColor: "#161224",
+                        borderColor: "#3b2f5c",
                         borderRadius: "8px",
-                        color: "#EDF1F2",
+                        color: "#ffffff",
                         fontSize: "12px",
                       }}
                       formatter={(val: number, name: string) => [
@@ -317,13 +359,8 @@ export function PaginaPainel() {
                         return item?.categoriaCompleta || "";
                       }}
                     />
-                    <Bar dataKey="total" fill="#2B363B" radius={[4, 4, 0, 0]} name="Total" />
-                    <Bar
-                      dataKey="semSite"
-                      fill="var(--color-alerta)"
-                      radius={[4, 4, 0, 0]}
-                      name="Sem site"
-                    />
+                    <Bar dataKey="total" fill="#2b2244" radius={[4, 4, 0, 0]} name="Total" />
+                    <Bar dataKey="semSite" fill="#a855f7" radius={[4, 4, 0, 0]} name="Sem site" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -339,13 +376,13 @@ export function PaginaPainel() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4 pt-2">
+              <div className="space-y-4">
                 {dadosFunil.map((etapa) => {
                   const perc = totalLeads > 0 ? (etapa.quantidade / totalLeads) * 100 : 0;
                   return (
-                    <div key={etapa.name} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium flex items-center gap-2">
+                    <div key={etapa.name} className="space-y-1">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span className="flex items-center gap-2">
                           <span
                             className="size-2.5 rounded-full"
                             style={{ backgroundColor: etapa.cor }}
@@ -378,7 +415,7 @@ export function PaginaPainel() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Flame className="size-4 text-[var(--color-alerta)] fill-[var(--color-alerta)]" />
+                <Flame className="size-4 text-primary fill-primary" />
                 Oportunidades Mais Quentes
               </CardTitle>
               <CardDescription className="text-xs">
@@ -451,12 +488,6 @@ export function PaginaPainel() {
                   </div>
                 </div>
               ))}
-
-              {leadsMaisQuentes.length === 0 && (
-                <div className="col-span-full py-8 text-center text-xs text-muted-foreground">
-                  Nenhum lead novo pendente de abordagem no momento.
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -511,15 +542,23 @@ export function PaginaPainel() {
                         {item.bairro || item.cidade || "—"}
                       </td>
                       <td className="p-3">
-                        {!item.tem_site ? (
-                          <span className="inline-flex items-center gap-1 rounded bg-[var(--color-alerta)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-alerta)]">
-                            <AlertCircle className="size-2.5" /> Sem site
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground">
-                            <Globe className="size-2.5" /> Com site
-                          </span>
-                        )}
+                        <div className="space-y-0.5">
+                          {!item.tem_site ? (
+                            <span className="inline-flex items-center gap-1 rounded bg-purple-500/15 px-2 py-0.5 text-[10px] font-semibold text-purple-300 border border-purple-500/30">
+                              <AlertCircle className="size-2.5" /> Sem site
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground">
+                              <Globe className="size-2.5" /> Com site
+                            </span>
+                          )}
+
+                          {item.instagram && (
+                            <p className="text-[10px] text-pink-400 font-mono flex items-center gap-0.5">
+                              <Instagram className="size-2.5" /> @{item.instagram}
+                            </p>
+                          )}
+                        </div>
                       </td>
                       <td className="p-3">
                         <BadgePrioridade score={item.score} />
@@ -542,14 +581,6 @@ export function PaginaPainel() {
                       </td>
                     </tr>
                   ))}
-
-                  {leadsRecentes.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="p-6 text-center text-xs text-muted-foreground">
-                        Nenhum estabelecimento cadastrado. Inicie uma nova busca.
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             </div>
@@ -557,7 +588,6 @@ export function PaginaPainel() {
         </Card>
       </div>
 
-      {/* Modal de Envio WhatsApp */}
       <ModalMensagemWhatsApp
         lead={leadParaWhatsApp}
         aberto={modalWhatsAppAberto}

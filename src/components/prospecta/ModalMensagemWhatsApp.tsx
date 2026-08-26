@@ -36,6 +36,7 @@ export function ModalMensagemWhatsApp({
           nomeEmpresa: lead.nome,
           categoria: lead.categoria,
           cidadeOuBairro: lead.bairro || lead.cidade,
+          instagram: lead.instagram,
         })
       : "",
   );
@@ -50,6 +51,7 @@ export function ModalMensagemWhatsApp({
           nomeEmpresa: lead.nome,
           categoria: lead.categoria,
           cidadeOuBairro: lead.bairro || lead.cidade,
+          instagram: lead.instagram,
         }),
       );
     }
@@ -64,6 +66,7 @@ export function ModalMensagemWhatsApp({
         nomeEmpresa: lead.nome,
         categoria: lead.categoria,
         cidadeOuBairro: lead.bairro || lead.cidade,
+        instagram: lead.instagram,
       }),
     );
   };

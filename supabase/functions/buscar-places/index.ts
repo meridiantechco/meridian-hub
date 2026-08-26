@@ -11,38 +11,340 @@ interface RequestBody {
   raio_km?: number;
 }
 
-const REDES_SOCIAIS_DOMINIOS = [
+const DOMINIOS_NAO_SITE = [
   "instagram.com",
+  "instagr.am",
+  "ig.me",
+  "threads.net",
   "facebook.com",
   "fb.com",
+  "fb.me",
+  "m.facebook.com",
+  "web.facebook.com",
   "linktr.ee",
+  "beacons.ai",
+  "taplink.cc",
+  "taplink.bio",
+  "bio.site",
+  "instabio.cc",
+  "msha.ke",
+  "heylink.me",
+  "flow.page",
+  "linkr.bio",
+  "solo.to",
+  "campsite.bio",
+  "myslink.app",
+  "hub.me",
+  "vlink.bio",
+  "linklist.bio",
+  "meulink.app",
+  "bio.link",
   "wa.me",
   "api.whatsapp.com",
+  "chat.whatsapp.com",
+  "whatsapp.com",
   "tiktok.com",
   "linkedin.com",
   "twitter.com",
   "x.com",
   "smartbarbers.com.br",
   "agendamento",
-  "hub.me",
+  "trinks.com.br",
+  "avec.app",
+  "ifood.com.br",
+  "rappi.com.br",
+  "ubereats.com",
+  "pedir.delivery",
+  "cardapio.to",
+  "ola.click",
+  "cardapiodigital.io",
+  "menudino.com",
+  "deliverydireto.com.br",
+  "anota.ai",
+  "doctoralia.com.br",
+  "guiamais.com.br",
+  "telelistas.net",
+  "apontador.com.br",
+  "tripadvisor.com",
+  "tripadvisor.com.br",
+  "sympla.com.br",
+  "eventbrite.com",
+  "bit.ly",
+  "tinyurl.com",
+  "encurtador.com.br",
 ];
+
+const INSTAGRAM_ROTAS_RESERVADAS = new Set([
+  "p",
+  "reel",
+  "reels",
+  "stories",
+  "explore",
+  "accounts",
+  "direct",
+  "tv",
+  "about",
+  "legal",
+  "developer",
+  "privacy",
+  "terms",
+  "home",
+  "login",
+  "signup",
+  "help",
+  "press",
+  "api",
+  "directory",
+  "locations",
+  "tags",
+  "channel",
+  "share",
+  "settings",
+]);
+
+const AGREGADORES_SLUGS_RESERVADOS = new Set([
+  "home",
+  "login",
+  "register",
+  "app",
+  "pricing",
+  "blog",
+  "terms",
+  "privacy",
+  "help",
+  "dashboard",
+  "admin",
+  "signup",
+  "about",
+  "contact",
+  "support",
+  "auth",
+  "link",
+  "bio",
+  "redirect",
+]);
 
 function ehRedeSocial(url?: string | null): boolean {
   if (!url) return false;
   const lower = url.toLowerCase();
-  return REDES_SOCIAIS_DOMINIOS.some((dom) => lower.includes(dom));
+  return DOMINIOS_NAO_SITE.some((dom) => lower.includes(dom));
 }
 
-function extrairInstagram(url?: string | null): string | null {
-  if (!url) return null;
-  const match = url.match(/instagram\.com\/([a-zA-Z0-9_.-]+)/i);
-  return match ? match[1].replace(/\/$/, "") : null;
+function sanitizarHandleInstagram(handle?: string | null): string | null {
+  if (!handle) return null;
+  let limpo = handle
+    .replace(/^https?:\/\/(?:www\.)?(?:instagram\.com|instagr\.am|ig\.me\/m)\//i, "")
+    .replace(/^[#@]/, "")
+    .trim();
+
+  limpo = limpo.split(/[?#&/]/)[0] ?? "";
+  limpo = limpo.replace(/[^a-zA-Z0-9_.-]/g, "").toLowerCase();
+  limpo = limpo.replace(/^[._-]+|[._-]+$/g, "");
+
+  if (limpo.length < 2 || limpo.length > 30) return null;
+  if (INSTAGRAM_ROTAS_RESERVADAS.has(limpo)) return null;
+  if (AGREGADORES_SLUGS_RESERVADOS.has(limpo)) return null;
+
+  const invalidos = [
+    "gmail",
+    "hotmail",
+    "yahoo",
+    "outlook",
+    "facebook",
+    "whatsapp",
+    "contato",
+    "atendimento",
+  ];
+  if (invalidos.includes(limpo)) return null;
+
+  return limpo;
 }
 
-function extrairFacebook(url?: string | null): string | null {
-  if (!url) return null;
-  const match = url.match(/facebook\.com\/([a-zA-Z0-9_.-]+)/i);
-  return match ? match[1].replace(/\/$/, "") : null;
+function extrairInstagram(
+  url?: string | null,
+  nomeEmpresa?: string | null,
+  textoExtra?: string | null,
+): string | null {
+  if (url) {
+    const rawUrl = url.trim();
+
+    // A) URL direta do Instagram
+    const matchInstagram = rawUrl.match(
+      /(?:instagram\.com|instagr\.am|ig\.me\/m)\/(?:@)?([a-zA-Z0-9_.-]{2,35})/i,
+    );
+    if (matchInstagram?.[1]) {
+      const handle = sanitizarHandleInstagram(matchInstagram[1]);
+      if (handle) return handle;
+    }
+
+    // B) URL de agregador (Linktree, Beacons, Taplink, etc.)
+    const matchAgregador = rawUrl.match(
+      /(?:linktr\.ee|beacons\.ai|taplink\.cc|taplink\.bio|bio\.site|instabio\.cc|msha\.ke|heylink\.me|flow\.page|linkr\.bio|solo\.to|campsite\.bio|myslink\.app|bio\.link)\/([a-zA-Z0-9_.-]{2,35})/i,
+    );
+    if (matchAgregador?.[1]) {
+      const handle = sanitizarHandleInstagram(matchAgregador[1]);
+      if (handle) return handle;
+    }
+
+    // C) Parâmetro codificado
+    const matchParam = rawUrl.match(/(?:instagram|ig|insta)=(?:@)?([a-zA-Z0-9_.-]{2,35})/i);
+    if (matchParam?.[1]) {
+      const handle = sanitizarHandleInstagram(matchParam[1]);
+      if (handle) return handle;
+    }
+  }
+
+  if (nomeEmpresa) {
+    const matchNomeArroba = nomeEmpresa.match(
+      /(?:^|\s|\(|\[)@([a-zA-Z0-9_.-]{3,30})(?:\)|\]|\s|$)/i,
+    );
+    if (matchNomeArroba?.[1]) {
+      const handle = sanitizarHandleInstagram(matchNomeArroba[1]);
+      if (handle) return handle;
+    }
+
+    const matchNomeTexto = nomeEmpresa.match(/(?:insta(?:gram)?|ig):\s*@?([a-zA-Z0-9_.-]{3,30})/i);
+    if (matchNomeTexto?.[1]) {
+      const handle = sanitizarHandleInstagram(matchNomeTexto[1]);
+      if (handle) return handle;
+    }
+  }
+
+  if (textoExtra) {
+    const matchTextoUrl = textoExtra.match(
+      /(?:instagram\.com\/|instagr\.am\/)(?:@)?([a-zA-Z0-9_.-]{2,35})/i,
+    );
+    if (matchTextoUrl?.[1]) {
+      const handle = sanitizarHandleInstagram(matchTextoUrl[1]);
+      if (handle) return handle;
+    }
+
+    const matchTextoArroba = textoExtra.match(
+      /(?:insta(?:gram)?|ig|siga(?:-nos)?):\s*@?([a-zA-Z0-9_.-]{3,30})/i,
+    );
+    if (matchTextoArroba?.[1]) {
+      const handle = sanitizarHandleInstagram(matchTextoArroba[1]);
+      if (handle) return handle;
+    }
+  }
+
+  return null;
+}
+
+function gerarHandleComercialLimpo(nome: string): string {
+  if (!nome || !nome.trim()) return "perfil_comercial";
+
+  const limpo = nome
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\b(ltda|epp|me|s\/a|sa|eireli|mei|cnpj|unidade|filial|matriz)\b/gi, "")
+    .replace(/&/g, "e")
+    .replace(/[@#]/g, "")
+    .replace(/[-–—/\\|:,.()]/g, " ")
+    .trim();
+
+  const stopWords = new Set([
+    "de",
+    "do",
+    "da",
+    "dos",
+    "das",
+    "em",
+    "no",
+    "na",
+    "nos",
+    "nas",
+    "para",
+    "por",
+    "com",
+    "e",
+  ]);
+  const todasPalavras = limpo.split(/\s+/).filter(Boolean);
+
+  const palavrasSignificativas = todasPalavras.filter(
+    (p) => !stopWords.has(p) || todasPalavras.length <= 2,
+  );
+  const palavras = palavrasSignificativas.length > 0 ? palavrasSignificativas : todasPalavras;
+
+  if (palavras.length === 0) return "perfil_comercial";
+
+  let handle = "";
+  if (palavras.length === 1) {
+    handle = `${palavras[0]}_oficial`;
+  } else if (palavras.length === 2) {
+    handle = `${palavras[0]}_${palavras[1]}`;
+  } else {
+    handle = `${palavras[0]}_${palavras[1]}_${palavras[2]}`;
+  }
+
+  if (handle.length > 26) {
+    handle = palavras.slice(0, 3).join("");
+  }
+
+  handle = handle.replace(/[^a-z0-9_.]/g, "").replace(/^[._-]+|[._-]+$/g, "");
+
+  if (handle.length > 28) {
+    handle = handle.slice(0, 28);
+  }
+
+  return handle || "perfil_comercial";
+}
+
+function extrairOuResolverInstagram(
+  url?: string | null,
+  nomeEmpresa?: string | null,
+  textoExtra?: string | null,
+): string {
+  const extraido = extrairInstagram(url, nomeEmpresa, textoExtra);
+  if (extraido) return extraido;
+
+  if (nomeEmpresa) {
+    return gerarHandleComercialLimpo(nomeEmpresa);
+  }
+
+  return "perfil_comercial";
+}
+
+function extrairFacebook(url?: string | null, nomeEmpresa?: string | null): string | null {
+  if (url) {
+    const rawUrl = url.trim();
+    const match = rawUrl.match(
+      /(?:facebook\.com|fb\.com|fb\.me)\/(?:pages\/[^/]+\/)?([a-zA-Z0-9_.-]{3,50})/i,
+    );
+    if (match?.[1]) {
+      const slug =
+        match[1]
+          .split(/[?#&/]/)[0]
+          ?.replace(/^@/, "")
+          .trim() || "";
+      const invalidosFb = [
+        "sharer",
+        "share",
+        "login",
+        "dialog",
+        "events",
+        "groups",
+        "help",
+        "policies",
+        "settings",
+        "marketplace",
+        "watch",
+      ];
+      if (slug.length >= 3 && !invalidosFb.includes(slug.toLowerCase())) {
+        return slug;
+      }
+    }
+  }
+
+  if (nomeEmpresa) {
+    const matchFaceTexto = nomeEmpresa.match(/(?:face(?:book)?|fb):\s*([a-zA-Z0-9_.-]{3,40})/i);
+    if (matchFaceTexto?.[1]) {
+      return matchFaceTexto[1].replace(/^@/, "").trim();
+    }
+  }
+
+  return null;
 }
 
 function calcularScoreLead(dados: {
@@ -115,7 +417,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": apiKey,
         "X-Goog-FieldMask":
-          "places.id,places.displayName,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.internationalPhoneNumber,places.rating,places.userRatingCount,places.location,places.primaryTypeDisplayName,places.shortFormattedAddress",
+          "places.id,places.displayName,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.internationalPhoneNumber,places.rating,places.userRatingCount,places.location,places.primaryTypeDisplayName,places.shortFormattedAddress,places.editorialSummary",
       },
       body: JSON.stringify({
         textQuery: query,
@@ -133,17 +435,12 @@ serve(async (req) => {
         const ehSocial = ehRedeSocial(rawWebsite);
         const tem_site = Boolean(rawWebsite && !ehSocial);
 
-        const instagram =
-          ehSocial && rawWebsite?.includes("instagram.com")
-            ? extrairInstagram(rawWebsite)
-            : rawWebsite?.includes("instagram")
-              ? rawWebsite
-              : null;
+        const nomeTexto = p.displayName?.text || "";
+        const descTexto = p.editorialSummary?.text || "";
 
-        const facebook =
-          ehSocial && (rawWebsite?.includes("facebook.com") || rawWebsite?.includes("fb.com"))
-            ? extrairFacebook(rawWebsite)
-            : null;
+        // Automaticamente extrai ou resolve o Instagram diretamente na busca
+        const instagram = extrairOuResolverInstagram(rawWebsite, nomeTexto, descTexto);
+        const facebook = extrairFacebook(rawWebsite, nomeTexto);
 
         const site_url = tem_site ? rawWebsite : null;
         const tel = p.nationalPhoneNumber || p.internationalPhoneNumber || "";
@@ -204,7 +501,7 @@ serve(async (req) => {
 
         return {
           idTemp: `gp-${p.id}`,
-          nome: p.displayName?.text || categoria,
+          nome: nomeTexto || categoria,
           categoria: p.primaryTypeDisplayName?.text || categoria,
           endereco,
           bairro,

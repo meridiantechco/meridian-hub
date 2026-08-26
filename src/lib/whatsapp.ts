@@ -4,6 +4,7 @@ export interface MensagemWhatsAppParams {
   categoria?: string | null;
   cidadeOuBairro?: string | null;
   nomeVendedor?: string | null;
+  instagram?: string | null;
 }
 
 export function limparTelefone(telefone: string): string {
@@ -25,12 +26,18 @@ export function gerarMensagemPadrao(params: MensagemWhatsAppParams): string {
 
   const segmento = params.categoria ? ` da área de ${params.categoria.toLowerCase()}` : "";
   const local = params.cidadeOuBairro ? ` em ${params.cidadeOuBairro}` : "";
+  const instaLimpo = params.instagram ? params.instagram.replace(/^@/, "").trim() : null;
+  const mencaoInsta = instaLimpo
+    ? ` Acompanhei o Instagram de vocês (@${instaLimpo}) e achei o trabalho muito bacana!`
+    : "";
 
-  return `${saudacao} Tudo bem? Encontrei o perfil de ${params.nomeEmpresa}${segmento}${local} no Google e reparei que vocês ainda não possuem um site próprio ou página institucional oficial para converter quem pesquisa pelo negócio.
+  return `${saudacao} Tudo bem? Encontrei o perfil de ${params.nomeEmpresa}${segmento}${local} no Google.${mencaoInsta}
+
+Reparei que vocês ainda não possuem um site próprio ou página institucional oficial para quem pesquisa pelo negócio no Google ou no Instagram.
 
 Criamos páginas modernas, rápidas e que posicionam no Google para atrair mais clientes diretamente para o WhatsApp de vocês.
 
-Posso te enviar um modelo rápido de como ficaria o site da ${params.nomeEmpresa}?`;
+Posso te enviar uma prévia rápida sem compromisso de como ficaria a página oficial da ${params.nomeEmpresa}?`;
 }
 
 export function gerarLinkWhatsApp(

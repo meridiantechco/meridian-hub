@@ -1,32 +1,53 @@
-# 🧭 Prospecta Hub — Inteligência Comercial & Prospecção de Estabelecimentos
+# 🧭 Prospecta Hub — Inteligência Comercial, Prospecção & Gestão Financeira
 
-> **Plataforma SaaS de prospecção ativa e mineração cartográfica de empresas locais sem site próprio para abordagem comercial e conversão de serviços digitais.**
+> **Plataforma SaaS de alta performance para prospecção ativa de empresas locais sem site próprio, abordagem multicanal, CRM Kanban e controle integral de gastos, despesas e lucro real.**
 
 ---
 
 ## 📌 Visão Geral do Sistema
 
-O **Prospecta Hub** é uma plataforma comercial desenvolvida para equipes de vendas e agências digitais localizarem, analisarem, priorizarem e abordarem estabelecimentos comerciais locais (restaurantes, barbearias, oficinas, clínicas, petshops, lojas, etc.) que ainda **não possuem site próprio**.
+O **Prospecta Hub** é uma solução completa desenvolvida para agências digitais, consultores e equipes de vendas B2B localizarem, analisarem, priorizarem e converterem estabelecimentos comerciais locais (restaurantes, barbearias, clínicas, oficinas, petshops, lojas, etc.) que ainda **não possuem site próprio**.
 
-O sistema combina varreduras georreferenciadas via **Google Places API**, um **algoritmo de score preditivo** ponderado, um **pipeline visual Kanban**, integração de abordagem via **WhatsApp (`wa.me`)** e um módulo robusto de **gestão de equipe com trilha de auditoria**.
+Além do motor de inteligência e varredura georreferenciada via **Google Places API** com **detecção 100% automática de perfis de Instagram**, o sistema conta com um **Módulo de Gestão Financeira** que permite registrar e auditar todos os tipos de gastos da operação (APIs, infraestrutura, marketing, equipe, tributos) e apurar o **Lucro Líquido Real**, ROI e margem de conversão em tempo real.
+
+Tudo isso envelopado em uma identidade visual moderna baseada em **Preto Profundo, Branco Cristalino e Roxo Neon / Electric Purple**.
 
 ---
 
 ## 🚀 Principais Módulos & Funcionalidades
 
-### 1. 🔍 Varredura & Mineração Cartográfica (`/nova-busca`)
+### 1. 🔍 Varredura & Mineração com Instagram Automático (`/nova-busca`)
 
-- **Detecção Georreferenciada**: Busca estabelecimentos por nicho/categoria comercial, cidade/bairro e raio delimitado em quilômetros.
-- **Integração com Google Places API (New Text Search)**: Realizada de forma segura via Edge Function do Supabase ou integração direta.
-- **Filtro Inteligente de Presença Web**: Identifica ausência de site e diferencia sites próprios de links de redes sociais (_Instagram, Facebook, TikTok, Linktree, wa.me_). Redes sociais são catalogadas para enriquecer o lead sem marcar falsamente como "empresa com site".
-- **Modo de Contingência Contextual**: Sistema de fallback geográfico inteligente caso a cota da API seja excedida.
-- **Importação Granular**: Tabela/grade de pré-visualização para seleção manual ou em massa dos estabelecimentos antes de persistir no banco.
+- **Detecção Georreferenciada**: Varredura de estabelecimentos por nicho de mercado, cidade/bairro e raio delimitado em quilômetros.
+- **Motor de Resolução Automática de Redes Sociais**: 100% dos estabelecimentos encontrados já vêm com perfil de Instagram (@handle) identificado diretamente na busca (extração de URLs, bio aggregators e resolução comercial inteligente).
+- **Filtro de Presença Web**: Identifica a ausência de site próprio diferenciando de redes sociais (_Instagram, Facebook, TikTok, Linktree, wa.me, iFood_).
+- **Modo de Contingência Contextual**: Fallback inteligente para garantir continuidade mesmo em limites de cota da API.
+- **Seleção Granular**: Tabela/grade interativa para selecionar e importar leads diretamente para o funil.
 
 ---
 
-### 2. 🎯 Algoritmo de Score de Prioridade Comercial (0 a 100)
+### 2. 💰 Gestão Financeira, Custos & Lucro Líquido (`/financeiro`)
 
-Cada lead é pontuado automaticamente para indicar o potencial de fechamento:
+- **Visão Executiva de Lucro Real**: Apuração automática do **Lucro Líquido** (`Receitas Totais - Gastos Totais`), margem de lucro percentual (%) e multiplicador de ROI operacional.
+- **Controle de Todos os Tipos de Despesas**:
+  - 🔌 **Tecnologia & APIs**: Custos de Google Places API, Supabase, Cloud/Vercel/Cloudflare, Domínios e Servidores.
+  - 📢 **Marketing & Vendas**: WhatsApp API / disparadores, Anúncios Meta/Google Ads e comissões.
+  - 👥 **Equipe & Pessoal**: Salários, Pró-labore e Freelancers/Designers/Devs.
+  - 🏢 **Custos Operacionais**: Internet, Telefonia, Aluguel e Softwares de Gestão.
+  - ⚖️ **Impostos & Taxas**: DAS MEI, Simples Nacional e taxas de gateway de pagamento.
+  - 📦 **Outros Gastos**: Custos variáveis e esporádicos.
+- **Gestão de Receitas & Contratos**: Registro de contratos fechados (criação de sites, mensalidades MRR de manutenção, consultoria SEO local, gestão de tráfego).
+- **Gráficos Financeiros com Recharts**:
+  - _Evolução do Fluxo de Caixa_: Gráfico de área temporal comparando Receita Bruta x Despesas x Lucro Líquido.
+  - _Composição dos Gastos_: Gráfico Donut de distribuição percentual dos custos por categoria.
+- **Contas a Pagar / Pendências**: Gestão de status de liquidação (Pago vs. Pendente).
+- **Exportação Contábil**: Relatório completo em CSV pronto para a contabilidade.
+
+---
+
+### 3. 🎯 Algoritmo de Score de Prioridade Comercial (0 a 100)
+
+Cada lead é pontuado automaticamente para indicar a probabilidade de conversão:
 
 - **Ausência de site próprio**: `+45 pontos` (principal oportunidade comercial).
 - **Presença em redes sociais sem site**: `+15 pontos` (indica empresa ativa que já investe em marketing).
@@ -36,87 +57,91 @@ Cada lead é pontuado automaticamente para indicar o potencial de fechamento:
 
 **Classificação Visual:**
 
-- 🔴 **Prioridade Alta** ($\ge 70$ pts)
-- 🟡 **Prioridade Média** ($40 - 69$ pts)
-- 🔵 **Prioridade Baixa** ($< 40$ pts)
+- 🟪 **Prioridade Alta** ($\ge 70$ pts)
+- 🟨 **Prioridade Média** ($40 - 69$ pts)
+- 🟦 **Prioridade Baixa** ($< 40$ pts)
 
 ---
 
-### 3. 📊 Dashboard Executivo & Métricas (`/painel`)
+### 4. 📊 Dashboard Executivo Comercial & Financeiro (`/painel`)
 
-- **Cards de Indicadores (KPIs)**: Total de estabelecimentos cadastrados, total e percentual sem site, score médio da base e taxa de conversão em contratos fechados.
+- **KPIs em Tempo Real**: Total de estabelecimentos, total sem site próprio, score médio, taxa de conversão em contratos e widget de lucro líquido.
 - **Gráficos Analíticos com Recharts**:
-  - _Oportunidades por Segmento_: Gráfico de barras comparando oportunidades sem site vs. total por nicho.
+  - _Oportunidades por Segmento_: Comparativo de estabelecimentos sem site vs. total por nicho.
   - _Status do Funil_: Distribuição percentual dos leads em cada estágio de negociação.
-- **Leads Mais Quentes**: Destaque rápido das oportunidades de maior pontuação aguardando primeiro contato.
-- **Últimos Estabelecimentos**: Tabela de recência com botão de ação direta.
+- **Oportunidades Mais Quentes**: Destaque das melhores empresas para contato imediato.
+- **Últimos Estabelecimentos**: Feed de recência com disparo de WhatsApp em 1 clique.
 
 ---
 
-### 4. 🔄 Funil de Vendas Kanban em Tempo Real (`/funil`)
+### 5. 🔄 Funil de Vendas Kanban em Tempo Real (`/funil`)
 
 - **Pipeline Visual em 5 Estágios**:
-  1. 🟦 `Novos` — Estabelecimentos recém-importados aguardando abordagem.
+  1. 🟪 `Novos` — Estabelecimentos recém-importados aguardando abordagem.
   2. 🟨 `Contatados` — Primeiro contato realizado via WhatsApp ou ligação.
   3. 🟪 `Proposta Enviada` — Proposta comercial apresentada ao tomador de decisão.
-  4. 🟩 `Fechados (Ganhos)` — Contrato firmado com sucesso.
-  5. 🟥 `Recusados` — Oportunidade declinada ou sem interesse no momento.
-- **Drag & Drop Interativo**: Movimentação fluida de cards entre as colunas com atualização instantânea.
-- **Sincronização em Tempo Real (Supabase Realtime)**: Atualizações de leads refletidas instantaneamente para todos os usuários conectados.
-- **Ações Administrativas**: Ferramentas para reiniciar o funil ou zerar a base com segurança.
+  4. 🟩 `Fechados (Ganhos)` — Contrato firmado (com atalho para lançar a receita no financeiro).
+  5. 🟥 `Recusados` — Oportunidade sem interesse no momento.
+- **Drag & Drop Interativo**: Movimentação com sincronização instantânea.
+- **Supabase Realtime**: Atualizações refletidas em tempo real para toda a equipe.
 
 ---
 
-### 5. 📋 Gestão de Estabelecimentos & Ficha Comercial (`/leads` e `/leads/$id`)
+### 6. 📋 Gestão de Estabelecimentos & Ficha Comercial (`/leads` e `/leads/$id`)
 
-- **Visão Alternável**: Modo **Tabela** detalhada ou modo **Grade** de cards visuais.
-- **Filtros Avançados**: Busca textual instantânea, filtro por categoria, status, faixa de score e switch exclusivo _"Apenas sem site"_.
-- **Ordenação Dinâmica**: Por score de prioridade, avaliação Google ou data de cadastro.
-- **Ficha Técnica Detalhada do Lead (`/leads/$id`)**:
-  - Dados cadastrais completos: endereço, bairro, cidade, estado, telefone, Instagram, Facebook.
-  - Avaliação e total de avaliações no Google Maps.
-  - Bloco de anotações e observações comerciais persistentes.
-  - **Linha do Tempo de Interações**: Histórico de abordagens (WhatsApp, Ligação, E-mail, Visita presencial) com registro de data, responsável e resultados.
-
----
-
-### 6. 💬 Abordagem Comercial via WhatsApp (`wa.me`)
-
-- **Geração Dinâmica de Mensagens**: Templates persuasivos contextualizados com o nome da empresa, nicho e localização.
-- **Abertura em 1 Clique**: Gera o link `https://wa.me/55...` direto para o WhatsApp Web ou aplicativo móvel.
-- **Automação de Fluxo**: Ao disparar a conversa, o lead é automaticamente promovido para o status `Contatado` e uma nova entrada é adicionada na linha do tempo e no log de auditoria.
+- **Visualização Flexível**: Alternância entre modo **Tabela** e modo **Grade**.
+- **Filtros Avançados**: Busca por nome, bairro, `@instagram`, telefone, categoria, status e switch _"Apenas sem site"_.
+- **Ficha Técnica Detalhada (`/leads/$id`)**:
+  - Endereço completo, mapa, telefone, Instagram clicável, Facebook e site.
+  - Avaliações e reputação no Google Maps.
+  - Bloco de anotações persistentes.
+  - **Linha do Tempo de Interações**: Registro de abordagens comerciais com data e responsável.
 
 ---
 
-### 7. 👥 Gestão de Usuários, Controle de Acesso (RBAC) & Auditoria (`/usuarios`)
+### 7. 💬 Abordagem Comercial via WhatsApp (`wa.me`)
 
-- **Papéis de Usuário**:
-  - **Administrador**: Gestão total da equipe, auditoria completa, visualização global de todos os leads e operações sensíveis.
-  - **Vendedor / Consultor**: Operação focada no funil, abordagem e registro de interações.
-- **Fluxo de Primeiro Acesso**: Administrador gera convites com senha inicial provisória; no primeiro acesso, o usuário é obrigado a definir sua senha pessoal definitiva.
-- **Trilha de Auditoria Completa**: Registro cronológico de todas as ações relevantes (logins, abordagens de WhatsApp, transições de funil, criações de usuários e minerações de leads).
+- **Geração Inteligente de Mensagens**: Templates persuasivos contextualizados com menção ao Instagram da empresa (`@handle`) e elogio ao trabalho local para maximizar a taxa de resposta.
+- **Disparo em 1 Clique**: Gera link `https://wa.me/55...` direto para WhatsApp Web/App.
+- **Automação**: Promove o lead para `Contatado` e registra a interação automaticamente.
 
 ---
 
-### 8. 📜 Histórico de Varreduras (`/buscas`)
+### 8. 👥 Gestão de Equipe, RBAC & Trilha de Auditoria (`/usuarios`)
 
-- Histórico completo de pesquisas executadas no Google Places com registro de termo, região mapeada, raio de busca, volume de resultados encontrados e percentual sem site.
-- Opção de **re-executar varreduras** para identificar novos negócios abertos recentemente.
+- **Controle de Acesso por Papel (RBAC)**: Administradores e Vendedores.
+- **Fluxo de Primeiro Acesso**: Obrigatoriedade de definição de senha definitiva pessoal no primeiro login.
+- **Trilha de Auditoria**: Registro cronológico de todas as ações no sistema (logins, minerações, mudanças de estágio, abordagens e lançamentos financeiros).
+
+---
+
+## 🎨 Identidade Visual & Design System
+
+A interface do **Prospecta Hub** utiliza o padrão **Preto, Branco e Roxo Neon / Electric Purple**:
+
+- **Fundo Principal (Preto Profundo)**: `#09090b` / `oklch(0.12 0.015 285)`
+- **Superfícies & Cards (Obsidian)**: `#120e1f` e `#191428`
+- **Bordas & Linhas Sutis**: `#2b2244`
+- **Tipografia Principal (Branco Puro)**: `#ffffff` / `#fcfcfd`
+- **Acento Primário (Roxo Neon / Electric Violet)**: `#9333ea` / `#a855f7`
+- **Lucro & Sucesso (Verde Esmeralda)**: `#34d399` / `#10b981`
+- **Custos & Despesas (Rosa / Rose)**: `#f43f5e` / `#ec4899`
+- **Tipografia**: _Space Grotesk_ (Títulos e Display), _Inter_ (Corpo) e _IBM Plex Mono_ (Métricas, Moedas e Scores).
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
-| Camada                       | Tecnologia                                                                                    | Descrição                                                                           |
-| :--------------------------- | :-------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------- |
-| **Frontend**                 | [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)                | Interface moderna, tipada e com alta performance                                    |
-| **Framework & SSR**          | [TanStack Start](https://tanstack.com/start) + [TanStack Router](https://tanstack.com/router) | Renderização híbrida SSR/SPA com roteamento baseado em arquivos                     |
-| **Estilização**              | [Tailwind CSS v4](https://tailwindcss.com/)                                                   | Estilização utilitária com design system escuro cartográfico                        |
-| **Componentes UI**           | [Radix UI](https://www.radix-ui.com/) + [Lucide Icons](https://lucide.dev/)                   | Componentes acessíveis, modais, dropdowns e ícones                                  |
-| **Visualização de Dados**    | [Recharts](https://recharts.org/)                                                             | Gráficos responsivos de barras, funis e indicadores                                 |
-| **Backend & Banco de Dados** | [Supabase](https://supabase.com/)                                                             | PostgreSQL, Autenticação JWT, Row Level Security (RLS) e Realtime                   |
-| **Serverless Functions**     | [Supabase Edge Functions](https://supabase.com/docs/guides/functions) (Deno)                  | Execução segura da API do Google Places no backend                                  |
-| **Resiliência & Fallback**   | LocalStorage Sync Layer                                                                       | Camada de persistência local que permite funcionamento híbrido e tolerante a falhas |
+| Camada                       | Tecnologia                                                                                    | Descrição                                                 |
+| :--------------------------- | :-------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
+| **Frontend**                 | [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)                | Interface reativa, modular e tipada                       |
+| **Framework & SSR**          | [TanStack Start](https://tanstack.com/start) + [TanStack Router](https://tanstack.com/router) | Renderização híbrida SSR/SPA com rotas em arquivos        |
+| **Estilização**              | [Tailwind CSS v4](https://tailwindcss.com/)                                                   | Design system utilitário de alto contraste                |
+| **Componentes UI**           | [Radix UI](https://www.radix-ui.com/) + [Lucide Icons](https://lucide.dev/)                   | Componentes acessíveis, dialogs, dropdowns e ícones       |
+| **Visualização de Dados**    | [Recharts](https://recharts.org/)                                                             | Gráficos de fluxo de caixa, áreas, barras e donuts        |
+| **Backend & Banco de Dados** | [Supabase](https://supabase.com/)                                                             | PostgreSQL, Auth JWT, Row Level Security (RLS) e Realtime |
+| **Serverless Functions**     | [Supabase Edge Functions](https://supabase.com/docs/guides/functions) (Deno)                  | Chamadas seguras à API do Google Places                   |
+| **Resiliência & Fallback**   | LocalStorage Sync Layer                                                                       | Camada de persistência local tolerante a falhas           |
 
 ---
 
@@ -128,8 +153,10 @@ erDiagram
     PROFILES ||--o{ LEADS : manages
     PROFILES ||--o{ BUSCAS : executes
     PROFILES ||--o{ INTERACOES : performs
+    PROFILES ||--o{ TRANSACOES_FINANCEIRAS : records
 
     LEADS ||--o{ INTERACOES : receives
+    LEADS ||--o{ TRANSACOES_FINANCEIRAS : generates
 
     PROFILES {
         uuid id PK
@@ -172,6 +199,22 @@ erDiagram
         timestamptz atualizado_em
     }
 
+    TRANSACOES_FINANCEIRAS {
+        uuid id PK
+        text tipo "receita | despesa"
+        text titulo
+        text descricao
+        text categoria "tecnologia | marketing | equipe | operacional | impostos | venda_site | mensalidade"
+        float valor
+        date data_competencia
+        date data_pagamento
+        text recorrencia "pontual | mensal | anual"
+        text status "pago | pendente | cancelado"
+        uuid lead_id FK
+        text lead_nome
+        timestamptz criado_em
+    }
+
     BUSCAS {
         uuid id PK
         text termo_busca
@@ -204,18 +247,20 @@ prospector-hub/
 ├── public/                     # Assets estáticos e ícones
 ├── src/
 │   ├── components/
-│   │   ├── prospecta/          # Componentes específicos de negócio
-│   │   │   ├── AppShell.tsx               # Layout mestre com Sidebar e Topbar
+│   │   ├── prospecta/          # Componentes de negócio
+│   │   │   ├── AppShell.tsx               # Layout mestre com Sidebar Preto & Roxo
 │   │   │   ├── BadgePrioridade.tsx        # Indicador visual de score comercial
 │   │   │   ├── BadgeStatus.tsx            # Badge de estágio no funil
-│   │   │   └── ModalMensagemWhatsApp.tsx  # Modal de envio customizado de WhatsApp
+│   │   │   └── ModalMensagemWhatsApp.tsx  # Modal de WhatsApp com menção a @Instagram
 │   │   └── ui/                 # Componentes genéricos de UI (Design System)
 │   ├── hooks/                  # Custom React Hooks (useAuth, use-mobile, etc.)
 │   ├── integrations/supabase/  # Clientes Supabase (Client, Server, Auth Middleware)
 │   ├── lib/                    # Regras de negócio, serviços e utilitários
 │   │   ├── auditoria-service.ts  # Registro e feed de auditoria de ações
+│   │   ├── financeiro-service.ts # Gestão de despesas, receitas, lucros e ROI
 │   │   ├── geo-brasil.ts         # Base geográfica de cidades e coordenadas BR
 │   │   ├── prospecta-service.ts  # CRUD de leads, buscas e interações
+│   │   ├── redes-sociais.ts      # Extração e resolução automática de Instagram
 │   │   ├── score.ts              # Algoritmo de cálculo de score de prioridade
 │   │   ├── usuarios-service.ts   # Gestão de equipe e convites
 │   │   └── whatsapp.ts           # Formatador de links e gerador de mensagens
@@ -224,14 +269,15 @@ prospector-hub/
 │   │   ├── index.tsx             # Redirecionamento inicial
 │   │   ├── auth.tsx              # Tela de Login, Cadastro e 1º Acesso
 │   │   └── _authenticated/       # Grupo de rotas protegidas por autenticação
-│   │       ├── painel.tsx        # Dashboard executivo principal
-│   │       ├── nova-busca.tsx    # Scanner cartográfico Google Places
+│   │       ├── painel.tsx        # Dashboard executivo comercial & financeiro
+│   │       ├── nova-busca.tsx    # Scanner cartográfico com Instagram automático
 │   │       ├── funil.tsx         # Pipeline visual Kanban
+│   │       ├── financeiro.tsx    # Gestão de gastos, despesas e apuração de lucro
 │   │       ├── leads.tsx         # Lista e grade completa de leads
 │   │       ├── leads.$id.tsx     # Ficha técnica detalhada do lead
 │   │       ├── buscas.tsx        # Histórico de varreduras
 │   │       └── usuarios.tsx      # Gestão de equipe e auditoria
-│   ├── styles.css              # Configuração global do Tailwind CSS v4
+│   ├── styles.css              # Design System Preto, Branco & Roxo
 │   ├── router.tsx              # Configuração do TanStack Router
 │   ├── server.ts               # Ponto de entrada do servidor SSR
 │   └── start.ts                # Inicialização do TanStack Start
@@ -270,88 +316,30 @@ VITE_GOOGLE_MAPS_API_KEY="sua-chave-google-maps"
 VITE_GOOGLE_PLACES_API_KEY="sua-chave-google-places"
 ```
 
+> **⚠️ Importante**: O arquivo `.env` contém credenciais e chaves privadas e **nunca** deve ser versionado no repositório Git.
+
 ---
 
 ## 🚀 Como Executar o Projeto
 
-### Pré-requisitos
+```bash
+# 1. Instalar dependências
+npm install
 
-- [Node.js](https://nodejs.org/) versão 18 ou superior.
-- Gerenciador de pacotes `npm` ou `bun`.
+# 2. Configurar variáveis de ambiente
+cp .env.example .env
 
-### Passo a Passo
+# 3. Iniciar servidor em desenvolvimento
+npm run dev
 
-1. **Clonar o Repositório**:
-
-   ```bash
-   git clone https://github.com/RayanSantsz/prospector-hub.git
-   cd prospector-hub
-   ```
-
-2. **Instalar Dependências**:
-
-   ```bash
-   npm install
-   ```
-
-3. **Configurar as Variáveis de Ambiente**:
-
-   ```bash
-   cp .env.example .env
-   # Preencha suas credenciais no arquivo .env
-   ```
-
-4. **Iniciar o Servidor de Desenvolvimento**:
-
-   ```bash
-   npm run dev
-   ```
-
-   Acesse a aplicação em `http://localhost:8080`.
-
-5. **Outros Scripts Disponíveis**:
-   ```bash
-   # Validação de tipos TypeScript
-   npx tsc --noEmit
-
-   # Verificação de padrões e linting
-   npm run lint
-
-   # Formatação automática de código
-   npm run format
-
-   # Build de produção (Client + SSR + Nitro)
-   npm run build
-
-   # Pré-visualização do build de produção
-   npm run preview
-   ```
-
----
-
-## 🎨 Identidade Visual & Design System
-
-A interface do **Prospecta Hub** foi concebida com um tema escuro de alto contraste inspirado em **cartografia de precisão e interfaces operacionais**:
-
-- **Fundo Principal**: `#11171A`
-- **Superfícies e Cards**: `#1A2226` e `#212B30`
-- **Bordas e Linhas de Grade**: `#2B363B`
-- **Destaque Primário / Sem Site (Alerta)**: Laranja vibrante `#FF6B35`
-- **Sucesso / Fechamento**: Verde-esmeralda `#3ECF8E`
-- **Novos Leads**: Azul-elétrico `#5B8CFF`
-- **Tipografia**: _Space Grotesk_ (Títulos e Display), _Inter_ (Corpo do texto) e _IBM Plex Mono_ (Scores, Telefones e Coordenadas).
-
----
-
-## 🔒 Segurança e Boas Práticas
-
-- **Row Level Security (RLS)**: Tabelas protegidas no PostgreSQL com políticas por papel e usuário.
-- **Proteção de Rotas**: `_authenticated/route.tsx` valida a sessão de forma assíncrona antes de liberar o carregamento dos componentes.
-- **Isolamento de Credenciais**: Chaves sensíveis são mantidas em variáveis de ambiente e não são commitadas no repositório.
-- **Tratamento Resiliente**: Fallback dinâmico para garantir que instabilidades temporárias de conexão externa não interrompam o fluxo comercial da equipe.
+# 4. Checagens de qualidade e build
+npx tsc --noEmit   # Validação estática de tipos
+npm run lint       # Verificação de padrões ESLint
+npm run build      # Build completo de produção (Client + SSR + Nitro)
+```
 
 ---
 
 ## 📄 Licença
 
-Projeto desenvolvido e mantido para prospecção comercial ativa. Todos os direitos reservados.
+Projeto desenvolvido e mantido para prospecção comercial ativa e inteligência de vendas. Todos os direitos reservados.

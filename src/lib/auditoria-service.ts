@@ -10,6 +10,7 @@ export type TipoAtividade =
   | "usuario_criado"
   | "usuario_papel"
   | "primeiro_acesso"
+  | "financeiro"
   | "login";
 
 export interface AtividadeUsuario {

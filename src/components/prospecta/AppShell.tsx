@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Radar,
   Building2,
+  Wallet,
 } from "lucide-react";
 import { useState, useEffect, type ReactNode } from "react";
 
@@ -61,6 +62,7 @@ const itens: ItemNav[] = [
   { para: "/nova-busca", rotulo: "Detectar Empresas", icone: Radar, badge: "Scanner" },
   { para: "/leads", rotulo: "Base de Estabelecimentos", icone: Building2 },
   { para: "/funil", rotulo: "Funil Comercial", icone: Kanban },
+  { para: "/financeiro", rotulo: "Financeiro & Lucro", icone: Wallet, badge: "Gestão" },
   { para: "/buscas", rotulo: "Histórico de Buscas", icone: History },
   { para: "/usuarios", rotulo: "Usuários", icone: Users, somenteAdmin: true },
 ];
@@ -173,7 +175,7 @@ export function AppShell({
           {/* TOPO DA SIDEBAR: LOGO & BOTÃO TOGGLE */}
           <div className="flex h-16 items-center justify-between border-b border-sidebar-border/70 px-3.5">
             <Link to="/painel" className="flex items-center gap-3 min-w-0 group">
-              <div className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 text-primary border border-primary/30 shadow-[0_0_15px_rgba(255,107,53,0.25)] transition-transform group-hover:scale-105">
+              <div className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 text-primary border border-primary/30 shadow-[0_0_20px_rgba(168,85,247,0.35)] transition-transform group-hover:scale-105">
                 <Compass className="size-5" />
                 <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 border-2 border-sidebar" />
               </div>
@@ -248,7 +250,7 @@ export function AppShell({
                       )}
                       activeProps={{
                         className: colapsada
-                          ? "bg-primary/15 text-primary border border-primary/30 shadow-[0_0_12px_rgba(255,107,53,0.2)] font-semibold"
+                          ? "bg-primary/15 text-primary border border-primary/30 shadow-[0_0_15px_rgba(168,85,247,0.3)] font-semibold"
                           : "bg-gradient-to-r from-primary/15 to-transparent text-sidebar-foreground font-semibold border-l-3 border-l-primary pl-3 shadow-sm",
                       }}
                     >

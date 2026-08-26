@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedBuscasRouteImport } from './routes/_authenticated/buscas'
+import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedFunilRouteImport } from './routes/_authenticated/funil'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedNovaBuscaRouteImport } from './routes/_authenticated/nova-busca'
@@ -37,6 +38,11 @@ const AuthRoute = AuthRouteImport.update({
 const AuthenticatedBuscasRoute = AuthenticatedBuscasRouteImport.update({
   id: '/buscas',
   path: '/buscas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFunilRoute = AuthenticatedFunilRouteImport.update({
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/buscas': typeof AuthenticatedBuscasRoute
+  '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/funil': typeof AuthenticatedFunilRoute
   '/leads': typeof AuthenticatedLeadsRouteWithChildren
   '/nova-busca': typeof AuthenticatedNovaBuscaRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/buscas': typeof AuthenticatedBuscasRoute
+  '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/funil': typeof AuthenticatedFunilRoute
   '/leads': typeof AuthenticatedLeadsRouteWithChildren
   '/nova-busca': typeof AuthenticatedNovaBuscaRoute
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/buscas': typeof AuthenticatedBuscasRoute
+  '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/funil': typeof AuthenticatedFunilRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRouteWithChildren
   '/_authenticated/nova-busca': typeof AuthenticatedNovaBuscaRoute
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/buscas'
+    | '/financeiro'
     | '/funil'
     | '/leads'
     | '/nova-busca'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/buscas'
+    | '/financeiro'
     | '/funil'
     | '/leads'
     | '/nova-busca'
@@ -134,6 +145,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/buscas'
+    | '/_authenticated/financeiro'
     | '/_authenticated/funil'
     | '/_authenticated/leads'
     | '/_authenticated/nova-busca'
@@ -176,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/buscas'
       fullPath: '/buscas'
       preLoaderRoute: typeof AuthenticatedBuscasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/financeiro': {
+      id: '/_authenticated/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/funil': {
@@ -236,6 +255,7 @@ const AuthenticatedLeadsRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBuscasRoute: typeof AuthenticatedBuscasRoute
+  AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedFunilRoute: typeof AuthenticatedFunilRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRouteWithChildren
   AuthenticatedNovaBuscaRoute: typeof AuthenticatedNovaBuscaRoute
@@ -245,6 +265,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBuscasRoute: AuthenticatedBuscasRoute,
+  AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedFunilRoute: AuthenticatedFunilRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRouteWithChildren,
   AuthenticatedNovaBuscaRoute: AuthenticatedNovaBuscaRoute,

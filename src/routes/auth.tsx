@@ -310,13 +310,13 @@ export function PaginaAuth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8 relative overflow-hidden">
       {/* Background Decorativo */}
-      <div className="absolute -top-40 -left-40 size-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 size-96 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute -top-40 -left-40 size-96 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-40 -right-40 size-96 rounded-full bg-purple-600/15 blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md space-y-6 relative z-10">
         {/* LOGO & CABEÇALHO */}
         <div className="text-center space-y-2">
-          <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 text-primary border border-primary/30 shadow-[0_0_20px_rgba(255,107,53,0.25)] mb-2">
+          <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 text-primary border border-primary/30 shadow-[0_0_25px_rgba(168,85,247,0.35)] mb-2">
             <Compass className="size-6" />
           </div>
           <h1 className="text-2xl font-bold font-display tracking-tight text-foreground">

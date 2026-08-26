@@ -7,8 +7,8 @@ export const CONFIG_STATUS: Record<
 > = {
   novo: {
     rotulo: "Novo",
-    classe: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-    corPonto: "bg-blue-400",
+    classe: "bg-purple-500/15 text-purple-300 border-purple-500/30",
+    corPonto: "bg-purple-400",
   },
   contatado: {
     rotulo: "Contatado",
@@ -17,8 +17,8 @@ export const CONFIG_STATUS: Record<
   },
   proposta: {
     rotulo: "Proposta",
-    classe: "bg-purple-500/15 text-purple-300 border-purple-500/30",
-    corPonto: "bg-purple-400",
+    classe: "bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30",
+    corPonto: "bg-fuchsia-400",
   },
   fechado: {
     rotulo: "Fechado",

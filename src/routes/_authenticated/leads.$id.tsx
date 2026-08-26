@@ -9,6 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -18,6 +26,13 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prospectaService } from "@/lib/prospecta-service";
 import { auditoriaService } from "@/lib/auditoria-service";
+import { calcularScoreLead } from "@/lib/score";
+import {
+  sanitizarHandleInstagram,
+  ehRedeSocialOuAgregador,
+  gerarUrlBuscaInstagram,
+  gerarHandleSugerido,
+} from "@/lib/redes-sociais";
 import type { InteracaoItem, LeadItem } from "@/lib/leads-mock";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -39,6 +54,11 @@ import {
   Mail,
   UserCheck,
   Compass,
+  Pencil,
+  Plus,
+  Search,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -63,7 +83,7 @@ const ICONES_INTERACAO = {
 export function PaginaDetalheLead() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const { ehAdmin, nome: nomeUsuario } = useAuth();
+  const { ehAdmin } = useAuth();
 
   const [lead, setLead] = useState<LeadItem | null>(null);
   const [interacoes, setInteracoes] = useState<InteracaoItem[]>([]);
@@ -81,8 +101,9 @@ export function PaginaDetalheLead() {
   const [resInteracao, setResInteracao] = useState("");
   const [salvandoInteracao, setSalvandoInteracao] = useState(false);
 
-  // Modal WhatsApp
+  // Modais
   const [modalWhatsAppAberto, setModalWhatsAppAberto] = useState(false);
+  const [modalEditarRedesAberto, setModalEditarRedesAberto] = useState(false);
 
   const carregarDados = useCallback(async () => {
     setCarregando(true);
@@ -211,7 +232,7 @@ export function PaginaDetalheLead() {
                 <BadgePrioridade score={lead.score} />
                 <BadgeStatus status={lead.status} />
                 {!lead.tem_site ? (
-                  <span className="inline-flex items-center gap-1 rounded bg-[var(--color-alerta)]/15 px-2.5 py-0.5 text-xs font-semibold text-[var(--color-alerta)]">
+                  <span className="inline-flex items-center gap-1 rounded bg-[var(--color-alerta)]/15 px-2.5 py-0.5 text-xs font-semibold text-[var(--color-alerta)] border border-[var(--color-alerta)]/30">
                     <AlertCircle className="size-3.5" /> Sem site próprio
                   </span>
                 ) : (
@@ -256,22 +277,31 @@ export function PaginaDetalheLead() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* COLUNA ESQUERDA: DADOS DO ESTABELECIMENTO */}
           <div className="space-y-6 lg:col-span-1">
-            {/* Contatos e Redes */}
+            {/* Contatos e Redes Sociais */}
             <Card className="bg-card border-border shadow-elev">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold">Canais de Contato</CardTitle>
+              <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold">Presença & Contatos</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setModalEditarRedesAberto(true)}
+                  className="h-6 text-[10px] px-2 text-muted-foreground hover:text-foreground"
+                >
+                  <Pencil className="size-3 mr-1" /> Editar
+                </Button>
               </CardHeader>
               <CardContent className="space-y-3 text-xs dado">
-                <div className="flex items-center justify-between p-2 rounded bg-secondary/40">
+                {/* Telefone & WhatsApp */}
+                <div className="flex items-center justify-between p-2.5 rounded bg-secondary/40">
                   <div className="flex items-center gap-2 text-foreground">
                     <Phone className="size-3.5 text-primary" />
-                    <span>{lead.telefone || "Não informado"}</span>
+                    <span>{lead.telefone || "Telefone não informado"}</span>
                   </div>
                   {lead.telefone && (
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-6 text-[11px] text-emerald-400 hover:text-emerald-300 p-1"
+                      className="h-6 text-[11px] text-emerald-400 hover:text-emerald-300 p-1 font-medium"
                       onClick={() => setModalWhatsAppAberto(true)}
                     >
                       WhatsApp
@@ -279,40 +309,93 @@ export function PaginaDetalheLead() {
                   )}
                 </div>
 
-                {lead.instagram && (
-                  <a
-                    href={`https://instagram.com/${lead.instagram}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 p-2 rounded bg-secondary/40 text-pink-400 hover:bg-pink-500/10 transition-colors"
-                  >
-                    <Instagram className="size-3.5" />
-                    <span>@{lead.instagram}</span>
-                  </a>
+                {/* Instagram */}
+                {lead.instagram ? (
+                  <div className="flex items-center justify-between p-2.5 rounded bg-pink-500/10 border border-pink-500/20">
+                    <a
+                      href={`https://instagram.com/${lead.instagram}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 text-pink-400 hover:text-pink-300 transition-colors font-mono"
+                    >
+                      <Instagram className="size-3.5" />
+                      <span>@{lead.instagram}</span>
+                      <ExternalLink className="size-2.5 opacity-70" />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setModalEditarRedesAberto(true)}
+                      className="text-[10px] text-pink-400/80 hover:text-pink-300"
+                    >
+                      Alterar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-2.5 rounded bg-secondary/30 border border-dashed border-border/80">
+                    <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                      <Instagram className="size-3.5 text-muted-foreground" />
+                      Sem Instagram cadastrado
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={gerarUrlBuscaInstagram(lead.nome, lead.cidade || lead.bairro)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[10px] text-pink-400 hover:text-pink-300 hover:underline flex items-center gap-0.5"
+                      >
+                        <Search className="size-2.5" /> Buscar @
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setModalEditarRedesAberto(true)}
+                        className="text-[10px] text-primary hover:underline flex items-center gap-0.5"
+                      >
+                        <Plus className="size-2.5" /> Inserir
+                      </button>
+                    </div>
+                  </div>
                 )}
 
+                {/* Facebook */}
                 {lead.facebook && (
                   <a
                     href={`https://facebook.com/${lead.facebook}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 p-2 rounded bg-secondary/40 text-blue-400 hover:bg-blue-500/10 transition-colors"
+                    className="flex items-center gap-2 p-2.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:text-blue-300 transition-colors"
                   >
                     <Facebook className="size-3.5" />
                     <span>fb.com/{lead.facebook}</span>
+                    <ExternalLink className="size-2.5 opacity-70" />
                   </a>
                 )}
 
-                {lead.site_url && (
+                {/* Website Oficial */}
+                {lead.site_url ? (
                   <a
                     href={lead.site_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-2 p-2 rounded bg-secondary/40 text-muted-foreground hover:text-foreground transition-colors truncate"
+                    className="flex items-center gap-2 p-2.5 rounded bg-secondary/40 text-muted-foreground hover:text-foreground transition-colors truncate border border-border/50"
                   >
-                    <Globe className="size-3.5 text-primary" />
+                    <Globe className="size-3.5 text-primary shrink-0" />
                     <span className="truncate">{lead.site_url}</span>
+                    <ExternalLink className="size-2.5 opacity-70 shrink-0 ml-auto" />
                   </a>
+                ) : (
+                  <div className="flex items-center justify-between p-2.5 rounded bg-[var(--color-alerta)]/5 border border-[var(--color-alerta)]/20 text-[11px] text-[var(--color-alerta)] font-medium">
+                    <span className="flex items-center gap-1.5">
+                      <AlertCircle className="size-3.5" />
+                      Sem site próprio cadastrado
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setModalEditarRedesAberto(true)}
+                      className="text-[10px] text-primary hover:underline"
+                    >
+                      + Adicionar
+                    </button>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -543,6 +626,205 @@ export function PaginaDetalheLead() {
         onOpenChange={setModalWhatsAppAberto}
         onMensagemEnviada={carregarDados}
       />
+
+      {/* Modal de Edição de Redes Sociais */}
+      {lead && (
+        <ModalEditarRedesLead
+          aberto={modalEditarRedesAberto}
+          onOpenChange={setModalEditarRedesAberto}
+          lead={lead}
+          onSalvo={(atualizado) => setLead(atualizado)}
+        />
+      )}
     </AppShell>
+  );
+}
+
+function ModalEditarRedesLead({
+  aberto,
+  onOpenChange,
+  lead,
+  onSalvo,
+}: {
+  aberto: boolean;
+  onOpenChange: (aberto: boolean) => void;
+  lead: LeadItem;
+  onSalvo: (leadAtualizado: LeadItem) => void;
+}) {
+  const [instagram, setInstagram] = useState(lead.instagram || "");
+  const [facebook, setFacebook] = useState(lead.facebook || "");
+  const [siteUrl, setSiteUrl] = useState(lead.site_url || "");
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    setInstagram(lead.instagram || "");
+    setFacebook(lead.facebook || "");
+    setSiteUrl(lead.site_url || "");
+  }, [lead]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSalvando(true);
+    try {
+      const instaLimpo = sanitizarHandleInstagram(instagram);
+      const faceLimpo = facebook.trim() || null;
+      const siteLimpo = siteUrl.trim() || null;
+      const ehSocial = ehRedeSocialOuAgregador(siteLimpo);
+      const tem_site = Boolean(siteLimpo && !ehSocial);
+
+      const novoScore = calcularScoreLead({
+        tem_site,
+        instagram: instaLimpo,
+        facebook: faceLimpo,
+        total_avaliacoes: lead.total_avaliacoes,
+        avaliacao_google: lead.avaliacao_google,
+        criado_em: lead.criado_em,
+      });
+
+      const atualizado = await prospectaService.atualizarLead(lead.id, {
+        instagram: instaLimpo,
+        facebook: faceLimpo,
+        site_url: tem_site ? siteLimpo : null,
+        tem_site,
+        score: novoScore,
+      });
+
+      if (atualizado) {
+        await auditoriaService.registrarAtividade({
+          tipo: "edicao_lead",
+          titulo: `Redes sociais atualizadas: ${lead.nome}`,
+          descricao: `Instagram (@${instaLimpo || "nenhum"}) e presença web atualizados. Novo score: ${novoScore}.`,
+          metadados: { lead_id: lead.id, instagram: instaLimpo, score: novoScore },
+        });
+
+        onSalvo(atualizado);
+        toast.success("Redes sociais salvas com sucesso!");
+        onOpenChange(false);
+      }
+    } catch {
+      toast.error("Erro ao salvar redes sociais.");
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  return (
+    <Dialog open={aberto} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md bg-card border-border">
+        <DialogHeader>
+          <DialogTitle className="text-foreground text-base flex items-center gap-2">
+            <Instagram className="size-4 text-pink-400" />
+            Editar Presença Digital & Redes Sociais
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Atualize o perfil do Instagram, Facebook e Website oficial de{" "}
+            <strong>{lead.nome}</strong>.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          {/* Instagram */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label
+                htmlFor="lead-insta"
+                className="text-xs font-semibold text-foreground flex items-center gap-1.5"
+              >
+                <Instagram className="size-3.5 text-pink-400" />
+                Perfil do Instagram
+              </Label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setInstagram(gerarHandleSugerido(lead.nome))}
+                  className="text-[10px] text-primary hover:underline"
+                >
+                  Sugerir @
+                </button>
+                <a
+                  href={gerarUrlBuscaInstagram(lead.nome, lead.cidade || lead.bairro)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[10px] text-pink-400 hover:underline flex items-center gap-0.5"
+                >
+                  <Search className="size-2.5" /> Buscar no Google
+                </a>
+              </div>
+            </div>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">@</span>
+              <Input
+                id="lead-insta"
+                placeholder="ex: perfil_da_empresa"
+                value={instagram.replace(/^@/, "")}
+                onChange={(e) => setInstagram(e.target.value)}
+                className="text-xs h-9 pl-7 bg-surface/50 font-mono"
+              />
+            </div>
+          </div>
+
+          {/* Facebook */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="lead-face"
+              className="text-xs font-semibold text-foreground flex items-center gap-1.5"
+            >
+              <Facebook className="size-3.5 text-blue-400" />
+              Página do Facebook (Opcional)
+            </Label>
+            <Input
+              id="lead-face"
+              placeholder="ex: pagina_da_empresa"
+              value={facebook}
+              onChange={(e) => setFacebook(e.target.value)}
+              className="text-xs h-9 bg-surface/50"
+            />
+          </div>
+
+          {/* Website / Link */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="lead-site"
+              className="text-xs font-semibold text-foreground flex items-center gap-1.5"
+            >
+              <Globe className="size-3.5 text-primary" />
+              Website / Link na Bio
+            </Label>
+            <Input
+              id="lead-site"
+              placeholder="ex: https://linktr.ee/..."
+              value={siteUrl}
+              onChange={(e) => setSiteUrl(e.target.value)}
+              className="text-xs h-9 bg-surface/50 font-mono text-[11px]"
+            />
+          </div>
+
+          <DialogFooter className="pt-2 border-t border-border flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              className="text-xs h-8"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={salvando}
+              className="bg-primary text-primary-foreground text-xs h-8 gap-1.5 font-semibold"
+            >
+              {salvando ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Save className="size-3.5" />
+              )}
+              Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

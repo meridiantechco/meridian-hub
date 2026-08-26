@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { prospectaService } from "@/lib/prospecta-service";
 import { auditoriaService } from "@/lib/auditoria-service";
+import { gerarUrlBuscaInstagram } from "@/lib/redes-sociais";
 import type { LeadItem } from "@/lib/leads-mock";
 import {
   AlertDialog,
@@ -78,6 +79,7 @@ export function PaginaLeads() {
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [filtroFaixaScore, setFiltroFaixaScore] = useState<string>("todos");
+  const [filtroInstagram, setFiltroInstagram] = useState<"todos" | "com" | "sem">("todos");
   const [apenasSemSite, setApenasSemSite] = useState(false);
   const [ordenacao, setOrdenacao] = useState<"score" | "avaliacao" | "data">("score");
 
@@ -152,7 +154,8 @@ export function PaginaLeads() {
           const matchBairro = (l.bairro || "").toLowerCase().includes(termo);
           const matchCidade = (l.cidade || "").toLowerCase().includes(termo);
           const matchTel = (l.telefone || "").includes(termo);
-          if (!matchNome && !matchBairro && !matchCidade && !matchTel) return false;
+          const matchInsta = (l.instagram || "").toLowerCase().includes(termo);
+          if (!matchNome && !matchBairro && !matchCidade && !matchTel && !matchInsta) return false;
         }
 
         // Categoria
@@ -160,6 +163,10 @@ export function PaginaLeads() {
 
         // Status
         if (filtroStatus !== "todos" && l.status !== filtroStatus) return false;
+
+        // Instagram
+        if (filtroInstagram === "com" && !l.instagram) return false;
+        if (filtroInstagram === "sem" && Boolean(l.instagram)) return false;
 
         // Sem site
         if (apenasSemSite && l.tem_site) return false;
@@ -176,7 +183,16 @@ export function PaginaLeads() {
         if (ordenacao === "avaliacao") return (b.avaliacao_google ?? 0) - (a.avaliacao_google ?? 0);
         return new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime();
       });
-  }, [leads, busca, filtroCategoria, filtroStatus, apenasSemSite, filtroFaixaScore, ordenacao]);
+  }, [
+    leads,
+    busca,
+    filtroCategoria,
+    filtroStatus,
+    filtroInstagram,
+    apenasSemSite,
+    filtroFaixaScore,
+    ordenacao,
+  ]);
 
   // Exportar para CSV
   const exportarCSV = () => {
@@ -204,6 +220,7 @@ export function PaginaLeads() {
   };
 
   const totalSemSite = leads.filter((l) => !l.tem_site).length;
+  const totalComInstagram = leads.filter((l) => Boolean(l.instagram)).length;
   const totalAltaPrioridade = leads.filter((l) => l.score >= 70).length;
 
   return (
@@ -218,55 +235,56 @@ export function PaginaLeads() {
               type="button"
               onClick={() => setModoVisualizacao("tabela")}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all",
+                "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer",
                 modoVisualizacao === "tabela"
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
               <TableIcon className="size-3.5" />
-              <span className="hidden sm:inline">Tabela</span>
+              <span>Tabela</span>
             </button>
             <button
               type="button"
               onClick={() => setModoVisualizacao("grade")}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all",
+                "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer",
                 modoVisualizacao === "grade"
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
               <LayoutGrid className="size-3.5" />
-              <span className="hidden sm:inline">Grade</span>
+              <span>Grade</span>
             </button>
           </div>
 
           <Button
             variant="outline"
             size="sm"
+            onClick={exportarCSV}
+            className="h-8 gap-1.5 text-xs border-border/80 text-foreground"
+          >
+            <Download className="size-3.5" />
+            Exportar CSV
+          </Button>
+
+          {/* Botão Zerar Base (Com Confirmação) */}
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setModalZerarAberto(true)}
-            disabled={leads.length === 0}
-            className="h-8 gap-1.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border-rose-500/30"
+            className="h-8 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 gap-1.5"
+            title="Limpar todos os estabelecimentos da base de dados"
           >
             <Trash2 className="size-3.5" />
             Zerar Base
           </Button>
 
           <Button
-            variant="outline"
             size="sm"
-            onClick={exportarCSV}
-            className="h-8 gap-1.5 text-xs hidden sm:flex"
-          >
-            <Download className="size-3.5" />
-            CSV
-          </Button>
-
-          <Button
             asChild
-            size="sm"
-            className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground font-semibold shadow-sm"
+            className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground font-semibold"
           >
             <Link to="/nova-busca">
               <Plus className="size-3.5" />
@@ -278,10 +296,10 @@ export function PaginaLeads() {
     >
       <div className="space-y-5">
         {/* RESUMO RÁPIDO EM CARDS SUPERIORES */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between">
             <div>
-              <p className="rotulo text-[10px]">Total de Estabelecimentos</p>
+              <p className="rotulo text-[10px]">Total Estabelecimentos</p>
               <p className="text-2xl font-bold font-display dado mt-0.5 text-foreground">
                 {leads.length}
               </p>
@@ -305,6 +323,18 @@ export function PaginaLeads() {
 
           <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between">
             <div>
+              <p className="rotulo text-[10px] text-pink-400">Com Instagram</p>
+              <p className="text-2xl font-bold font-display text-pink-400 dado mt-0.5">
+                {totalComInstagram}
+              </p>
+            </div>
+            <div className="size-9 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center">
+              <Instagram className="size-4" />
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between">
+            <div>
               <p className="rotulo text-[10px] text-amber-400">Score &ge; 70 pts</p>
               <p className="text-2xl font-bold font-display text-amber-400 dado mt-0.5">
                 {totalAltaPrioridade}
@@ -315,7 +345,7 @@ export function PaginaLeads() {
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between">
+          <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between col-span-2 sm:col-span-1">
             <div>
               <p className="rotulo text-[10px] text-emerald-400">Filtrados em Tela</p>
               <p className="text-2xl font-bold font-display text-emerald-400 dado mt-0.5">
@@ -336,7 +366,7 @@ export function PaginaLeads() {
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nome, bairro, telefone..."
+                  placeholder="Buscar por nome, bairro, @insta..."
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
                   className="pl-8 text-xs h-9 bg-surface/50"
@@ -373,16 +403,18 @@ export function PaginaLeads() {
                 </SelectContent>
               </Select>
 
-              {/* Filtro Faixa de Score */}
-              <Select value={filtroFaixaScore} onValueChange={setFiltroFaixaScore}>
+              {/* Filtro Instagram */}
+              <Select
+                value={filtroInstagram}
+                onValueChange={(val) => setFiltroInstagram(val as "todos" | "com" | "sem")}
+              >
                 <SelectTrigger className="text-xs h-9 bg-surface/50">
-                  <SelectValue placeholder="Prioridade" />
+                  <SelectValue placeholder="Rede Social" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todas as prioridades</SelectItem>
-                  <SelectItem value="alta">Alta (&ge; 70 pts)</SelectItem>
-                  <SelectItem value="media">Média (40-69 pts)</SelectItem>
-                  <SelectItem value="baixa">Baixa (&lt; 40 pts)</SelectItem>
+                  <SelectItem value="todos">Todas as redes</SelectItem>
+                  <SelectItem value="com">Com Instagram ({totalComInstagram})</SelectItem>
+                  <SelectItem value="sem">Sem Instagram</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -438,261 +470,299 @@ export function PaginaLeads() {
           </CardContent>
         </Card>
 
-        {/* ========================================================================= */}
-        {/* MODO 1: TABELA DETALHADA */}
-        {/* ========================================================================= */}
-        {modoVisualizacao === "tabela" && (
-          <Card className="bg-card border-border shadow-elev overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-border bg-surface/70 text-muted-foreground uppercase text-[10px] rotulo tracking-wider">
-                    <th className="p-3 pl-4">Estabelecimento / Categoria</th>
-                    <th className="p-3">Endereço / Cidade</th>
-                    <th className="p-3">Avaliação Google</th>
-                    <th className="p-3">Presença Web</th>
-                    <th className="p-3">Score</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3 pr-4 text-right">Ações Rápidas</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {leadsFiltrados.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-secondary/30 transition-colors group">
-                      <td className="p-3 pl-4">
-                        <div className="font-semibold text-foreground text-sm line-clamp-1">
-                          <Link
-                            to="/leads/$id"
-                            params={{ id: lead.id }}
-                            className="hover:text-primary transition-colors"
+        {/* TABELA / GRADE DE LEADS */}
+        <Card className="bg-card border-border shadow-elev overflow-hidden">
+          <CardContent className="p-0">
+            {modoVisualizacao === "tabela" ? (
+              /* MODO TABELA */
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-surface/70 text-muted-foreground uppercase text-[10px] rotulo tracking-wider">
+                      <th className="p-3 pl-4">Estabelecimento</th>
+                      <th className="p-3">Localização</th>
+                      <th className="p-3">Contato & Telefone</th>
+                      <th className="p-3">Presença & Redes</th>
+                      <th className="p-3">Score</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 pr-4 text-right">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {leadsFiltrados.map((lead) => (
+                      <tr key={lead.id} className="hover:bg-secondary/20 transition-colors">
+                        <td className="p-3 pl-4">
+                          <div className="font-semibold text-foreground text-sm hover:text-primary transition-colors">
+                            <Link to="/leads/$id" params={{ id: lead.id }}>
+                              {lead.nome}
+                            </Link>
+                          </div>
+                          <span className="text-[11px] text-muted-foreground">
+                            {lead.categoria}
+                          </span>
+                        </td>
+
+                        <td className="p-3 text-muted-foreground dado">
+                          <p>{lead.bairro || "—"}</p>
+                          <p className="text-[10px] text-muted-foreground/80">
+                            {lead.cidade}
+                            {lead.estado ? ` - ${lead.estado}` : ""}
+                          </p>
+                        </td>
+
+                        <td className="p-3 dado text-muted-foreground">
+                          {lead.telefone ? (
+                            <div className="flex items-center gap-1.5">
+                              <span>{lead.telefone}</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                                onClick={() => {
+                                  setLeadParaWhatsApp(lead);
+                                  setModalWhatsAppAberto(true);
+                                }}
+                                title="Abordar no WhatsApp"
+                              >
+                                <MessageSquare className="size-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-[11px]">Sem telefone</span>
+                          )}
+                        </td>
+
+                        <td className="p-3">
+                          <div className="space-y-1">
+                            {!lead.tem_site ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-alerta)]">
+                                <AlertCircle className="size-3" /> Sem site próprio
+                              </span>
+                            ) : (
+                              <a
+                                href={lead.site_url || "#"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                              >
+                                <Globe className="size-3" /> Com site
+                                <ExternalLink className="size-2.5" />
+                              </a>
+                            )}
+
+                            {lead.instagram ? (
+                              <a
+                                href={`https://instagram.com/${lead.instagram}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-pink-400 hover:text-pink-300 flex items-center gap-1 font-mono hover:underline"
+                              >
+                                <Instagram className="size-2.5" /> @{lead.instagram}
+                                <ExternalLink className="size-2 opacity-60" />
+                              </a>
+                            ) : (
+                              <a
+                                href={gerarUrlBuscaInstagram(lead.nome, lead.cidade || lead.bairro)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-muted-foreground hover:text-pink-400 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
+                                title="Pesquisar Instagram no Google"
+                              >
+                                <Search className="size-2" /> Buscar @
+                              </a>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="p-3">
+                          <BadgePrioridade score={lead.score} mostrarBarra={true} />
+                        </td>
+
+                        <td className="p-3">
+                          <Select
+                            value={lead.status}
+                            onValueChange={(val) => mudarStatus(lead.id, val as LeadItem["status"])}
                           >
-                            {lead.nome}
-                          </Link>
-                        </div>
-                        <span className="text-[11px] text-muted-foreground">{lead.categoria}</span>
-                      </td>
+                            <SelectTrigger className="h-7 w-28 text-[11px] bg-transparent border-border/80">
+                              <SelectValue>
+                                <BadgeStatus status={lead.status} />
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="novo">Novo</SelectItem>
+                              <SelectItem value="contatado">Contatado</SelectItem>
+                              <SelectItem value="proposta">Proposta</SelectItem>
+                              <SelectItem value="fechado">Fechado</SelectItem>
+                              <SelectItem value="recusado">Recusado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
 
-                      <td className="p-3 dado text-muted-foreground">
-                        <p className="line-clamp-1">{lead.endereco || lead.bairro || "—"}</p>
-                        <p className="text-[10px] text-muted-foreground/80 truncate">
-                          {lead.bairro ? `${lead.bairro}, ` : ""}
-                          {lead.cidade || ""} {lead.estado ? `- ${lead.estado}` : ""}
-                        </p>
-                      </td>
+                        <td className="p-3 pr-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              asChild
+                              className="h-7 text-xs px-2 gap-1 text-muted-foreground hover:text-foreground"
+                            >
+                              <Link to="/leads/$id" params={{ id: lead.id }}>
+                                Detalhes
+                                <ArrowUpRight className="size-3" />
+                              </Link>
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
 
-                      <td className="p-3 dado">
-                        {lead.avaliacao_google ? (
-                          <div className="flex items-center gap-1 text-amber-400">
+                    {leadsFiltrados.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-xs text-muted-foreground">
+                          Nenhum estabelecimento encontrado para os filtros selecionados.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              /* MODO GRADE */
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                {leadsFiltrados.map((lead) => (
+                  <div
+                    key={lead.id}
+                    className="rounded-xl border border-border bg-card p-4 space-y-3 hover:border-primary/40 transition-all flex flex-col justify-between group shadow-sm"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider rotulo">
+                          {lead.categoria}
+                        </span>
+                        <BadgePrioridade score={lead.score} />
+                      </div>
+
+                      <h4 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                        <Link to="/leads/$id" params={{ id: lead.id }}>
+                          {lead.nome}
+                        </Link>
+                      </h4>
+
+                      <p className="text-xs text-muted-foreground truncate dado flex items-center gap-1">
+                        <MapPin className="size-3 text-primary shrink-0" />
+                        <span>{lead.bairro || lead.cidade || "Endereço não informado"}</span>
+                      </p>
+
+                      <div className="flex items-center justify-between text-xs pt-1">
+                        {!lead.tem_site ? (
+                          <span className="text-[10px] font-semibold text-[var(--color-alerta)] flex items-center gap-1 bg-[var(--color-alerta)]/10 px-2 py-0.5 rounded-full border border-[var(--color-alerta)]/20">
+                            <Zap className="size-3 fill-current" /> Sem site próprio
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1 bg-secondary px-2 py-0.5 rounded-full">
+                            <Globe className="size-3" /> Possui site
+                          </span>
+                        )}
+
+                        {lead.avaliacao_google != null && (
+                          <div className="flex items-center gap-1 text-amber-400 text-xs dado">
                             <Star className="size-3 fill-amber-400" />
-                            <span className="font-medium">{lead.avaliacao_google.toFixed(1)}</span>
-                            <span className="text-muted-foreground text-[10px]">
+                            <span>{lead.avaliacao_google.toFixed(1)}</span>
+                            <span className="text-[10px] text-muted-foreground">
                               ({lead.total_avaliacoes})
                             </span>
                           </div>
-                        ) : (
-                          <span className="text-muted-foreground text-[11px]">—</span>
                         )}
-                      </td>
-
-                      <td className="p-3">
-                        <div className="space-y-1">
-                          {!lead.tem_site ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-alerta)]">
-                              <AlertCircle className="size-3" /> Sem site próprio
-                            </span>
-                          ) : (
-                            <a
-                              href={lead.site_url || "#"}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
-                            >
-                              <Globe className="size-3" /> Com site
-                              <ExternalLink className="size-2.5" />
-                            </a>
-                          )}
-
-                          {lead.instagram && (
-                            <p className="text-[10px] text-pink-400 flex items-center gap-1 dado">
-                              <Instagram className="size-2.5" /> @{lead.instagram}
-                            </p>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="p-3">
-                        <BadgePrioridade score={lead.score} mostrarBarra={true} />
-                      </td>
-
-                      <td className="p-3">
-                        <Select
-                          value={lead.status}
-                          onValueChange={(val) => mudarStatus(lead.id, val as LeadItem["status"])}
-                        >
-                          <SelectTrigger className="h-7 w-28 text-[11px] bg-transparent border-border/80">
-                            <SelectValue>
-                              <BadgeStatus status={lead.status} />
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="novo">Novo</SelectItem>
-                            <SelectItem value="contatado">Contatado</SelectItem>
-                            <SelectItem value="proposta">Proposta</SelectItem>
-                            <SelectItem value="fechado">Fechado</SelectItem>
-                            <SelectItem value="recusado">Recusado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </td>
-
-                      <td className="p-3 pr-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setLeadParaWhatsApp(lead);
-                              setModalWhatsAppAberto(true);
-                            }}
-                            className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] gap-1 font-semibold"
-                          >
-                            <MessageSquare className="size-3" />
-                            WhatsApp
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            asChild
-                            className="h-7 px-2 text-[11px]"
-                          >
-                            <Link to="/leads/$id" params={{ id: lead.id }}>
-                              <ArrowUpRight className="size-3" />
-                            </Link>
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {leadsFiltrados.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="p-8 text-center text-xs text-muted-foreground">
-                        Nenhum estabelecimento encontrado com os filtros selecionados.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="p-3 border-t border-border bg-surface/50 text-[11px] text-muted-foreground flex items-center justify-between">
-              <span className="dado">
-                Exibindo {leadsFiltrados.length} de {leads.length} estabelecimentos
-              </span>
-              <span className="rotulo">Prospecta Hub</span>
-            </div>
-          </Card>
-        )}
-
-        {/* ========================================================================= */}
-        {/* MODO 2: GRADE DE CARDS */}
-        {/* ========================================================================= */}
-        {modoVisualizacao === "grade" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {leadsFiltrados.map((lead) => (
-              <div
-                key={lead.id}
-                className="rounded-2xl border border-border/80 bg-card hover:border-primary/50 transition-all duration-200 p-4 flex flex-col justify-between shadow-elev space-y-3 group"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground rotulo tracking-wider truncate">
-                      {lead.categoria}
-                    </span>
-                    <BadgePrioridade score={lead.score} />
-                  </div>
-
-                  <h4 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                    <Link to="/leads/$id" params={{ id: lead.id }}>
-                      {lead.nome}
-                    </Link>
-                  </h4>
-
-                  <p className="text-xs text-muted-foreground truncate dado flex items-center gap-1">
-                    <MapPin className="size-3 text-primary shrink-0" />
-                    <span>{lead.bairro || lead.cidade || "Endereço não informado"}</span>
-                  </p>
-
-                  <div className="flex items-center justify-between text-xs pt-1">
-                    {!lead.tem_site ? (
-                      <span className="text-[10px] font-semibold text-[var(--color-alerta)] flex items-center gap-1 bg-[var(--color-alerta)]/10 px-2 py-0.5 rounded-full">
-                        <Zap className="size-3 fill-current" /> Sem site próprio
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1 bg-secondary px-2 py-0.5 rounded-full">
-                        <Globe className="size-3" /> Possui site
-                      </span>
-                    )}
-
-                    {lead.avaliacao_google != null && (
-                      <div className="flex items-center gap-1 text-amber-400 text-xs dado">
-                        <Star className="size-3 fill-amber-400" />
-                        <span>{lead.avaliacao_google.toFixed(1)}</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          ({lead.total_avaliacoes})
-                        </span>
                       </div>
-                    )}
+                    </div>
+
+                    <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2">
+                      <Select
+                        value={lead.status}
+                        onValueChange={(val) => mudarStatus(lead.id, val as LeadItem["status"])}
+                      >
+                        <SelectTrigger className="h-7 w-28 text-[10px] bg-transparent border-border/80">
+                          <SelectValue>
+                            <BadgeStatus status={lead.status} />
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="novo">Novo</SelectItem>
+                          <SelectItem value="contatado">Contatado</SelectItem>
+                          <SelectItem value="proposta">Proposta</SelectItem>
+                          <SelectItem value="fechado">Fechado</SelectItem>
+                          <SelectItem value="recusado">Recusado</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <div className="flex items-center gap-1.5">
+                        {lead.instagram ? (
+                          <a
+                            href={`https://instagram.com/${lead.instagram}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="size-7 rounded-md bg-pink-500/10 text-pink-400 hover:bg-pink-500/20 flex items-center justify-center transition-colors"
+                            title={`Instagram: @${lead.instagram}`}
+                          >
+                            <Instagram className="size-3.5" />
+                          </a>
+                        ) : (
+                          <a
+                            href={gerarUrlBuscaInstagram(lead.nome, lead.cidade || lead.bairro)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="size-7 rounded-md bg-secondary text-muted-foreground hover:text-pink-400 flex items-center justify-center transition-colors"
+                            title="Buscar Instagram no Google"
+                          >
+                            <Search className="size-3" />
+                          </a>
+                        )}
+
+                        <Button
+                          size="sm"
+                          className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs gap-1 font-semibold"
+                          onClick={() => {
+                            setLeadParaWhatsApp(lead);
+                            setModalWhatsAppAberto(true);
+                          }}
+                        >
+                          <MessageSquare className="size-3" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-2">
-                  <Select
-                    value={lead.status}
-                    onValueChange={(val) => mudarStatus(lead.id, val as LeadItem["status"])}
-                  >
-                    <SelectTrigger className="h-7 w-28 text-[10px] bg-transparent border-border/80">
-                      <SelectValue>
-                        <BadgeStatus status={lead.status} />
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="novo">Novo</SelectItem>
-                      <SelectItem value="contatado">Contatado</SelectItem>
-                      <SelectItem value="proposta">Proposta</SelectItem>
-                      <SelectItem value="fechado">Fechado</SelectItem>
-                      <SelectItem value="recusado">Recusado</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <div className="flex items-center gap-1.5">
-                    <Button
-                      size="sm"
-                      className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs gap-1 font-semibold"
-                      onClick={() => {
-                        setLeadParaWhatsApp(lead);
-                        setModalWhatsAppAberto(true);
-                      }}
-                    >
-                      <MessageSquare className="size-3" />
-                      WhatsApp
-                    </Button>
-                    <Button variant="ghost" size="icon" asChild className="size-7">
-                      <Link to="/leads/$id" params={{ id: lead.id }}>
-                        <ArrowUpRight className="size-3.5" />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {leadsFiltrados.length === 0 && (
-              <div className="col-span-full py-12 text-center text-xs text-muted-foreground">
-                Nenhum estabelecimento encontrado com os filtros selecionados.
+                ))}
               </div>
             )}
-          </div>
-        )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* MODAL DE CONFIRMAÇÃO PARA ZERAR BASE */}
+      <AlertDialog open={modalZerarAberto} onOpenChange={setModalZerarAberto}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-rose-400 flex items-center gap-2">
+              <AlertTriangle className="size-5" />
+              Zerar Base de Estabelecimentos?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground">
+              Esta ação removerá todos os {leads.length} estabelecimentos cadastrados e o histórico
+              de interações. Esta operação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-xs">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={executarZerarBase}
+              disabled={zerandoBase}
+              className="bg-rose-600 hover:bg-rose-500 text-white text-xs"
+            >
+              {zerandoBase ? "Limpando..." : "Sim, Limpar Tudo"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Modal de envio WhatsApp */}
       <ModalMensagemWhatsApp
@@ -701,40 +771,6 @@ export function PaginaLeads() {
         onOpenChange={setModalWhatsAppAberto}
         onMensagemEnviada={carregarDados}
       />
-
-      {/* Confirmação de Zerar Base */}
-      <AlertDialog open={modalZerarAberto} onOpenChange={setModalZerarAberto}>
-        <AlertDialogContent className="bg-card border-border">
-          <AlertDialogHeader>
-            <div className="size-10 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center mb-1">
-              <AlertTriangle className="size-5" />
-            </div>
-            <AlertDialogTitle className="text-base font-bold text-foreground">
-              Zerar Base de Estabelecimentos?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              Esta ação removerá permanentemente todos os{" "}
-              <strong>{leads.length} estabelecimentos</strong> cadastrados na sua base de dados,
-              além de seus históricos de interação. Esta operação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="pt-2">
-            <AlertDialogCancel disabled={zerandoBase} className="text-xs h-9">
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                void executarZerarBase();
-              }}
-              disabled={zerandoBase}
-              className="bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs h-9"
-            >
-              {zerandoBase ? "Zerando..." : "Sim, Zerar Base"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AppShell>
   );
 }
