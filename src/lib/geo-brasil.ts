@@ -691,7 +691,7 @@ export function extrairLocalizacaoCompleta(
   const partesVirgula = formattedAddress.split(",").map((p) => p.trim());
   const ufDetectada = extrairUfString(formattedAddress) || infoCidadeBuscada.estado;
 
-  let endereco = partesVirgula[0] || termoRegiaoDigitado;
+  const endereco = partesVirgula[0] || termoRegiaoDigitado;
   let bairro = "Centro";
   let cidade = infoCidadeBuscada.nome;
 

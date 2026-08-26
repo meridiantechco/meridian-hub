@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { AppShell } from "@/components/prospecta/AppShell";
 import { BadgePrioridade } from "@/components/prospecta/BadgePrioridade";
 import { BadgeStatus } from "@/components/prospecta/BadgeStatus";
@@ -84,7 +84,7 @@ export function PaginaDetalheLead() {
   // Modal WhatsApp
   const [modalWhatsAppAberto, setModalWhatsAppAberto] = useState(false);
 
-  const carregarDados = async () => {
+  const carregarDados = useCallback(async () => {
     setCarregando(true);
     const [leadObtido, listaInteracoes] = await Promise.all([
       prospectaService.obterLeadPorId(id),
@@ -101,11 +101,11 @@ export function PaginaDetalheLead() {
     setObservacoes(leadObtido.observacoes || "");
     setInteracoes(listaInteracoes);
     setCarregando(false);
-  };
+  }, [id, navigate]);
 
   useEffect(() => {
     void carregarDados();
-  }, [id]);
+  }, [carregarDados]);
 
   const salvarObservacoes = async () => {
     if (!lead) return;

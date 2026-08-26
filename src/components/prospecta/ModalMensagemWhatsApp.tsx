@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -29,19 +29,34 @@ export function ModalMensagemWhatsApp({
   onOpenChange,
   onMensagemEnviada,
 }: ModalMensagemWhatsAppProps) {
-  if (!lead) return null;
-
   const [mensagem, setMensagem] = useState(() =>
-    gerarMensagemPadrao({
-      telefone: lead.telefone ?? "",
-      nomeEmpresa: lead.nome,
-      categoria: lead.categoria,
-      cidadeOuBairro: lead.bairro || lead.cidade,
-    }),
+    lead
+      ? gerarMensagemPadrao({
+          telefone: lead.telefone ?? "",
+          nomeEmpresa: lead.nome,
+          categoria: lead.categoria,
+          cidadeOuBairro: lead.bairro || lead.cidade,
+        })
+      : "",
   );
   const [copiado, setCopiado] = useState(false);
 
   // Recalcular quando o lead mudar
+  useEffect(() => {
+    if (lead) {
+      setMensagem(
+        gerarMensagemPadrao({
+          telefone: lead.telefone ?? "",
+          nomeEmpresa: lead.nome,
+          categoria: lead.categoria,
+          cidadeOuBairro: lead.bairro || lead.cidade,
+        }),
+      );
+    }
+  }, [lead]);
+
+  if (!lead) return null;
+
   const resetarMensagem = () => {
     setMensagem(
       gerarMensagemPadrao({

@@ -126,7 +126,9 @@ export function AppShell({
       const novo = !prev;
       try {
         localStorage.setItem("prospecta_sidebar_colapsada", String(novo));
-      } catch {}
+      } catch {
+        // Storage inacessível em ambiente restrito
+      }
       return novo;
     });
   };
