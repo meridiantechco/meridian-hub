@@ -1,8 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.15";
   };
@@ -168,18 +166,21 @@ export type Database = {
       };
       profiles: {
         Row: {
+          atualizado_em: string;
           criado_em: string;
           email: string;
           id: string;
           nome: string;
         };
         Insert: {
+          atualizado_em?: string;
           criado_em?: string;
           email?: string;
           id: string;
           nome?: string;
         };
         Update: {
+          atualizado_em?: string;
           criado_em?: string;
           email?: string;
           id?: string;
@@ -208,6 +209,118 @@ export type Database = {
         };
         Relationships: [];
       };
+      transacoes_financeiras: {
+        Row: {
+          atualizado_em: string;
+          categoria: string;
+          criado_em: string;
+          data_competencia: string;
+          data_pagamento: string | null;
+          descricao: string | null;
+          id: string;
+          lead_id: string | null;
+          lead_nome: string | null;
+          recorrencia: Database["public"]["Enums"]["recorrencia_transacao"];
+          status: Database["public"]["Enums"]["status_transacao"];
+          tipo: Database["public"]["Enums"]["tipo_transacao"];
+          titulo: string;
+          usuario_id: string | null;
+          valor: number;
+        };
+        Insert: {
+          atualizado_em?: string;
+          categoria: string;
+          criado_em?: string;
+          data_competencia?: string;
+          data_pagamento?: string | null;
+          descricao?: string | null;
+          id?: string;
+          lead_id?: string | null;
+          lead_nome?: string | null;
+          recorrencia?: Database["public"]["Enums"]["recorrencia_transacao"];
+          status?: Database["public"]["Enums"]["status_transacao"];
+          tipo?: Database["public"]["Enums"]["tipo_transacao"];
+          titulo: string;
+          usuario_id?: string | null;
+          valor?: number;
+        };
+        Update: {
+          atualizado_em?: string;
+          categoria?: string;
+          criado_em?: string;
+          data_competencia?: string;
+          data_pagamento?: string | null;
+          descricao?: string | null;
+          id?: string;
+          lead_id?: string | null;
+          lead_nome?: string | null;
+          recorrencia?: Database["public"]["Enums"]["recorrencia_transacao"];
+          status?: Database["public"]["Enums"]["status_transacao"];
+          tipo?: Database["public"]["Enums"]["tipo_transacao"];
+          titulo?: string;
+          usuario_id?: string | null;
+          valor?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "transacoes_financeiras_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      auditoria_atividades: {
+        Row: {
+          criado_em: string;
+          descricao: string | null;
+          id: string;
+          lead_id: string | null;
+          lead_nome: string | null;
+          metadados: Json | null;
+          tipo: string;
+          titulo: string;
+          usuario_email: string | null;
+          usuario_id: string | null;
+          usuario_nome: string | null;
+        };
+        Insert: {
+          criado_em?: string;
+          descricao?: string | null;
+          id?: string;
+          lead_id?: string | null;
+          lead_nome?: string | null;
+          metadados?: Json | null;
+          tipo: string;
+          titulo: string;
+          usuario_email?: string | null;
+          usuario_id?: string | null;
+          usuario_nome?: string | null;
+        };
+        Update: {
+          criado_em?: string;
+          descricao?: string | null;
+          id?: string;
+          lead_id?: string | null;
+          lead_nome?: string | null;
+          metadados?: Json | null;
+          tipo?: string;
+          titulo?: string;
+          usuario_email?: string | null;
+          usuario_id?: string | null;
+          usuario_nome?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "auditoria_atividades_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -220,12 +333,41 @@ export type Database = {
         };
         Returns: boolean;
       };
+      calcular_score_lead: {
+        Args: {
+          _avaliacao_google: number | null;
+          _criado_em: string;
+          _facebook: string | null;
+          _instagram: string | null;
+          _tem_site: boolean;
+          _total_avaliacoes: number | null;
+        };
+        Returns: number;
+      };
+      buscar_leads_bounds: {
+        Args: {
+          filtro_apenas_sem_site?: boolean | null;
+          filtro_categoria?: string | null;
+          filtro_score_minimo?: number | null;
+          filtro_status?: string | null;
+          filtro_termo?: string | null;
+          limite?: number | null;
+          ne_lat: number;
+          ne_lng: number;
+          sw_lat: number;
+          sw_lng: number;
+        };
+        Returns: Database["public"]["Tables"]["leads"]["Row"][];
+      };
     };
     Enums: {
       app_role: "admin" | "vendedor";
       interacao_tipo: "ligacao" | "whatsapp" | "email" | "visita" | "outro";
       lead_origem: "google_places" | "manual" | "importacao";
       lead_status: "novo" | "contatado" | "proposta" | "fechado" | "recusado";
+      tipo_transacao: "receita" | "despesa";
+      recorrencia_transacao: "pontual" | "mensal" | "anual";
+      status_transacao: "pago" | "pendente" | "cancelado";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -351,6 +493,9 @@ export const Constants = {
       interacao_tipo: ["ligacao", "whatsapp", "email", "visita", "outro"],
       lead_origem: ["google_places", "manual", "importacao"],
       lead_status: ["novo", "contatado", "proposta", "fechado", "recusado"],
+      tipo_transacao: ["receita", "despesa"],
+      recorrencia_transacao: ["pontual", "mensal", "anual"],
+      status_transacao: ["pago", "pendente", "cancelado"],
     },
   },
 } as const;

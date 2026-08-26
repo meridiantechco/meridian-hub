@@ -78,13 +78,35 @@ export function UsersView() {
     alterarPapel,
   } = useUsers();
 
-  const [abaAtiva, setAbaAtiva] = useState<"equipe" | "auditoria" | "metricas">("equipe");
+  const [usuarioHistorico, setUsuarioHistorico] = useState<UsuarioEquipe | null>(null);
   const [modalCriarAberto, setModalCriarAberto] = useState(false);
-  const [modalConviteAberto, setModalConviteAberto] = useState(false);
-  const [textoConvite, setTextoConvite] = useState("");
+  const [modalCredenciaisAberto, setModalCredenciaisAberto] = useState(false);
+  const [credenciaisTexto, setCredenciaisTexto] = useState("");
+  const [usuarioRecemCriado, setUsuarioRecemCriado] = useState<UsuarioEquipe | null>(null);
+
+  const obterResumoUsuario = (usuarioId: string) => {
+    const lista = atividades.filter((a) => a.usuario_id === usuarioId);
+    const totalWhatsApp = lista.filter((a) => a.tipo === "whatsapp").length;
+    const totalStatus = lista.filter((a) => a.tipo === "mudanca_status").length;
+    const totalFechados = lista.filter(
+      (a) => a.tipo === "mudanca_status" && a.descricao?.toLowerCase().includes("fechado"),
+    ).length;
+    const ultimaAcao = lista.length > 0 ? lista[0] || null : null;
+
+    return {
+      totalAcoes: lista.length,
+      totalWhatsApp,
+      totalFechados,
+      totalStatus,
+      totalMudancasStatus: totalStatus,
+      ultimaAcao,
+    };
+  };
+  const [modalHistoricoAberto, setModalHistoricoAberto] = useState(false);
+
+  const [abaAtiva, setAbaAtiva] = useState<"equipe" | "auditoria" | "metricas">("equipe");
   const [usuarioSelecionadoHistorico, setUsuarioSelecionadoHistorico] =
     useState<UsuarioEquipe | null>(null);
-  const [modalHistoricoAberto, setModalHistoricoAberto] = useState(false);
 
   const [filtroUsuarioAuditoria, setFiltroUsuarioAuditoria] = useState<string>("todos");
   const [filtroTipoAuditoria, setFiltroTipoAuditoria] = useState<string>("todos");
@@ -248,7 +270,7 @@ export function UsersView() {
               <CardContent className="p-0">
                 <div className="divide-y divide-border">
                   {usuarios.map((u) => {
-                    const resumo = auditoriaService.obterResumoPorUsuario(u.id);
+                    const resumo = obterResumoUsuario(u.id);
 
                     return (
                       <div
@@ -468,7 +490,7 @@ export function UsersView() {
           <TabsContent value="metricas" className="space-y-4 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {usuarios.map((u) => {
-                const resumo = auditoriaService.obterResumoPorUsuario(u.id);
+                const resumo = obterResumoUsuario(u.id);
                 const taxaConversao =
                   resumo.totalWhatsApp > 0
                     ? ((resumo.totalFechados / resumo.totalWhatsApp) * 100).toFixed(1)

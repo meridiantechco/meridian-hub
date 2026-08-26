@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import type {
   CategoriaDespesa,
   CategoriaReceita,
@@ -7,220 +8,22 @@ import type {
   TransacaoFinanceira,
 } from "../types";
 
-const STORAGE_KEY_FINANCEIRO = "meridian_transacoes_financeiras_v1";
-const STORAGE_KEY_FINANCEIRO_LEGADO = "prospecta_transacoes_financeiras_v1";
-
-const TRANSACOES_INICIAIS: TransacaoFinanceira[] = [
-  {
-    id: "tx-rec-1",
-    tipo: "receita",
-    titulo: "Criação de Site — Barbearia Corleone",
-    descricao: "Desenvolvimento de landing page institucional + integração WhatsApp",
-    categoria: "venda_site",
-    valor: 2500.0,
-    data_competencia: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    recorrencia: "pontual",
-    status: "pago",
-    lead_nome: "Barbearia Corleone",
-    criado_em: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "tx-rec-2",
-    tipo: "receita",
-    titulo: "Website & Cardápio Digital — Pizzaria Bella Napoli",
-    descricao: "Setup do site responsivo e domínio próprio",
-    categoria: "venda_site",
-    valor: 3200.0,
-    data_competencia: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    recorrencia: "pontual",
-    status: "pago",
-    lead_nome: "Pizzaria Bella Napoli",
-    criado_em: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "tx-rec-3",
-    tipo: "receita",
-    titulo: "Mensalidade Gestão & Hospedagem — Barbearia Corleone",
-    descricao: "Manutenção mensal de infraestrutura e SEO local",
-    categoria: "mensalidade",
-    valor: 250.0,
-    data_competencia: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    recorrencia: "mensal",
-    status: "pago",
-    lead_nome: "Barbearia Corleone",
-    criado_em: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "tx-rec-4",
-    tipo: "receita",
-    titulo: "Otimização Google Meu Negócio — Oficina do Alemão",
-    descricao: "Adequação de perfil, fotos, catálogo e SEO regional",
-    categoria: "consultoria",
-    valor: 1200.0,
-    data_competencia: new Date().toISOString().slice(0, 10),
-    recorrencia: "pontual",
-    status: "pendente",
-    lead_nome: "Oficina do Alemão",
-    criado_em: new Date().toISOString(),
-  },
-  {
-    id: "tx-desp-1",
-    tipo: "despesa",
-    titulo: "Google Cloud / Places API",
-    descricao: "Créditos de varredura e busca cartográfica de estabelecimentos",
-    categoria: "tecnologia",
-    valor: 215.4,
-    data_competencia: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    recorrencia: "mensal",
-    status: "pago",
-    criado_em: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "tx-desp-2",
-    tipo: "despesa",
-    titulo: "Supabase Pro Plan & Database",
-    descricao: "Hospedagem de banco Postgres e autenticação",
-    categoria: "tecnologia",
-    valor: 145.0,
-    data_competencia: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    recorrencia: "mensal",
-    status: "pago",
-    criado_em: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "tx-desp-3",
-    tipo: "despesa",
-    titulo: "WhatsApp Business API / Disparador",
-    descricao: "Licença de software para envio de abordagens comerciais",
-    categoria: "marketing",
-    valor: 189.9,
-    data_competencia: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    recorrencia: "mensal",
-    status: "pago",
-    criado_em: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "tx-desp-4",
-    tipo: "despesa",
-    titulo: "Anúncios Meta Ads (Prospecção Inbound)",
-    descricao: "Campanha de captação de leads empresariais locais",
-    categoria: "marketing",
-    valor: 450.0,
-    data_competencia: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    recorrencia: "pontual",
-    status: "pago",
-    criado_em: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "tx-desp-5",
-    tipo: "despesa",
-    titulo: "Design Freelancer (Templates de Landing Pages)",
-    descricao: "Criação de 3 layouts prontos no Figma para apresentação a clientes",
-    categoria: "equipe",
-    valor: 600.0,
-    data_competencia: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    recorrencia: "pontual",
-    status: "pago",
-    criado_em: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "tx-desp-6",
-    tipo: "despesa",
-    titulo: "DAS MEI / Simples Nacional",
-    descricao: "Guia tributária mensal da empresa",
-    categoria: "impostos",
-    valor: 75.6,
-    data_competencia: new Date().toISOString().slice(0, 10),
-    recorrencia: "mensal",
-    status: "pendente",
-    criado_em: new Date().toISOString(),
-  },
-  {
-    id: "tx-desp-7",
-    tipo: "despesa",
-    titulo: "Registro.br (Domínios dos Clientes)",
-    descricao: "Registro anual de 3 novos domínios .com.br",
-    categoria: "tecnologia",
-    valor: 120.0,
-    data_competencia: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    recorrencia: "anual",
-    status: "pago",
-    criado_em: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "tx-desp-8",
-    tipo: "despesa",
-    titulo: "Internet Fibra & Telefonia Comercial",
-    descricao: "Conexão dedicada e chip comercial WhatsApp",
-    categoria: "operacional",
-    valor: 179.9,
-    data_competencia: new Date().toISOString().slice(0, 10),
-    recorrencia: "mensal",
-    status: "pendente",
-    criado_em: new Date().toISOString(),
-  },
-];
-
-function obterTransacoesStorage(): TransacaoFinanceira[] {
-  if (typeof window === "undefined") return TRANSACOES_INICIAIS;
-  try {
-    const raw =
-      localStorage.getItem(STORAGE_KEY_FINANCEIRO) ||
-      localStorage.getItem(STORAGE_KEY_FINANCEIRO_LEGADO);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEY_FINANCEIRO, JSON.stringify(TRANSACOES_INICIAIS));
-      return TRANSACOES_INICIAIS;
-    }
-    const parsed = JSON.parse(raw) as TransacaoFinanceira[];
-    return Array.isArray(parsed) ? parsed : TRANSACOES_INICIAIS;
-  } catch {
-    return TRANSACOES_INICIAIS;
-  }
-}
-
-function salvarTransacoesStorage(lista: TransacaoFinanceira[]) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY_FINANCEIRO, JSON.stringify(lista));
-  } catch {
-    // ignore
-  }
-}
-
 export const financialService = {
   /**
-   * Retorna todas as transações cadastradas (receitas e despesas)
+   * Retorna todas as transações cadastradas (receitas e despesas) direto do Supabase
    */
   async listarTransacoes(): Promise<TransacaoFinanceira[]> {
-    try {
-      const { data, error } = await supabase
-        .from("transacoes_financeiras" as any)
-        .select("*")
-        .order("data_competencia", { ascending: false });
+    const { data, error } = await supabase
+      .from("transacoes_financeiras")
+      .select("*")
+      .order("data_competencia", { ascending: false });
 
-      if (!error && data && Array.isArray(data) && data.length > 0) {
-        return data as unknown as TransacaoFinanceira[];
-      }
-    } catch {
-      // Tabela do Supabase não criada ou sem permissão -> usa armazenamento local
+    if (error) {
+      console.error("Erro ao listar transações financeiras:", error);
+      return [];
     }
 
-    const locais = obterTransacoesStorage();
-    locais.sort(
-      (a, b) =>
-        new Date(b.data_competencia).getTime() - new Date(a.data_competencia).getTime() ||
-        new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime(),
-    );
-    return locais;
+    return (data as TransacaoFinanceira[]) || [];
   },
 
   /**
@@ -229,32 +32,32 @@ export const financialService = {
   async criarTransacao(
     dados: Omit<TransacaoFinanceira, "id" | "criado_em">,
   ): Promise<TransacaoFinanceira> {
-    const nova: TransacaoFinanceira = {
-      ...dados,
-      id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      criado_em: new Date().toISOString(),
+    const payload: TablesInsert<"transacoes_financeiras"> = {
+      tipo: dados.tipo,
+      titulo: dados.titulo,
+      descricao: dados.descricao ?? null,
+      categoria: dados.categoria,
+      valor: dados.valor,
+      data_competencia: dados.data_competencia,
+      data_pagamento: dados.data_pagamento ?? null,
+      recorrencia: dados.recorrencia,
+      status: dados.status,
+      lead_id: dados.lead_id ?? null,
+      lead_nome: dados.lead_nome ?? null,
     };
 
-    try {
-      const { data, error } = await supabase
-        .from("transacoes_financeiras" as any)
-        .insert([nova as any])
-        .select()
-        .single();
+    const { data, error } = await supabase
+      .from("transacoes_financeiras")
+      .insert(payload)
+      .select()
+      .single();
 
-      if (!error && data) {
-        const atual = obterTransacoesStorage();
-        salvarTransacoesStorage([data as unknown as TransacaoFinanceira, ...atual]);
-        return data as unknown as TransacaoFinanceira;
-      }
-    } catch {
-      // Salva no storage local
+    if (error || !data) {
+      console.error("Erro ao criar transação no Supabase:", error);
+      throw new Error(error?.message || "Falha ao criar transação financeira");
     }
 
-    const atual = obterTransacoesStorage();
-    const atualizado = [nova, ...atual];
-    salvarTransacoesStorage(atualizado);
-    return nova;
+    return data as TransacaoFinanceira;
   },
 
   /**
@@ -264,53 +67,40 @@ export const financialService = {
     id: string,
     dados: Partial<Omit<TransacaoFinanceira, "id" | "criado_em">>,
   ): Promise<TransacaoFinanceira | null> {
-    try {
-      const { data, error } = await supabase
-        .from("transacoes_financeiras" as any)
-        .update({ ...dados, atualizado_em: new Date().toISOString() })
-        .eq("id", id)
-        .select()
-        .single();
+    const payload: TablesUpdate<"transacoes_financeiras"> = {
+      ...dados,
+      atualizado_em: new Date().toISOString(),
+    };
 
-      if (!error && data) {
-        const atual = obterTransacoesStorage();
-        const novo = atual.map((t) => (t.id === id ? (data as unknown as TransacaoFinanceira) : t));
-        salvarTransacoesStorage(novo);
-        return data as unknown as TransacaoFinanceira;
-      }
-    } catch {
-      // Local fallback
+    const { data, error } = await supabase
+      .from("transacoes_financeiras")
+      .update(payload)
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      console.error("Erro ao atualizar transação no Supabase:", error);
+      return null;
     }
 
-    const atual = obterTransacoesStorage();
-    let modificado: TransacaoFinanceira | null = null;
-    const novo = atual.map((t) => {
-      if (t.id === id) {
-        modificado = { ...t, ...dados, atualizado_em: new Date().toISOString() };
-        return modificado;
-      }
-      return t;
-    });
-    salvarTransacoesStorage(novo);
-    return modificado;
+    return (data as TransacaoFinanceira) || null;
   },
 
   /**
    * Exclui uma transação financeira
    */
   async excluirTransacao(id: string): Promise<boolean> {
-    try {
-      await supabase
-        .from("transacoes_financeiras" as any)
-        .delete()
-        .eq("id", id);
-    } catch {
-      // Local
+    const { error } = await supabase
+      .from("transacoes_financeiras")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erro ao excluir transação no Supabase:", error);
+      return false;
     }
 
-    const atual = obterTransacoesStorage();
-    const novo = atual.filter((t) => t.id !== id);
-    salvarTransacoesStorage(novo);
     return true;
   },
 
@@ -465,22 +255,15 @@ export const financialService = {
   },
 
   async zerarTransacoes(): Promise<number> {
-    const total = obterTransacoesStorage().length;
-    salvarTransacoesStorage([]);
-    try {
-      await supabase
-        .from("transacoes_financeiras" as any)
-        .delete()
-        .neq("id", "0");
-    } catch {
-      // ignore
-    }
-    return total;
-  },
+    const { count, error } = await supabase
+      .from("transacoes_financeiras")
+      .delete({ count: "exact" })
+      .neq("id", "00000000-0000-0000-0000-000000000000");
 
-  async restaurarDadosExemplo(): Promise<number> {
-    salvarTransacoesStorage(TRANSACOES_INICIAIS);
-    return TRANSACOES_INICIAIS.length;
+    if (error) {
+      console.error("Erro ao zerar transações financeiras:", error);
+    }
+    return count ?? 0;
   },
 };
 
@@ -557,5 +340,4 @@ export const ROTULOS_CATEGORIAS_RECEITA: Record<
   },
 };
 
-// Alias para compatibilidade
 export const financeiroService = financialService;
