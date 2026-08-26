@@ -1,33 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { AtividadeUsuario, TipoAtividade } from "../types";
 
-const STORAGE_KEY_AUDITORIA = "meridian_auditoria_atividades_v1";
-const STORAGE_KEY_AUDITORIA_LEGADO = "prospecta_auditoria_atividades_v1";
-
-function obterAtividadesStorage(): AtividadeUsuario[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_AUDITORIA) || localStorage.getItem(STORAGE_KEY_AUDITORIA_LEGADO);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as AtividadeUsuario[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function salvarAtividadesStorage(itens: AtividadeUsuario[]) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY_AUDITORIA, JSON.stringify(itens.slice(0, 500)));
-  } catch (err) {
-    console.error("Erro ao salvar auditoria no storage", err);
-  }
-}
-
 export const auditoriaService = {
   /**
-   * Registra uma nova movimentação ou ação efetuada por um usuário
+   * Registra uma nova movimentação ou ação efetuada por um usuário diretamente no banco
    */
   async registrarAtividade(params: {
     tipo: TipoAtividade;
@@ -43,7 +19,7 @@ export const auditoriaService = {
     const session = (await supabase.auth.getSession()).data.session;
     const user = session?.user;
 
-    const usuario_id = params.usuario_id || user?.id || "anonimo";
+    const usuario_id = params.usuario_id || user?.id || null;
     const usuario_nome =
       params.usuario_nome ||
       (user?.user_metadata?.["nome"] as string) ||
@@ -51,21 +27,7 @@ export const auditoriaService = {
       "Administrador";
     const usuario_email = params.usuario_email || user?.email || "admin@meridiantech.com.br";
 
-    const nova: AtividadeUsuario = {
-      id: `act-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      usuario_id,
-      usuario_nome,
-      usuario_email,
-      tipo: params.tipo,
-      titulo: params.titulo,
-      descricao: params.descricao,
-      lead_id: params.lead_id ?? null,
-      lead_nome: params.lead_nome ?? null,
-      metadados: params.metadados ?? null,
-      criado_em: new Date().toISOString(),
-    };
-
-    // 1. Tentar gravar no Supabase interações se houver lead
+    // 1. Gravar interação caso esteja associada a um lead
     if (
       params.lead_id &&
       (params.tipo === "whatsapp" ||
@@ -80,30 +42,76 @@ export const auditoriaService = {
           usuario_id: user?.id ?? null,
         });
       } catch (e) {
-        console.warn("Falha ao sincronizar interação com banco", e);
+        console.warn("Falha ao registrar interação de lead:", e);
       }
     }
 
-    // 2. Persistir localmente no histórico unificado de auditoria
-    const atuais = obterAtividadesStorage();
-    const atualizados = [nova, ...atuais];
-    salvarAtividadesStorage(atualizados);
+    // 2. Gravar no log unificado de auditoria no Supabase
+    const payload = {
+      usuario_id,
+      usuario_nome,
+      usuario_email,
+      tipo: params.tipo,
+      titulo: params.titulo,
+      descricao: params.descricao,
+      lead_id: params.lead_id ?? null,
+      lead_nome: params.lead_nome ?? null,
+      metadados: params.metadados ?? {},
+    };
 
-    return nova;
+    try {
+      const { data, error } = await supabase
+        .from("auditoria_atividades")
+        .insert(payload)
+        .select()
+        .single();
+
+      if (!error && data) {
+        return {
+          id: data.id,
+          usuario_id: data.usuario_id ?? "anonimo",
+          usuario_nome: data.usuario_nome ?? usuario_nome,
+          usuario_email: data.usuario_email ?? usuario_email,
+          tipo: data.tipo as TipoAtividade,
+          titulo: data.titulo,
+          descricao: data.descricao ?? "",
+          lead_id: data.lead_id,
+          lead_nome: data.lead_nome,
+          metadados: (data.metadados as Record<string, any>) ?? null,
+          criado_em: data.criado_em,
+        };
+      }
+    } catch (err) {
+      console.error("Erro ao salvar auditoria:", err);
+    }
+
+    return {
+      id: `act-${Date.now()}`,
+      usuario_id: usuario_id || "anonimo",
+      usuario_nome,
+      usuario_email,
+      tipo: params.tipo,
+      titulo: params.titulo,
+      descricao: params.descricao,
+      lead_id: params.lead_id ?? null,
+      lead_nome: params.lead_nome ?? null,
+      metadados: params.metadados ?? null,
+      criado_em: new Date().toISOString(),
+    };
   },
 
   /**
    * Retorna resumo de atividades para um usuário específico
    */
-  obterResumoPorUsuario(usuarioId: string): {
+  async obterResumoPorUsuario(usuarioId: string): Promise<{
     totalAcoes: number;
     totalWhatsApp: number;
     totalFechados: number;
     totalStatus: number;
     totalMudancasStatus: number;
     ultimaAcao: AtividadeUsuario | null;
-  } {
-    const lista = obterAtividadesStorage().filter((a) => a.usuario_id === usuarioId);
+  }> {
+    const lista = await this.listarAtividades({ usuario_id: usuarioId, limite: 200 });
     const totalWhatsApp = lista.filter((a) => a.tipo === "whatsapp").length;
     const totalStatus = lista.filter((a) => a.tipo === "mudanca_status").length;
     const totalFechados = lista.filter(
@@ -122,7 +130,7 @@ export const auditoriaService = {
   },
 
   /**
-   * Retorna lista de atividades registradas com filtros opcionais
+   * Retorna lista de atividades registradas com filtros opcionais direto do Supabase
    */
   async listarAtividades(filtro?: {
     usuario_id?: string;
@@ -130,20 +138,43 @@ export const auditoriaService = {
     tipo?: TipoAtividade;
     limite?: number;
   }): Promise<AtividadeUsuario[]> {
-    let lista = obterAtividadesStorage();
+    let query = supabase
+      .from("auditoria_atividades")
+      .select("*")
+      .order("criado_em", { ascending: false });
 
     if (filtro?.usuario_id) {
-      lista = lista.filter((a) => a.usuario_id === filtro.usuario_id);
+      query = query.eq("usuario_id", filtro.usuario_id);
     }
     if (filtro?.lead_id) {
-      lista = lista.filter((a) => a.lead_id === filtro.lead_id);
+      query = query.eq("lead_id", filtro.lead_id);
     }
     if (filtro?.tipo) {
-      lista = lista.filter((a) => a.tipo === filtro.tipo);
+      query = query.eq("tipo", filtro.tipo);
     }
 
     const limite = filtro?.limite || 50;
-    return lista.slice(0, limite);
+    query = query.limit(limite);
+
+    const { data, error } = await query;
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data.map((d) => ({
+      id: d.id,
+      usuario_id: d.usuario_id ?? "anonimo",
+      usuario_nome: d.usuario_nome ?? "Usuário",
+      usuario_email: d.usuario_email ?? "",
+      tipo: d.tipo as TipoAtividade,
+      titulo: d.titulo,
+      descricao: d.descricao ?? "",
+      lead_id: d.lead_id,
+      lead_nome: d.lead_nome,
+      metadados: (d.metadados as Record<string, any>) ?? null,
+      criado_em: d.criado_em,
+    }));
   },
 
   /**
@@ -161,7 +192,7 @@ export const auditoriaService = {
       }
     >
   > {
-    const lista = obterAtividadesStorage();
+    const lista = await this.listarAtividades({ limite: 500 });
     const mapa: Record<string, any> = {};
 
     for (const item of lista) {

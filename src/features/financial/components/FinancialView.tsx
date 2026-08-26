@@ -18,7 +18,6 @@ import {
   TrendingDown,
   TrendingUp,
   AlertTriangle,
-  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { prospectaService } from "@/lib/prospecta-service";
@@ -44,13 +43,11 @@ export function FinancialView() {
     criarTransacao,
     atualizarTransacao,
     excluirTransacao,
-    restaurarDemo,
   } = useFinancial();
 
   const [abaAtiva, setAbaAtiva] = useState<"todas" | "despesas" | "receitas" | "pendentes">("todas");
   const [modalNovaDespesaAberto, setModalNovaDespesaAberto] = useState(false);
   const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
-  const [modalRestaurarAberto, setModalRestaurarAberto] = useState(false);
   const [transacaoParaExcluir, setTransacaoParaExcluir] = useState<TransacaoFinanceira | null>(null);
   const [leadsDisponiveis, setLeadsDisponiveis] = useState<LeadItem[]>([]);
 
@@ -197,7 +194,6 @@ export function FinancialView() {
           setFiltroCategoria={setFiltroCategoria}
           onAlternarStatus={alternarStatus}
           onSolicitarExclusao={(tx) => setTransacaoParaExcluir(tx)}
-          onRestaurarDemo={() => setModalRestaurarAberto(true)}
         />
       </div>
 
@@ -247,33 +243,6 @@ export function FinancialView() {
               className="bg-rose-600 hover:bg-rose-500 text-white text-xs"
             >
               Sim, Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* DIÁLOGO RESTAURAR DEMO */}
-      <AlertDialog open={modalRestaurarAberto} onOpenChange={setModalRestaurarAberto}>
-        <AlertDialogContent className="bg-card border-border">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-foreground flex items-center gap-2">
-              <RotateCcw className="size-5 text-primary" />
-              Restaurar Dados de Exemplo?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground">
-              Esta ação redefinirá as transações financeiras para os dados padrão de demonstração da Meridian Tech.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="text-xs">Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                await restaurarDemo();
-                setModalRestaurarAberto(false);
-              }}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs"
-            >
-              Restaurar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

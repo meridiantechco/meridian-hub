@@ -41,7 +41,6 @@ interface TransactionsTableProps {
   setFiltroCategoria: (val: string) => void;
   onAlternarStatus: (tx: TransacaoFinanceira) => void;
   onSolicitarExclusao: (tx: TransacaoFinanceira) => void;
-  onRestaurarDemo: () => void;
 }
 
 export function TransactionsTable({
@@ -54,7 +53,6 @@ export function TransactionsTable({
   setFiltroCategoria,
   onAlternarStatus,
   onSolicitarExclusao,
-  onRestaurarDemo,
 }: TransactionsTableProps) {
   const formatarMoeda = (val: number) => {
     return new Intl.NumberFormat("pt-BR", {
