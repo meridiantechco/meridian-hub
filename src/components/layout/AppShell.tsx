@@ -80,28 +80,24 @@ export function AppShell({
   const { ehAdmin, nome, papel, user } = useAuth();
   const navigate = useNavigate();
 
-  // Estado da barra lateral (expandida ou colapsada)
-  const [colapsada, setColapsada] = useState<boolean>(false);
+  // Estado da barra lateral (expandida ou colapsada) com inicialização síncrona
+  const [colapsada, setColapsada] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const salvo =
+        localStorage.getItem("meridian_sidebar_colapsada") ??
+        localStorage.getItem("prospecta_sidebar_colapsada");
+      return salvo === "true";
+    } catch {
+      return false;
+    }
+  });
   const [mobileAberto, setMobileAberto] = useState(false);
 
   // Command palette / Busca Rápida
   const [buscaModalAberta, setBuscaModalAberta] = useState(false);
   const [termoBuscaRapida, setTermoBuscaRapida] = useState("");
   const [leadsBuscaRapida, setLeadsBuscaRapida] = useState<LeadItem[]>([]);
-
-  // Carregar preferência salva
-  useEffect(() => {
-    try {
-      const salvo =
-        localStorage.getItem("meridian_sidebar_colapsada") ??
-        localStorage.getItem("prospecta_sidebar_colapsada");
-      if (salvo !== null) {
-        setColapsada(salvo === "true");
-      }
-    } catch {
-      // Ignorar erros de storage
-    }
-  }, []);
 
   // Atalho de Teclado Cmd+K / Ctrl+K
   useEffect(() => {
@@ -400,21 +396,25 @@ export function AppShell({
         {/* ========================================================================= */}
         {/* CONTEÚDO PRINCIPAL COM AJUSTE DE PADDING CONFORME A SIDEBAR */}
         {/* ========================================================================= */}
+        {/* ========================================================================= */}
+        {/* CONTEÚDO PRINCIPAL COM AJUSTE DE PADDING CONFORME A SIDEBAR */}
+        {/* ========================================================================= */}
         <div
           className={cn(
-            "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-16 lg:pb-0",
+            "flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out pb-20 lg:pb-0 overflow-x-hidden",
             colapsada ? "lg:pl-20" : "lg:pl-64",
           )}
         >
           {/* HEADER PRINCIPAL */}
-          <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-border/70 bg-background/85 px-4 backdrop-blur-xl md:px-6">
-            <div className="flex items-center gap-3 min-w-0">
+          <header className="sticky top-0 z-20 flex min-h-16 h-auto py-2.5 sm:py-0 sm:h-16 items-center justify-between gap-2 sm:gap-3 border-b border-border/70 bg-background/90 px-3 sm:px-4 backdrop-blur-xl md:px-6">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Sheet open={mobileAberto} onOpenChange={setMobileAberto}>
                 <SheetTrigger asChild>
                   <Button
                     variant="outline"
                     size="icon"
-                    className="lg:hidden size-9 border-border/80"
+                    className="lg:hidden size-9 border-border/80 shrink-0"
+                    aria-label="Abrir menu de navegação"
                   >
                     <Menu className="size-4" />
                   </Button>
@@ -441,7 +441,7 @@ export function AppShell({
                           key={item.para}
                           to={item.para}
                           onClick={() => setMobileAberto(false)}
-                          className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                          className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
                           activeProps={{
                             className:
                               "bg-sidebar-accent text-sidebar-foreground font-semibold border-l-2 border-l-primary",
@@ -478,20 +478,20 @@ export function AppShell({
                 </SheetContent>
               </Sheet>
 
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground rotulo hidden sm:flex">
+              <div className="min-w-0 flex-1">
+                <div className="items-center gap-1.5 text-[11px] text-muted-foreground rotulo hidden sm:flex">
                   <span>Meridian Hub</span>
                   <span>/</span>
-                  <span className="text-foreground font-medium">{titulo}</span>
+                  <span className="text-foreground font-medium truncate">{titulo}</span>
                 </div>
-                <h1 className="truncate text-base font-bold md:text-lg text-foreground tracking-tight">
+                <h1 className="truncate text-sm sm:text-base md:text-lg font-bold text-foreground tracking-tight">
                   {titulo}
                 </h1>
               </div>
             </div>
 
             {/* Centro / Direita: Barra de Busca Rápida + Ações */}
-            <div className="flex items-center gap-2 md:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 shrink-0">
               <button
                 type="button"
                 onClick={() => setBuscaModalAberta(true)}
@@ -512,29 +512,31 @@ export function AppShell({
                 <span>Meridian Radar · Online</span>
               </div>
 
-              <div className="flex items-center gap-2">{acoes}</div>
+              <div className="flex items-center gap-1.5 sm:gap-2">{acoes}</div>
             </div>
           </header>
 
           {/* ÁREA DE CONTEÚDO */}
-          <main className="malha-mapa flex-1 min-h-[calc(100vh-64px)] p-3 sm:p-4 md:p-6 lg:p-7">
+          <main className="malha-mapa flex-1 min-h-[calc(100vh-64px)] p-3 sm:p-4 md:p-6 lg:p-7 min-w-0">
             {children}
           </main>
         </div>
 
         {/* BARRA DE NAVEGAÇÃO INFERIOR PARA MOBILE */}
-        <div className="fixed bottom-0 inset-x-0 z-40 flex lg:hidden items-center justify-around bg-sidebar/95 backdrop-blur-xl border-t border-border/70 py-2 px-1">
+        <div className="fixed bottom-0 inset-x-0 z-40 flex lg:hidden items-center justify-around bg-sidebar/95 backdrop-blur-xl border-t border-border/70 py-1.5 px-1 shadow-lg">
           {itens.slice(0, 5).map((item) => (
             <Link
               key={item.para}
               to={item.para}
-              className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-sidebar-foreground/60 transition-colors hover:text-primary"
+              className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1 px-0.5 rounded-lg text-sidebar-foreground/60 transition-colors hover:text-primary active:scale-95"
               activeProps={{
-                className: "text-primary font-bold",
+                className: "text-primary font-bold bg-primary/10",
               }}
             >
-              <item.icone className="size-5" />
-              <span className="text-[10px] font-medium">{item.rotulo.split(" ")[0]}</span>
+              <item.icone className="size-5 shrink-0" />
+              <span className="text-[10px] font-medium truncate max-w-full text-center tracking-tight">
+                {item.rotulo.split(" ")[0]}
+              </span>
             </Link>
           ))}
         </div>

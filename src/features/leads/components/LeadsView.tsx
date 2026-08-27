@@ -117,34 +117,34 @@ export function LeadsView() {
       titulo="Base de Estabelecimentos"
       descricao="Listagem consolidada de estabelecimentos comerciais, classificação de oportunidade e gestão de contato da Meridian Tech"
       acoes={
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
           {/* Switcher de Visualização */}
           <div className="flex items-center gap-1 bg-secondary/80 p-0.5 rounded-lg border border-border/80">
             <button
               type="button"
               onClick={() => setModoVisualizacao("tabela")}
               className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer",
+                "flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer",
                 modoVisualizacao === "tabela"
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
               <TableIcon className="size-3.5" />
-              <span>Tabela</span>
+              <span className="hidden sm:inline">Tabela</span>
             </button>
             <button
               type="button"
               onClick={() => setModoVisualizacao("grade")}
               className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer",
+                "flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer",
                 modoVisualizacao === "grade"
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
               <LayoutGrid className="size-3.5" />
-              <span>Grade</span>
+              <span className="hidden sm:inline">Grade</span>
             </button>
           </div>
 
@@ -152,31 +152,32 @@ export function LeadsView() {
             variant="outline"
             size="sm"
             onClick={exportarCSV}
-            className="h-8 gap-1.5 text-xs border-border/80 text-foreground"
+            className="h-8 px-2.5 gap-1.5 text-xs border-border/80 text-foreground"
           >
             <Download className="size-3.5" />
-            Exportar CSV
+            <span className="hidden md:inline">Exportar </span>CSV
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setModalZerarAberto(true)}
-            className="h-8 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 gap-1.5"
+            className="h-8 px-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 gap-1.5"
             title="Limpar todos os estabelecimentos da base de dados"
           >
             <Trash2 className="size-3.5" />
-            Zerar Base
+            <span className="hidden sm:inline">Zerar Base</span>
+            <span className="sm:hidden">Zerar</span>
           </Button>
 
           <Button
             size="sm"
             asChild
-            className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground font-semibold"
+            className="h-8 px-2.5 gap-1.5 text-xs bg-primary text-primary-foreground font-semibold"
           >
             <Link to="/nova-busca">
               <Plus className="size-3.5" />
-              Detectar Novos
+              <span>Detectar<span className="hidden sm:inline"> Novos</span></span>
             </Link>
           </Button>
         </div>
@@ -184,11 +185,11 @@ export function LeadsView() {
     >
       <div className="space-y-5">
         {/* RESUMO RÁPIDO EM CARDS SUPERIORES */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between">
             <div>
               <p className="rotulo text-[10px]">Total Estabelecimentos</p>
-              <p className="text-2xl font-bold font-display dado mt-0.5 text-foreground">
+              <p className="text-xl sm:text-2xl font-bold font-display dado mt-0.5 text-foreground">
                 {leads.length}
               </p>
             </div>
@@ -200,7 +201,7 @@ export function LeadsView() {
           <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between ring-1 ring-[var(--color-alerta)]/30">
             <div>
               <p className="rotulo text-[10px] text-[var(--color-alerta)]">Sem Site Próprio</p>
-              <p className="text-2xl font-bold font-display text-[var(--color-alerta)] dado mt-0.5">
+              <p className="text-xl sm:text-2xl font-bold font-display text-[var(--color-alerta)] dado mt-0.5">
                 {totalSemSite}
               </p>
             </div>
@@ -212,7 +213,7 @@ export function LeadsView() {
           <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between">
             <div>
               <p className="rotulo text-[10px] text-pink-400">Com Instagram</p>
-              <p className="text-2xl font-bold font-display text-pink-400 dado mt-0.5">
+              <p className="text-xl sm:text-2xl font-bold font-display text-pink-400 dado mt-0.5">
                 {totalComInstagram}
               </p>
             </div>
@@ -224,7 +225,7 @@ export function LeadsView() {
           <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between">
             <div>
               <p className="rotulo text-[10px] text-amber-400">Score &ge; 70 pts</p>
-              <p className="text-2xl font-bold font-display text-amber-400 dado mt-0.5">
+              <p className="text-xl sm:text-2xl font-bold font-display text-amber-400 dado mt-0.5">
                 {totalAltaPrioridade}
               </p>
             </div>
@@ -233,10 +234,10 @@ export function LeadsView() {
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between col-span-2 sm:col-span-1">
+          <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between col-span-2 sm:col-span-1 lg:col-span-1">
             <div>
               <p className="rotulo text-[10px] text-emerald-400">Filtrados em Tela</p>
-              <p className="text-2xl font-bold font-display text-emerald-400 dado mt-0.5">
+              <p className="text-xl sm:text-2xl font-bold font-display text-emerald-400 dado mt-0.5">
                 {leadsFiltrados.length}
               </p>
             </div>

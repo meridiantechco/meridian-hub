@@ -34,15 +34,15 @@ export function FinancialSummaryWidget({ metricas }: FinancialSummaryWidgetProps
         </p>
       </div>
 
-      <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
-        <div className="text-right">
+      <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-6 w-full md:w-auto justify-between md:justify-end">
+        <div className="text-left sm:text-right">
           <p className="rotulo text-[10px]">Lucro Líquido Real</p>
           <p className="text-xl font-bold font-display text-emerald-400 dado">
             {formatarMoeda(metricas.lucroLiquido)}
           </p>
         </div>
 
-        <div className="text-right">
+        <div className="text-left sm:text-right">
           <p className="rotulo text-[10px]">Gastos Totais</p>
           <p className="text-xl font-bold font-display text-pink-400 dado">
             {formatarMoeda(metricas.despesaTotal)}
@@ -51,7 +51,7 @@ export function FinancialSummaryWidget({ metricas }: FinancialSummaryWidgetProps
 
         <Button
           asChild
-          className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-9 px-4 gap-1.5 font-semibold shrink-0"
+          className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-9 px-4 gap-1.5 font-semibold shrink-0 justify-center"
         >
           <Link to="/financeiro">
             Acessar Financeiro

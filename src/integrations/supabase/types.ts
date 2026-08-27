@@ -359,6 +359,12 @@ export type Database = {
         };
         Returns: Database["public"]["Tables"]["leads"]["Row"][];
       };
+      admin_remover_usuario: {
+        Args: {
+          target_user_id: string;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       app_role: "admin" | "vendedor";

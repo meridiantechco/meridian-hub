@@ -101,6 +101,7 @@ export function FinancialCharts({ metricas }: FinancialChartsProps) {
                     tickFormatter={(v) => `R$${v}`}
                   />
                   <Tooltip
+                    cursor={{ stroke: "#a855f7", strokeWidth: 1, strokeDasharray: "3 3" }}
                     contentStyle={{
                       backgroundColor: "#161224",
                       borderColor: "#3b2f5c",

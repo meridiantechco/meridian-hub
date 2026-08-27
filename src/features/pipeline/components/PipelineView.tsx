@@ -75,12 +75,12 @@ export function PipelineView() {
       titulo="Funil de Vendas (Kanban)"
       descricao="Pipeline visual com atualização em tempo real e movimentação por arrastar e soltar da Meridian Tech"
       acoes={
-        <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface border border-border text-[11px] text-muted-foreground dado">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface border border-border text-[11px] text-muted-foreground dado">
             <Radio
               className={`size-3 ${conectadoRealtime ? "text-emerald-400 animate-pulse" : "text-amber-400"}`}
             />
-            <span>{conectadoRealtime ? "Tempo Real Ativo" : "Conectando..."}</span>
+            <span>{conectadoRealtime ? "Tempo Real" : "Conectando..."}</span>
           </div>
 
           <Button
@@ -88,10 +88,11 @@ export function PipelineView() {
             size="sm"
             onClick={() => setModalZerarFunilAberto(true)}
             disabled={leads.length === 0}
-            className="h-8 gap-1.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border-rose-500/30"
+            className="h-8 px-2.5 gap-1.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border-rose-500/30"
           >
             <RotateCcw className="size-3.5" />
-            Zerar Funil
+            <span className="hidden sm:inline">Zerar Funil</span>
+            <span className="sm:hidden">Zerar</span>
           </Button>
 
           <Button
@@ -99,27 +100,27 @@ export function PipelineView() {
             size="sm"
             onClick={carregarDados}
             disabled={carregando}
-            className="h-8 gap-1.5 text-xs"
+            className="h-8 px-2.5 gap-1.5 text-xs"
           >
             <RefreshCw className={`size-3.5 ${carregando ? "animate-spin" : ""}`} />
-            Atualizar
+            <span className="hidden sm:inline">Atualizar</span>
           </Button>
 
           <Button
             asChild
             size="sm"
-            className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground"
+            className="h-8 px-2.5 gap-1.5 text-xs bg-primary text-primary-foreground font-semibold"
           >
             <Link to="/nova-busca">
               <Plus className="size-3.5" />
-              Novo Lead
+              <span>Novo<span className="hidden sm:inline"> Lead</span></span>
             </Link>
           </Button>
         </div>
       }
     >
-      <div className="overflow-x-auto pb-4">
-        <div className="flex gap-4 min-w-[1150px] items-start">
+      <div className="overflow-x-auto pb-4 scroll-smooth">
+        <div className="flex gap-3.5 sm:gap-4 min-w-max lg:min-w-full items-start">
           {COLUNAS_PIPELINE.map((coluna, colIdx) => {
             const leadsDaColuna = leads.filter((l) => l.status === coluna.id);
             const isHover = colunaHover === coluna.id;

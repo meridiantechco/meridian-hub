@@ -37,12 +37,19 @@ export function PipelineColumn({
 
   return (
     <div
-      onDragOver={(e) => onDragOver(e, coluna.id)}
-      onDragLeave={onDragLeave}
+      onDragOver={(e) => {
+        e.preventDefault();
+        onDragOver(e, coluna.id);
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          onDragLeave();
+        }
+      }}
       onDrop={(e) => onDrop(e, coluna.id)}
-      className={`flex-1 rounded-xl border bg-surface/40 p-3 flex flex-col min-h-[640px] transition-all border-t-4 ${
+      className={`w-[260px] sm:w-[280px] lg:flex-1 shrink-0 rounded-xl border bg-surface/40 p-3 flex flex-col min-h-[580px] transition-colors duration-150 border-t-4 ${
         coluna.corBorda
-      } ${isHover ? "border-primary/80 bg-primary/5 ring-2 ring-primary/30" : "border-border"}`}
+      } ${isHover ? "border-primary/90 bg-primary/10 ring-2 ring-primary/40 shadow-lg" : "border-border"}`}
     >
       {/* Cabeçalho da Coluna */}
       <div className="flex items-center justify-between pb-3 border-b border-border/60 mb-3">

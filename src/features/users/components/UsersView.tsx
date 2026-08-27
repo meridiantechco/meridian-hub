@@ -11,6 +11,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Users,
   ShieldCheck,
   UserPlus,
@@ -27,8 +36,13 @@ import {
   TrendingUp,
   Building2,
   Wallet,
+  Trash2,
+  AlertTriangle,
+  ShieldAlert,
+  RefreshCw,
 } from "lucide-react";
 import { auditoriaService, type AtividadeUsuario, type TipoAtividade } from "@/features/audit";
+import { useAuth } from "@/features/auth";
 import { cn } from "@/lib/utils";
 import { useUsers } from "../hooks/useUsers";
 import { UserCreateModal } from "./UserCreateModal";
@@ -65,6 +79,7 @@ const CORES_ATIVIDADE: Record<TipoAtividade, string> = {
 };
 
 export function UsersView() {
+  const { ehAdmin, user } = useAuth();
   const {
     usuarios,
     atividades,
@@ -76,6 +91,7 @@ export function UsersView() {
     totalFechados,
     criarUsuario,
     alterarPapel,
+    removerUsuario,
   } = useUsers();
 
   const [usuarioHistorico, setUsuarioHistorico] = useState<UsuarioEquipe | null>(null);
@@ -83,6 +99,8 @@ export function UsersView() {
   const [modalCredenciaisAberto, setModalCredenciaisAberto] = useState(false);
   const [credenciaisTexto, setCredenciaisTexto] = useState("");
   const [usuarioRecemCriado, setUsuarioRecemCriado] = useState<UsuarioEquipe | null>(null);
+  const [usuarioParaExcluir, setUsuarioParaExcluir] = useState<UsuarioEquipe | null>(null);
+  const [removendo, setRemovendo] = useState(false);
 
   const obterResumoUsuario = (usuarioId: string) => {
     const lista = atividades.filter((a) => a.usuario_id === usuarioId);
@@ -125,6 +143,23 @@ export function UsersView() {
   const abrirHistoricoIndividual = (u: UsuarioEquipe) => {
     setUsuarioSelecionadoHistorico(u);
     setModalHistoricoAberto(true);
+  };
+
+  const handleConfirmarExclusao = async () => {
+    if (!usuarioParaExcluir) return;
+    try {
+      setRemovendo(true);
+      await removerUsuario(
+        usuarioParaExcluir.id,
+        usuarioParaExcluir.nome,
+        usuarioParaExcluir.email,
+      );
+      setUsuarioParaExcluir(null);
+    } catch (err) {
+      console.error("Erro ao remover usuário:", err);
+    } finally {
+      setRemovendo(false);
+    }
   };
 
   const atividadesFiltradas = useMemo(() => {
@@ -225,18 +260,18 @@ export function UsersView() {
         {/* ABAS PRINCIPAIS */}
         <Tabs value={abaAtiva} onValueChange={(val) => setAbaAtiva(val as any)} className="w-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/80 pb-3">
-            <TabsList className="bg-secondary/70 p-1">
-              <TabsTrigger value="equipe" className="text-xs font-semibold gap-1.5">
+            <TabsList className="bg-secondary/70 p-1 flex flex-wrap h-auto w-full sm:w-auto gap-1">
+              <TabsTrigger value="equipe" className="text-xs font-semibold gap-1.5 flex-1 sm:flex-initial">
                 <Users className="size-3.5" />
                 Membros da Equipe ({usuarios.length})
               </TabsTrigger>
-              <TabsTrigger value="auditoria" className="text-xs font-semibold gap-1.5">
+              <TabsTrigger value="auditoria" className="text-xs font-semibold gap-1.5 flex-1 sm:flex-initial">
                 <Activity className="size-3.5" />
-                Histórico de Movimentações ({atividades.length})
+                Histórico ({atividades.length})
               </TabsTrigger>
-              <TabsTrigger value="metricas" className="text-xs font-semibold gap-1.5">
+              <TabsTrigger value="metricas" className="text-xs font-semibold gap-1.5 flex-1 sm:flex-initial">
                 <TrendingUp className="size-3.5" />
-                Produtividade por Vendedor
+                Produtividade
               </TabsTrigger>
             </TabsList>
           </div>
@@ -354,18 +389,46 @@ export function UsersView() {
                             <span>Movimentações</span>
                           </Button>
 
-                          <Select
-                            value={u.papel}
-                            onValueChange={(val) => alterarPapel(u.id, val as "admin" | "vendedor")}
-                          >
-                            <SelectTrigger className="h-8 w-28 text-xs bg-surface/50">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="vendedor">Vendedor</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          {ehAdmin && (
+                            <Select
+                              value={u.papel}
+                              onValueChange={(val) => alterarPapel(u.id, val as "admin" | "vendedor")}
+                              disabled={u.email?.toLowerCase() === "meridiantech.co@gmail.com"}
+                            >
+                              <SelectTrigger className="h-8 w-28 text-xs bg-surface/50">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="vendedor">Vendedor</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+
+                          {ehAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setUsuarioParaExcluir(u)}
+                              disabled={
+                                u.id === user?.id ||
+                                u.email?.toLowerCase() === user?.email?.toLowerCase() ||
+                                u.email?.toLowerCase() === "meridiantech.co@gmail.com"
+                              }
+                              className="size-8 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+                              title={
+                                u.id === user?.id ||
+                                u.email?.toLowerCase() === user?.email?.toLowerCase()
+                                  ? "Você não pode remover sua própria conta de administrador"
+                                  : u.email?.toLowerCase() === "meridiantech.co@gmail.com"
+                                  ? "O Administrador Supremo não pode ser excluído"
+                                  : `Remover ${u.nome} permanentemente`
+                              }
+                              aria-label={`Remover usuário ${u.nome}`}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     );
@@ -575,6 +638,65 @@ export function UsersView() {
         usuario={usuarioSelecionadoHistorico}
         atividades={atividadesUsuarioSelecionado}
       />
+
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO DE USUÁRIO (EXCLUSIVO PARA ADMIN) */}
+      <AlertDialog
+        open={Boolean(usuarioParaExcluir)}
+        onOpenChange={(aberto) => {
+          if (!aberto && !removendo) setUsuarioParaExcluir(null);
+        }}
+      >
+        <AlertDialogContent className="bg-card border-border shadow-2xl max-w-md">
+          <AlertDialogHeader>
+            <div className="size-11 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mb-2 mx-auto sm:mx-0">
+              <AlertTriangle className="size-5" />
+            </div>
+            <AlertDialogTitle className="text-base font-bold text-foreground">
+              Remover Usuário Permanentemente?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground space-y-2 text-left">
+              <p>
+                Você está prestes a excluir o acesso do membro{" "}
+                <strong className="text-foreground">{usuarioParaExcluir?.nome}</strong> (
+                <span className="font-mono text-foreground">{usuarioParaExcluir?.email}</span>) com papel de{" "}
+                <strong className="text-foreground capitalize">{usuarioParaExcluir?.papel}</strong>.
+              </p>
+              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[11px] space-y-1">
+                <p className="font-semibold flex items-center gap-1.5">
+                  <ShieldAlert className="size-3.5" /> Atenção: Esta ação é definitiva e irreversível!
+                </p>
+                <p className="text-muted-foreground text-[10.5px] leading-relaxed">
+                  • O usuário perderá imediatamente o login e todas as credenciais no Meridian Hub.<br />
+                  • Estabelecimentos sob responsabilidade deste vendedor serão desvinculados para redistribuição.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-3 gap-2">
+            <AlertDialogCancel disabled={removendo} className="text-xs h-9">
+              Cancelar
+            </AlertDialogCancel>
+            <Button
+              type="button"
+              disabled={removendo}
+              onClick={handleConfirmarExclusao}
+              className="bg-rose-600 hover:bg-rose-500 text-white text-xs h-9 font-semibold gap-1.5 shadow-sm"
+            >
+              {removendo ? (
+                <>
+                  <RefreshCw className="size-3.5 animate-spin" />
+                  Removendo...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="size-3.5" />
+                  Sim, Remover Usuário
+                </>
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }

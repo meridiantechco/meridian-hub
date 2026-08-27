@@ -44,11 +44,17 @@ export function useUsers() {
     toast.success("Função do usuário atualizada!");
   };
 
-  const removerUsuario = async (userId: string) => {
-    await usersService.removerUsuario(userId);
-    setUsuarios((prev) => prev.filter((u) => u.id !== userId));
-    void auditoriaService.listarAtividades().then(setAtividades);
-    toast.success("Membro removido da equipe!");
+  const removerUsuario = async (userId: string, nome?: string, email?: string) => {
+    try {
+      await usersService.removerUsuario(userId, nome, email);
+      setUsuarios((prev) => prev.filter((u) => u.id !== userId));
+      void auditoriaService.listarAtividades().then(setAtividades);
+      toast.success(`Usuário ${nome || ""} removido com sucesso!`);
+    } catch (err: any) {
+      console.error("Erro ao remover usuário:", err);
+      toast.error(err?.message || "Erro ao remover usuário do sistema.");
+      throw err;
+    }
   };
 
   const totalUsuarios = usuarios.length;

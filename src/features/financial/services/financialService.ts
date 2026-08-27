@@ -8,22 +8,160 @@ import type {
   TransacaoFinanceira,
 } from "../types";
 
+const STORAGE_KEY_FINANCEIRO = "meridian_transacoes_financeiras";
+
+export const TRANSACOES_EXEMPLO_DEMO: Omit<TransacaoFinanceira, "id" | "criado_em">[] = [
+  {
+    tipo: "receita",
+    titulo: "Desenvolvimento de Site — Clínica Odonto Prime",
+    descricao: "Landing Page de alta conversão + SEO Local + Integração WhatsApp",
+    categoria: "venda_site",
+    valor: 2800.0,
+    data_competencia: new Date().toISOString().slice(0, 10),
+    data_pagamento: new Date().toISOString().slice(0, 10),
+    recorrencia: "pontual",
+    status: "pago",
+    lead_nome: "Clínica Odonto Prime",
+  },
+  {
+    tipo: "receita",
+    titulo: "Mensalidade / Hospedagem & Manutenção — Barbearia VIP",
+    descricao: "Suporte contínuo, backup e hospedagem em nuvem (MRR)",
+    categoria: "mensalidade",
+    valor: 199.0,
+    data_competencia: new Date().toISOString().slice(0, 10),
+    data_pagamento: new Date().toISOString().slice(0, 10),
+    recorrencia: "mensal",
+    status: "pago",
+    lead_nome: "Barbearia VIP",
+  },
+  {
+    tipo: "receita",
+    titulo: "Otimização Google Meu Negócio — Auto Mecânica Salvador",
+    descricao: "Configuração completa de perfil GMN, fotos e catálogo",
+    categoria: "consultoria",
+    valor: 750.0,
+    data_competencia: new Date().toISOString().slice(0, 10),
+    data_pagamento: null,
+    recorrencia: "pontual",
+    status: "pendente",
+    lead_nome: "Auto Mecânica Salvador",
+  },
+  {
+    tipo: "receita",
+    titulo: "Loja Virtual & Catálogo Digital — PetShop Estilo Animal",
+    descricao: "Catálogo de produtos integrado a pedidos WhatsApp",
+    categoria: "venda_site",
+    valor: 3200.0,
+    data_competencia: new Date(Date.now() - 20 * 86400000).toISOString().slice(0, 10),
+    data_pagamento: new Date(Date.now() - 20 * 86400000).toISOString().slice(0, 10),
+    recorrencia: "pontual",
+    status: "pago",
+    lead_nome: "PetShop Estilo Animal",
+  },
+  {
+    tipo: "despesa",
+    titulo: "Google Places API & Maps SDK",
+    descricao: "Consumo de API de varredura e geolocalização",
+    categoria: "tecnologia",
+    valor: 185.5,
+    data_competencia: new Date().toISOString().slice(0, 10),
+    data_pagamento: new Date().toISOString().slice(0, 10),
+    recorrencia: "mensal",
+    status: "pago",
+  },
+  {
+    tipo: "despesa",
+    titulo: "WhatsApp Cloud API & Mensageria",
+    descricao: "Envio de mensagens comerciais automatizadas para leads",
+    categoria: "marketing",
+    valor: 129.9,
+    data_competencia: new Date().toISOString().slice(0, 10),
+    data_pagamento: new Date().toISOString().slice(0, 10),
+    recorrencia: "mensal",
+    status: "pago",
+  },
+  {
+    tipo: "despesa",
+    titulo: "Servidores em Nuvem & Supabase Database",
+    descricao: "Infraestrutura de alta disponibilidade e banco de dados",
+    categoria: "tecnologia",
+    valor: 145.0,
+    data_competencia: new Date().toISOString().slice(0, 10),
+    data_pagamento: new Date().toISOString().slice(0, 10),
+    recorrencia: "mensal",
+    status: "pago",
+  },
+  {
+    tipo: "despesa",
+    titulo: "Impostos Simples Nacional / DAS MEI",
+    descricao: "Guia mensal de arrecadação tributária da agência",
+    categoria: "impostos",
+    valor: 75.0,
+    data_competencia: new Date().toISOString().slice(0, 10),
+    data_pagamento: null,
+    recorrencia: "mensal",
+    status: "pendente",
+  },
+  {
+    tipo: "despesa",
+    titulo: "Registro.br (Domínios Anuais)",
+    descricao: "Registro e renovação de domínios dos clientes",
+    categoria: "tecnologia",
+    valor: 120.0,
+    data_competencia: new Date(Date.now() - 25 * 86400000).toISOString().slice(0, 10),
+    data_pagamento: new Date(Date.now() - 25 * 86400000).toISOString().slice(0, 10),
+    recorrencia: "anual",
+    status: "pago",
+  },
+];
+
+function obterTransacoesLocalStorage(): TransacaoFinanceira[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_FINANCEIRO);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as TransacaoFinanceira[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function salvarTransacoesLocalStorage(lista: TransacaoFinanceira[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY_FINANCEIRO, JSON.stringify(lista));
+  } catch {
+    // ignore
+  }
+}
+
 export const financialService = {
   /**
-   * Retorna todas as transações cadastradas (receitas e despesas) direto do Supabase
+   * Retorna todas as transações cadastradas (receitas e despesas)
    */
   async listarTransacoes(): Promise<TransacaoFinanceira[]> {
-    const { data, error } = await supabase
-      .from("transacoes_financeiras")
-      .select("*")
-      .order("data_competencia", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("transacoes_financeiras")
+        .select("*")
+        .order("data_competencia", { ascending: false });
 
-    if (error) {
-      console.error("Erro ao listar transações financeiras:", error);
-      return [];
+      if (!error && data && Array.isArray(data) && data.length > 0) {
+        return data as TransacaoFinanceira[];
+      }
+    } catch (err) {
+      console.warn("Aviso ao consultar Supabase para transações:", err);
     }
 
-    return (data as TransacaoFinanceira[]) || [];
+    // Fallback para armazenamento local
+    const locais = obterTransacoesLocalStorage();
+    if (locais.length > 0) {
+      return locais;
+    }
+
+    return [];
   },
 
   /**
@@ -32,32 +170,47 @@ export const financialService = {
   async criarTransacao(
     dados: Omit<TransacaoFinanceira, "id" | "criado_em">,
   ): Promise<TransacaoFinanceira> {
-    const payload: TablesInsert<"transacoes_financeiras"> = {
-      tipo: dados.tipo,
-      titulo: dados.titulo,
-      descricao: dados.descricao ?? null,
-      categoria: dados.categoria,
-      valor: dados.valor,
-      data_competencia: dados.data_competencia,
-      data_pagamento: dados.data_pagamento ?? null,
-      recorrencia: dados.recorrencia,
-      status: dados.status,
-      lead_id: dados.lead_id ?? null,
-      lead_nome: dados.lead_nome ?? null,
+    const novaId = `tx-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const agora = new Date().toISOString();
+    const fallbackLocal: TransacaoFinanceira = {
+      ...dados,
+      id: novaId,
+      criado_em: agora,
     };
 
-    const { data, error } = await supabase
-      .from("transacoes_financeiras")
-      .insert(payload)
-      .select()
-      .single();
+    try {
+      const payload: TablesInsert<"transacoes_financeiras"> = {
+        tipo: dados.tipo,
+        titulo: dados.titulo,
+        descricao: dados.descricao ?? null,
+        categoria: dados.categoria,
+        valor: dados.valor,
+        data_competencia: dados.data_competencia,
+        data_pagamento: dados.data_pagamento ?? null,
+        recorrencia: dados.recorrencia,
+        status: dados.status,
+        lead_id: dados.lead_id ?? null,
+        lead_nome: dados.lead_nome ?? null,
+      };
 
-    if (error || !data) {
-      console.error("Erro ao criar transação no Supabase:", error);
-      throw new Error(error?.message || "Falha ao criar transação financeira");
+      const { data, error } = await supabase
+        .from("transacoes_financeiras")
+        .insert(payload)
+        .select()
+        .single();
+
+      if (!error && data) {
+        const atual = obterTransacoesLocalStorage();
+        salvarTransacoesLocalStorage([data as TransacaoFinanceira, ...atual]);
+        return data as TransacaoFinanceira;
+      }
+    } catch (err) {
+      console.warn("Salvando transação no armazenamento local:", err);
     }
 
-    return data as TransacaoFinanceira;
+    const atual = obterTransacoesLocalStorage();
+    salvarTransacoesLocalStorage([fallbackLocal, ...atual]);
+    return fallbackLocal;
   },
 
   /**
@@ -67,40 +220,55 @@ export const financialService = {
     id: string,
     dados: Partial<Omit<TransacaoFinanceira, "id" | "criado_em">>,
   ): Promise<TransacaoFinanceira | null> {
-    const payload: TablesUpdate<"transacoes_financeiras"> = {
-      ...dados,
-      atualizado_em: new Date().toISOString(),
-    };
+    const agora = new Date().toISOString();
+    let resultado: TransacaoFinanceira | null = null;
 
-    const { data, error } = await supabase
-      .from("transacoes_financeiras")
-      .update(payload)
-      .eq("id", id)
-      .select()
-      .maybeSingle();
+    try {
+      const payload: TablesUpdate<"transacoes_financeiras"> = {
+        ...dados,
+        atualizado_em: agora,
+      };
 
-    if (error) {
-      console.error("Erro ao atualizar transação no Supabase:", error);
-      return null;
+      const { data, error } = await supabase
+        .from("transacoes_financeiras")
+        .update(payload)
+        .eq("id", id)
+        .select()
+        .maybeSingle();
+
+      if (!error && data) {
+        resultado = data as TransacaoFinanceira;
+      }
+    } catch (err) {
+      console.warn("Atualizando transação localmente:", err);
     }
 
-    return (data as TransacaoFinanceira) || null;
+    const atual = obterTransacoesLocalStorage();
+    const modificado = atual.map((t) => {
+      if (t.id === id) {
+        const atualizado = { ...t, ...dados, atualizado_em: agora };
+        if (!resultado) resultado = atualizado;
+        return atualizado;
+      }
+      return t;
+    });
+    salvarTransacoesLocalStorage(modificado);
+
+    return resultado;
   },
 
   /**
    * Exclui uma transação financeira
    */
   async excluirTransacao(id: string): Promise<boolean> {
-    const { error } = await supabase
-      .from("transacoes_financeiras")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      console.error("Erro ao excluir transação no Supabase:", error);
-      return false;
+    try {
+      await supabase.from("transacoes_financeiras").delete().eq("id", id);
+    } catch (err) {
+      console.warn("Excluindo transação localmente:", err);
     }
 
+    const atual = obterTransacoesLocalStorage();
+    salvarTransacoesLocalStorage(atual.filter((t) => t.id !== id));
     return true;
   },
 
@@ -255,15 +423,25 @@ export const financialService = {
   },
 
   async zerarTransacoes(): Promise<number> {
-    const { count, error } = await supabase
-      .from("transacoes_financeiras")
-      .delete({ count: "exact" })
-      .neq("id", "00000000-0000-0000-0000-000000000000");
-
-    if (error) {
-      console.error("Erro ao zerar transações financeiras:", error);
+    try {
+      await supabase
+        .from("transacoes_financeiras")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+    } catch (err) {
+      console.warn("Erro ao zerar no Supabase:", err);
     }
-    return count ?? 0;
+    salvarTransacoesLocalStorage([]);
+    return 0;
+  },
+
+  async restaurarDadosExemplo(): Promise<TransacaoFinanceira[]> {
+    const criadas: TransacaoFinanceira[] = [];
+    for (const item of TRANSACOES_EXEMPLO_DEMO) {
+      const nova = await this.criarTransacao(item);
+      criadas.push(nova);
+    }
+    return criadas;
   },
 };
 
