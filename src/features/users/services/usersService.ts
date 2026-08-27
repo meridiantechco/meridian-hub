@@ -1,6 +1,37 @@
+import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { auditoriaService } from "@/features/audit";
 import type { UsuarioEquipe } from "../types";
+
+/**
+ * Cria uma instância de cliente Supabase isolada e efêmera sem persistência no localStorage.
+ * Isso garante que ao criar uma conta via auth.signUp(), a sessão ativa do Administrador
+ * no navegador NÃO seja deslogada ou substituída.
+ */
+function createIsolatedAuthClient() {
+  const supabaseUrl =
+    (typeof import.meta !== "undefined" && import.meta.env?.["VITE_SUPABASE_URL"]) ||
+    process.env["VITE_SUPABASE_URL"] ||
+    process.env["SUPABASE_URL"] ||
+    "";
+  const supabaseKey =
+    (typeof import.meta !== "undefined" && import.meta.env?.["VITE_SUPABASE_PUBLISHABLE_KEY"]) ||
+    process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ||
+    process.env["SUPABASE_PUBLISHABLE_KEY"] ||
+    "";
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Configuração do Supabase não encontrada para criação de cliente efêmero.");
+  }
+
+  return createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
 
 export const usersService = {
   async listarUsuarios(): Promise<UsuarioEquipe[]> {
@@ -16,11 +47,17 @@ export const usersService = {
 
         return perfis.map((p) => {
           const roleData = roles.find((r) => r.user_id === p.id);
+          const emailLower = (p.email || "").toLowerCase();
+          const papel: "admin" | "vendedor" =
+            emailLower === "meridiantech.co@gmail.com"
+              ? "admin"
+              : (roleData?.role as "admin" | "vendedor") ?? "vendedor";
+
           return {
             id: p.id,
-            nome: p.nome,
+            nome: p.nome || (p.email ? p.email.split("@")[0] : "Usuário"),
             email: p.email,
-            papel: (roleData?.role as "admin" | "vendedor") ?? "vendedor",
+            papel,
             status: "ativo",
             senhaProvisoria: null,
             criado_em: p.criado_em,
@@ -48,12 +85,15 @@ export const usersService = {
 
     let novoId = `usr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    // 1. Usa o cliente isolado para não deslogar o administrador
+    const isolatedClient = createIsolatedAuthClient();
+    const { data: signUpData, error: signUpError } = await isolatedClient.auth.signUp({
       email: emailLimpo,
       password: senhaInicial,
       options: {
         data: {
           nome: nomeLimpo,
+          papel: dados.papel,
           primeiro_acesso_pendente: true,
         },
       },
@@ -61,11 +101,13 @@ export const usersService = {
 
     if (signUpError) {
       console.error("Erro no Supabase Auth SignUp:", signUpError);
+      throw new Error(signUpError.message);
     }
 
     if (signUpData?.user?.id) {
       novoId = signUpData.user.id;
 
+      // 2. Garante gravação de perfil e role pelo cliente autenticado do admin
       await Promise.all([
         supabase.from("profiles").upsert({
           id: novoId,
@@ -89,18 +131,20 @@ export const usersService = {
       criado_em: new Date().toISOString(),
     };
 
+    // 3. Registra log de auditoria
     await auditoriaService.registrarAtividade({
       tipo: "usuario_criado",
       titulo: `Novo membro cadastrado: ${nomeLimpo}`,
-      descricao: `Administrador criou o usuário ${nomeLimpo} (${emailLimpo}) com função ${dados.papel.toUpperCase()} no Meridian Hub.`,
+      descricao: `Administrador cadastrou o usuário ${nomeLimpo} (${emailLimpo}) com perfil ${dados.papel.toUpperCase()} no Meridian Hub.`,
       metadados: {
         usuario_criado_id: novoId,
         papel: dados.papel,
       },
     });
 
-    const urlOrigem = typeof window !== "undefined" ? window.location.origin : "https://meridianhub.app";
-    const credenciaisTexto = `*CONVITE DE ACESSO — MERIDIAN HUB*\n\nOlá ${nomeLimpo}!\nVocê foi cadastrado como *${dados.papel === "admin" ? "Administrador" : "Vendedor / Consultor"}* no Meridian Hub.\n\n*Acesse:* ${urlOrigem}/auth\n*E-mail:* ${emailLimpo}\n*Senha Inicial Provisória:* ${senhaInicial}\n\n_No seu primeiro login, o sistema solicitará o cadastro da sua senha pessoal definitiva._`;
+    const urlOrigem =
+      typeof window !== "undefined" ? window.location.origin : "https://meridianhub.app";
+    const credenciaisTexto = `*CONVITE DE ACESSO — MERIDIAN HUB*\n\nOlá ${nomeLimpo}!\nVocê foi cadastrado como *${dados.papel === "admin" ? "Administrador" : "Vendedor / Consultor"}* no Meridian Hub.\n\n*Acesse:* ${urlOrigem}/auth\n*E-mail:* ${emailLimpo}\n*Senha Inicial Provisória:* ${senhaInicial}\n\n_Ao fazer login com sua senha inicial, o sistema solicitará automaticamente o cadastro da sua senha pessoal definitiva._`;
 
     return {
       usuario: novoUsuario,
@@ -137,6 +181,7 @@ export const usersService = {
       tipo: "usuario_papel",
       titulo: `Membro removido da equipe`,
       descricao: `Usuário ID ${userId} desvinculado do sistema.`,
+      metadados: { usuario_removido_id: userId },
     });
   },
 };
