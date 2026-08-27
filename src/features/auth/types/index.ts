@@ -11,4 +11,4 @@ export type EstadoAuth = {
   ehAdmin: boolean;
 };
 
-export type AuthTab = "entrar" | "primeiro_acesso" | "criar";
+export type AuthTab = "entrar" | "primeiro_acesso";

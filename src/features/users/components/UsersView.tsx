@@ -118,8 +118,8 @@ export function UsersView() {
     senhaProvisoria?: string;
   }) => {
     const res = await criarUsuario(dados);
-    setTextoConvite(res.credenciaisTexto);
-    setModalConviteAberto(true);
+    setCredenciaisTexto(res.credenciaisTexto);
+    setModalCredenciaisAberto(true);
   };
 
   const abrirHistoricoIndividual = (u: UsuarioEquipe) => {
@@ -564,9 +564,9 @@ export function UsersView() {
       />
 
       <UserCredentialsModal
-        aberto={modalConviteAberto}
-        onOpenChange={setModalConviteAberto}
-        textoConvite={textoConvite}
+        aberto={modalCredenciaisAberto}
+        onOpenChange={setModalCredenciaisAberto}
+        textoConvite={credenciaisTexto}
       />
 
       <UserHistoryModal

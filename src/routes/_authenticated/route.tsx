@@ -7,13 +7,22 @@ export const Route = createFileRoute("/_authenticated")({
     try {
       // 1. Verificar primeiro a sessão ativa em storage
       const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData?.session?.user) {
-        return { user: sessionData.session.user };
+      const user = sessionData?.session?.user;
+
+      if (user) {
+        // Se o usuário ainda estiver com o primeiro acesso pendente, força o cadastro de senha
+        if (user.user_metadata?.["primeiro_acesso_pendente"] === true) {
+          throw redirect({ to: "/auth" });
+        }
+        return { user };
       }
 
-      // 2. Tentar buscar dados do usuário autenticado
+      // 2. Tentar buscar dados do usuário autenticado no servidor Supabase
       const { data, error } = await supabase.auth.getUser();
       if (!error && data?.user) {
+        if (data.user.user_metadata?.["primeiro_acesso_pendente"] === true) {
+          throw redirect({ to: "/auth" });
+        }
         return { user: data.user };
       }
     } catch (e) {

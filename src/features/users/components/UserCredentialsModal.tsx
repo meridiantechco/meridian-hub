@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Check, KeyRound } from "lucide-react";
+import { Copy, Check, KeyRound, MessageSquare, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -29,11 +29,22 @@ export function UserCredentialsModal({
     try {
       await navigator.clipboard.writeText(textoConvite);
       setCopiado(true);
-      toast.success("Credenciais copiadas com sucesso!");
+      toast.success("Credenciais copiadas para a área de transferência!");
       setTimeout(() => setCopiado(false), 2500);
     } catch {
-      toast.error("Não foi possível copiar.");
+      toast.error("Não foi possível copiar automaticamente.");
     }
+  };
+
+  const enviarWhatsApp = () => {
+    const textoCodificado = encodeURIComponent(textoConvite);
+    window.open(`https://api.whatsapp.com/send?text=${textoCodificado}`, "_blank");
+  };
+
+  const enviarEmail = () => {
+    const assunto = encodeURIComponent("Seu Convite de Acesso — Meridian Hub");
+    const corpo = encodeURIComponent(textoConvite);
+    window.open(`mailto:?subject=${assunto}&body=${corpo}`, "_blank");
   };
 
   return (
@@ -45,7 +56,7 @@ export function UserCredentialsModal({
             Credenciais de Acesso Geradas
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Copie as credenciais abaixo e envie para o membro da equipe por WhatsApp ou e-mail.
+            Envie as credenciais abaixo para o novo membro da equipe acessar a plataforma no primeiro acesso.
           </DialogDescription>
         </DialogHeader>
 
@@ -53,37 +64,61 @@ export function UserCredentialsModal({
           <Textarea
             value={textoConvite}
             readOnly
-            rows={7}
+            rows={8}
             className="text-xs font-mono bg-surface/70 border-border resize-none leading-relaxed"
           />
+
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={copiarTexto}
+              className="text-xs gap-1.5 h-8 font-semibold flex-1"
+            >
+              {copiado ? (
+                <>
+                  <Check className="size-3.5 text-emerald-400" />
+                  Copiado!
+                </>
+              ) : (
+                <>
+                  <Copy className="size-3.5" />
+                  Copiar Convite
+                </>
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={enviarWhatsApp}
+              className="text-xs gap-1.5 h-8 font-semibold border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+            >
+              <MessageSquare className="size-3.5" />
+              WhatsApp
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={enviarEmail}
+              className="text-xs gap-1.5 h-8 font-semibold"
+            >
+              <Mail className="size-3.5" />
+              E-mail
+            </Button>
+          </div>
         </div>
 
-        <DialogFooter className="pt-2 border-t border-border flex items-center justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={copiarTexto}
-            className="text-xs gap-1.5 h-8 font-semibold"
-          >
-            {copiado ? (
-              <>
-                <Check className="size-3.5 text-emerald-400" />
-                Copiado!
-              </>
-            ) : (
-              <>
-                <Copy className="size-3.5" />
-                Copiar Convite
-              </>
-            )}
-          </Button>
-
+        <DialogFooter className="pt-2 border-t border-border flex items-center justify-end">
           <Button
             type="button"
             size="sm"
             onClick={() => onOpenChange(false)}
-            className="text-xs h-8 bg-primary text-primary-foreground font-semibold"
+            className="text-xs h-8 bg-primary text-primary-foreground font-semibold px-4"
           >
             Concluir
           </Button>

@@ -4,6 +4,8 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { EstadoAuth, Papel } from "../types";
 
+export const SUPER_ADMIN_EMAIL = "meridiantech.co@gmail.com";
+
 export function useAuth(): EstadoAuth {
   const [session, setSession] = useState<Session | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -30,7 +32,7 @@ export function useAuth(): EstadoAuth {
 
   const userId = session?.user?.id;
   const userMetadataNome = session?.user?.user_metadata?.["nome"] as string | undefined;
-  const userEmail = session?.user?.email;
+  const userEmail = session?.user?.email?.toLowerCase();
 
   useEffect(() => {
     if (!userId) {
@@ -41,11 +43,18 @@ export function useAuth(): EstadoAuth {
 
     let ativo = true;
 
+    // Regra prioritária para Super Admin pelo email do fundador
+    const isSuperAdmin = userEmail === SUPER_ADMIN_EMAIL;
+
     // Preencher provisoriamente com metadata do signup enquanto busca no banco
     if (userMetadataNome) {
       setNome(userMetadataNome);
     } else if (userEmail) {
       setNome(userEmail.split("@")[0] || "Usuário");
+    }
+
+    if (isSuperAdmin) {
+      setPapel("admin");
     }
 
     void (async () => {
@@ -63,18 +72,24 @@ export function useAuth(): EstadoAuth {
           setNome(userMetadataNome);
         }
 
+        if (isSuperAdmin) {
+          setPapel("admin");
+          return;
+        }
+
         const papeis = (roles.data ?? []).map((r) => r.role as Papel);
         if (papeis.includes("admin")) {
           setPapel("admin");
         } else if (papeis.length > 0) {
           setPapel(papeis[0] ?? "vendedor");
         } else {
-          // Se não houver papel ainda (ex: trigger recém-executada ou demo), assume admin
-          setPapel("admin");
+          // Princípio de menor privilégio: vendedor por padrão
+          setPapel("vendedor");
         }
-      } catch {
+      } catch (err) {
+        console.error("Erro ao carregar permissões do usuário:", err);
         if (ativo) {
-          setPapel("admin");
+          setPapel(isSuperAdmin ? "admin" : "vendedor");
         }
       }
     })();
@@ -84,12 +99,14 @@ export function useAuth(): EstadoAuth {
     };
   }, [userId, userMetadataNome, userEmail]);
 
+  const ehAdmin = papel === "admin" || userEmail === SUPER_ADMIN_EMAIL;
+
   return {
     carregando,
     session,
     user: session?.user ?? null,
     nome: nome || "Usuário",
-    papel,
-    ehAdmin: papel === "admin",
+    papel: ehAdmin ? "admin" : (papel ?? "vendedor"),
+    ehAdmin,
   };
 }
