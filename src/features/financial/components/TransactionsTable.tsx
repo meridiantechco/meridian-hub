@@ -41,6 +41,7 @@ interface TransactionsTableProps {
   setFiltroCategoria: (val: string) => void;
   onAlternarStatus: (tx: TransacaoFinanceira) => void;
   onSolicitarExclusao: (tx: TransacaoFinanceira) => void;
+  onRestaurarDemo?: () => void | Promise<void>;
 }
 
 export function TransactionsTable({
@@ -53,6 +54,7 @@ export function TransactionsTable({
   setFiltroCategoria,
   onAlternarStatus,
   onSolicitarExclusao,
+  onRestaurarDemo,
 }: TransactionsTableProps) {
   const formatarMoeda = (val: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -76,7 +78,7 @@ export function TransactionsTable({
 
         {/* ABAS & FILTROS */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 bg-secondary/80 p-0.5 rounded-lg border border-border/80">
+          <div className="flex items-center gap-1 bg-secondary/80 p-0.5 rounded-lg border border-border/80 flex-wrap">
             <button
               type="button"
               onClick={() => setAbaAtiva("todas")}
@@ -127,16 +129,21 @@ export function TransactionsTable({
             </button>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onRestaurarDemo}
-            className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1"
-            title="Restaurar dados de exemplo"
-          >
-            <RotateCcw className="size-3" />
-            Restaurar Demo
-          </Button>
+          {onRestaurarDemo && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                void onRestaurarDemo();
+              }}
+              className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1"
+              title="Restaurar dados de exemplo"
+            >
+              <RotateCcw className="size-3" />
+              <span className="hidden sm:inline">Restaurar Demo</span>
+              <span className="sm:hidden">Demo</span>
+            </Button>
+          )}
         </div>
       </CardHeader>
 

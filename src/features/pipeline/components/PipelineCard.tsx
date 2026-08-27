@@ -80,31 +80,38 @@ export function PipelineCard({
         )}
       </div>
 
-      <div className="flex items-center justify-between pt-2 border-t border-border/60">
+      <div className="flex items-center justify-between pt-2 border-t border-border/60 gap-1">
         {colAnterior ? (
           <Button
             variant="ghost"
             size="icon"
-            className="size-6 text-muted-foreground hover:text-foreground"
+            className="size-7.5 text-muted-foreground hover:text-foreground hover:bg-secondary shrink-0"
             onClick={() => onMoverStatus(lead.id, colAnterior.id)}
             title={`Mover para ${colAnterior.titulo}`}
+            aria-label={`Mover para ${colAnterior.titulo}`}
           >
-            <MoveLeft className="size-3" />
+            <MoveLeft className="size-3.5" />
           </Button>
         ) : (
-          <div className="size-6" />
+          <div className="size-7.5" />
         )}
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5 flex-1 justify-center">
           <Button
             size="sm"
             onClick={() => onAbordar(lead)}
-            className="h-6 px-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] gap-1"
+            className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] gap-1 font-semibold shadow-xs"
           >
-            <MessageSquare className="size-2.5" />
+            <MessageSquare className="size-3" />
             WhatsApp
           </Button>
-          <Button variant="outline" size="icon" asChild className="size-6">
+          <Button
+            variant="outline"
+            size="icon"
+            asChild
+            className="size-7 border-border/80 hover:border-primary/40 hover:text-primary shrink-0"
+            title="Ver detalhes do lead"
+          >
             <Link to="/leads/$id" params={{ id: lead.id }}>
               <ExternalLink className="size-3" />
             </Link>
@@ -115,14 +122,15 @@ export function PipelineCard({
           <Button
             variant="ghost"
             size="icon"
-            className="size-6 text-muted-foreground hover:text-foreground"
+            className="size-7.5 text-muted-foreground hover:text-foreground hover:bg-secondary shrink-0"
             onClick={() => onMoverStatus(lead.id, colProxima.id)}
             title={`Mover para ${colProxima.titulo}`}
+            aria-label={`Mover para ${colProxima.titulo}`}
           >
-            <MoveRight className="size-3" />
+            <MoveRight className="size-3.5" />
           </Button>
         ) : (
-          <div className="size-6" />
+          <div className="size-7.5" />
         )}
       </div>
     </Card>

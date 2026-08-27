@@ -102,25 +102,25 @@ export function DashboardView() {
       titulo="Painel Comercial"
       descricao="Monitoramento de estabelecimentos minerados, oportunidades sem site, lucratividade real e taxas de conversão da Meridian Tech"
       acoes={
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
           <Button
             variant="outline"
             size="sm"
             onClick={carregarDados}
             disabled={carregando}
-            className="h-8 gap-1.5 text-xs"
+            className="h-8 px-2.5 gap-1.5 text-xs"
           >
             <RefreshCw className={`size-3.5 ${carregando ? "animate-spin" : ""}`} />
-            Atualizar
+            <span className="hidden sm:inline">Atualizar</span>
           </Button>
           <Button
             asChild
             size="sm"
-            className="h-8 gap-1.5 text-xs bg-primary text-primary-foreground font-semibold shadow-sm"
+            className="h-8 px-2.5 gap-1.5 text-xs bg-primary text-primary-foreground font-semibold shadow-sm"
           >
             <Link to="/nova-busca">
               <Search className="size-3.5" />
-              Detectar Estabelecimentos
+              <span>Detectar<span className="hidden sm:inline"> Estabelecimentos</span></span>
             </Link>
           </Button>
         </div>

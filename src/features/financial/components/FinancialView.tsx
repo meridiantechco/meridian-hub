@@ -43,6 +43,7 @@ export function FinancialView() {
     criarTransacao,
     atualizarTransacao,
     excluirTransacao,
+    restaurarDemo,
   } = useFinancial();
 
   const [abaAtiva, setAbaAtiva] = useState<"todas" | "despesas" | "receitas" | "pendentes">("todas");
@@ -111,34 +112,34 @@ export function FinancialView() {
       titulo="Financeiro & Lucratividade"
       descricao="Gestão completa de despesas operacionais, receitas e visão consolidada de lucro real da Meridian Tech"
       acoes={
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
           <Button
             variant="outline"
             size="sm"
             onClick={exportarCSV}
-            className="h-8 gap-1.5 text-xs border-border/80 text-foreground"
+            className="h-8 px-2.5 gap-1.5 text-xs border-border/80 text-foreground"
           >
             <Download className="size-3.5" />
-            Exportar CSV
+            <span className="hidden md:inline">Exportar </span>CSV
           </Button>
 
           <Button
             variant="outline"
             size="sm"
             onClick={() => setModalNovaDespesaAberto(true)}
-            className="h-8 gap-1.5 text-xs border-pink-500/30 text-pink-400 hover:bg-pink-500/10 font-semibold"
+            className="h-8 px-2.5 gap-1.5 text-xs border-pink-500/30 text-pink-400 hover:bg-pink-500/10 font-semibold"
           >
             <TrendingDown className="size-3.5" />
-            Novo Gasto / Despesa
+            <span>Novo Gasto<span className="hidden sm:inline"> / Despesa</span></span>
           </Button>
 
           <Button
             size="sm"
             onClick={() => setModalNovaReceitaAberto(true)}
-            className="h-8 gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm"
+            className="h-8 px-2.5 gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm"
           >
             <TrendingUp className="size-3.5" />
-            Nova Receita / Fechamento
+            <span>Nova Receita<span className="hidden sm:inline"> / Fechamento</span></span>
           </Button>
         </div>
       }
@@ -146,11 +147,11 @@ export function FinancialView() {
       <div className="space-y-6 max-w-7xl">
         {/* BARRA DE SELEÇÃO DE PERÍODO */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border shadow-elev">
-          <div className="flex items-center gap-2">
-            <Calendar className="size-4 text-primary" />
-            <span className="text-xs font-semibold text-foreground">Período de Apuração:</span>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Calendar className="size-4 text-primary shrink-0" />
+            <span className="text-xs font-semibold text-foreground whitespace-nowrap">Período:</span>
             <Select value={filtroMes} onValueChange={setFiltroMes}>
-              <SelectTrigger className="w-44 h-8 text-xs bg-surface/50 border-border">
+              <SelectTrigger className="w-full sm:w-44 h-8 text-xs bg-surface/50 border-border">
                 <SelectValue placeholder="Selecione o período" />
               </SelectTrigger>
               <SelectContent>
@@ -164,7 +165,7 @@ export function FinancialView() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground flex-wrap">
             <span className="flex items-center gap-1.5">
               <span className="size-2 rounded-full bg-emerald-400" />
               Receita: <strong className="text-foreground">{formatarMoeda(metricas.receitaTotal)}</strong>
@@ -194,6 +195,7 @@ export function FinancialView() {
           setFiltroCategoria={setFiltroCategoria}
           onAlternarStatus={alternarStatus}
           onSolicitarExclusao={(tx) => setTransacaoParaExcluir(tx)}
+          onRestaurarDemo={restaurarDemo}
         />
       </div>
 

@@ -35,7 +35,7 @@ export function RecentLeadsTable({ leads, onAbordar }: RecentLeadsTableProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-border bg-surface/70 text-muted-foreground uppercase text-[10px] rotulo tracking-wider">
+              <tr className="border-b border-border bg-surface/70 text-muted-foreground uppercase text-[10px] rotulo tracking-wider whitespace-nowrap">
                 <th className="p-3 pl-4">Estabelecimento</th>
                 <th className="p-3">Categoria</th>
                 <th className="p-3">Localização</th>

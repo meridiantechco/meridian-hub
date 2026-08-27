@@ -99,6 +99,20 @@ export function useFinancial() {
     toast.success("Base de dados financeiros zerada.");
   };
 
+  const restaurarDemo = async () => {
+    try {
+      setCarregando(true);
+      const novas = await financialService.restaurarDadosExemplo();
+      setTransacoes(novas);
+      toast.success("Lançamentos de demonstração carregados com sucesso!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao restaurar dados de exemplo");
+    } finally {
+      setCarregando(false);
+    }
+  };
+
   return {
     transacoes,
     transacoesFiltradas,
@@ -116,6 +130,7 @@ export function useFinancial() {
     atualizarTransacao,
     excluirTransacao,
     zerarBase,
+    restaurarDemo,
     recarregar: carregarDados,
   };
 }

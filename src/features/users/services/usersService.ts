@@ -55,8 +55,8 @@ export const usersService = {
 
           return {
             id: p.id,
-            nome: p.nome || (p.email ? p.email.split("@")[0] : "Usuário"),
-            email: p.email,
+            nome: p.nome || (p.email ? p.email.split("@")[0] || "Usuário" : "Usuário"),
+            email: p.email || "",
             papel,
             status: "ativo",
             senhaProvisoria: null,
@@ -171,17 +171,46 @@ export const usersService = {
     });
   },
 
-  async removerUsuario(userId: string): Promise<void> {
-    await Promise.all([
-      supabase.from("user_roles").delete().eq("user_id", userId),
-      supabase.from("profiles").delete().eq("id", userId),
-    ]);
+  async removerUsuario(userId: string, nome?: string, email?: string): Promise<void> {
+    try {
+      // 1. Tenta chamar a RPC segura do Supabase (que exclui de auth.users + cascades)
+      const { error: rpcError } = await supabase.rpc("admin_remover_usuario", {
+        target_user_id: userId,
+      });
 
+      if (rpcError) {
+        console.warn(
+          "RPC admin_remover_usuario indisponível ou com restrição, aplicando exclusão direta das tabelas:",
+          rpcError,
+        );
+
+        // Fallback: exclusão direta via RLS de administrador
+        await Promise.allSettled([
+          supabase.from("leads").update({ responsavel_id: null }).eq("responsavel_id", userId),
+          supabase.from("user_roles").delete().eq("user_id", userId),
+          supabase.from("profiles").delete().eq("id", userId),
+        ]);
+      }
+    } catch (err) {
+      console.error("Erro durante exclusão do usuário:", err);
+      // Garante exclusão das tabelas públicas mesmo em caso de erro
+      await Promise.allSettled([
+        supabase.from("leads").update({ responsavel_id: null }).eq("responsavel_id", userId),
+        supabase.from("user_roles").delete().eq("user_id", userId),
+        supabase.from("profiles").delete().eq("id", userId),
+      ]);
+    }
+
+    // 2. Registra o log de auditoria da exclusão
     await auditoriaService.registrarAtividade({
       tipo: "usuario_papel",
-      titulo: `Membro removido da equipe`,
-      descricao: `Usuário ID ${userId} desvinculado do sistema.`,
-      metadados: { usuario_removido_id: userId },
+      titulo: `Membro removido da equipe: ${nome || userId}`,
+      descricao: `O usuário ${nome ? `"${nome}"` : ""} (${email || userId}) foi removido permanentemente da plataforma pelo administrador.`,
+      metadados: {
+        usuario_removido_id: userId,
+        usuario_removido_nome: nome,
+        usuario_removido_email: email,
+      },
     });
   },
 };

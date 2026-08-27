@@ -49,6 +49,7 @@ export function SegmentCharts({ dadosCategorias, dadosFunil, totalLeads }: Segme
                   allowDecimals={false}
                 />
                 <Tooltip
+                  cursor={false}
                   contentStyle={{
                     backgroundColor: "#161224",
                     borderColor: "#3b2f5c",
