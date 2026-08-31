@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Compass, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
+import { MeridianLogo } from "@/components/brand/MeridianLogo";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -172,8 +173,12 @@ export function AuthView() {
       <div className="w-full max-w-md space-y-6 relative z-10">
         {/* LOGO & CABEÇALHO */}
         <div className="text-center space-y-2">
-          <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 text-primary border border-primary/30 shadow-[0_0_25px_rgba(168,85,247,0.35)] mb-2">
-            <Compass className="size-6" />
+          <div className="inline-flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 via-primary/10 to-background text-primary border border-primary/40 shadow-[0_0_30px_rgba(168,85,247,0.45)] mb-3 transition-transform hover:scale-105">
+            <MeridianLogo
+              variant="light"
+              size="custom"
+              className="size-8 drop-shadow-[0_0_12px_rgba(255,255,255,0.6)]"
+            />
           </div>
           <h1 className="text-2xl font-bold font-display tracking-tight text-foreground">
             Meridian Hub
