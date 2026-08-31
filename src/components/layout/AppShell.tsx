@@ -22,6 +22,7 @@ import {
 import { useState, useEffect, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { MeridianLogo } from "@/components/brand/MeridianLogo";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -172,9 +173,13 @@ export function AppShell({
           {/* TOPO DA SIDEBAR: LOGO & BOTÃO TOGGLE */}
           <div className="flex h-16 items-center justify-between border-b border-sidebar-border/70 px-3.5">
             <Link to="/painel" className="flex items-center gap-3 min-w-0 group">
-              <div className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 text-primary border border-primary/30 shadow-[0_0_20px_rgba(168,85,247,0.35)] transition-transform group-hover:scale-105">
-                <Compass className="size-5" />
-                <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 border-2 border-sidebar" />
+              <div className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/25 via-primary/10 to-transparent text-primary border border-primary/30 shadow-[0_0_20px_rgba(168,85,247,0.35)] transition-all duration-300 group-hover:scale-105 group-hover:border-primary/50 group-hover:shadow-[0_0_25px_rgba(168,85,247,0.5)]">
+                <MeridianLogo
+                  variant="light"
+                  size="custom"
+                  className="size-5.5 drop-shadow-[0_0_8px_rgba(255,255,255,0.45)] transition-transform group-hover:scale-110"
+                />
+                <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 border-2 border-sidebar shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
               </div>
 
               {!colapsada && (
@@ -425,8 +430,8 @@ export function AppShell({
                 >
                   <SheetTitle className="sr-only">Navegação Meridian Hub</SheetTitle>
                   <div className="flex items-center gap-2.5 border-b border-sidebar-border px-4 py-4">
-                    <span className="flex size-9 items-center justify-center rounded-xl bg-primary/20 text-primary border border-primary/30">
-                      <Compass className="size-5" />
+                    <span className="flex size-9 items-center justify-center rounded-xl bg-primary/20 text-primary border border-primary/30 shadow-[0_0_15px_rgba(168,85,247,0.25)]">
+                      <MeridianLogo variant="light" size="custom" className="size-5 drop-shadow-[0_0_6px_rgba(255,255,255,0.45)]" />
                     </span>
                     <div className="leading-tight">
                       <p className="font-display text-base font-bold tracking-tight">Meridian Hub</p>
