@@ -1,17 +1,17 @@
-import { Link } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { ModalMensagemWhatsApp } from "@/components/prospecta/ModalMensagemWhatsApp";
-import { Button } from "@/components/ui/button";
+import { WhatsAppModal, type LeadItem } from "@/features/leads";
 import { prospectaService } from "@/lib/prospecta-service";
 import { financialService, type MetricasFinanceiras } from "@/features/financial";
-import type { LeadItem } from "@/lib/leads-mock";
-import { RefreshCw, Search } from "lucide-react";
+
+import { DashboardHeader } from "./DashboardHeader";
 import { DashboardKpis } from "./DashboardKpis";
+import { AttentionPanel } from "./AttentionPanel";
+import { CommercialPerformanceChart } from "./CommercialPerformanceChart";
+import { FunnelOverview } from "./FunnelOverview";
 import { FinancialSummaryWidget } from "./FinancialSummaryWidget";
-import { SegmentCharts } from "./SegmentCharts";
-import { HotOpportunities } from "./HotOpportunities";
 import { RecentLeadsTable } from "./RecentLeadsTable";
+import { DashboardSkeleton } from "./DashboardSkeleton";
 
 export function DashboardView() {
   const [leads, setLeads] = useState<LeadItem[]>([]);
@@ -22,13 +22,16 @@ export function DashboardView() {
 
   const carregarDados = async () => {
     setCarregando(true);
-    const [listaLeads, listaTx] = await Promise.all([
-      prospectaService.listarLeads(),
-      financialService.listarTransacoes(),
-    ]);
-    setLeads(listaLeads);
-    setMetricasFin(financialService.calcularMetricas(listaTx));
-    setCarregando(false);
+    try {
+      const [listaLeads, listaTx] = await Promise.all([
+        prospectaService.listarLeads(),
+        financialService.listarTransacoes(),
+      ]);
+      setLeads(listaLeads);
+      setMetricasFin(financialService.calcularMetricas(listaTx));
+    } finally {
+      setCarregando(false);
+    }
   };
 
   useEffect(() => {
@@ -42,13 +45,6 @@ export function DashboardView() {
     totalLeads > 0 ? Math.round(leads.reduce((acc, l) => acc + l.score, 0) / totalLeads) : 0;
   const fechados = leads.filter((l) => l.status === "fechado").length;
   const taxaConversao = totalLeads > 0 ? ((fechados / totalLeads) * 100).toFixed(1) : "0.0";
-
-  const leadsMaisQuentes = useMemo(() => {
-    return [...leads]
-      .filter((l) => l.status === "novo" && !l.tem_site)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 4);
-  }, [leads]);
 
   const leadsRecentes = useMemo(() => {
     return [...leads]
@@ -78,15 +74,16 @@ export function DashboardView() {
 
   const dadosFunil = useMemo(() => {
     const etapas = [
-      { status: "novo", nome: "Novos", cor: "#c084fc" },
-      { status: "contatado", nome: "Contatados", cor: "#f59e0b" },
-      { status: "proposta", nome: "Propostas", cor: "#a855f7" },
-      { status: "fechado", nome: "Fechados", cor: "#34d399" },
-      { status: "recusado", nome: "Recusados", cor: "#f43f5e" },
+      { status: "novo", name: "Novos Mapeados", cor: "oklch(0.62 0.23 295)" },
+      { status: "contatado", name: "Contatados", cor: "oklch(0.72 0.18 75)" },
+      { status: "proposta", name: "Propostas Ativas", cor: "oklch(0.65 0.18 245)" },
+      { status: "fechado", name: "Fechados", cor: "oklch(0.75 0.16 160)" },
+      { status: "recusado", name: "Recusados", cor: "oklch(0.60 0.22 25)" },
     ];
 
     return etapas.map((e) => ({
-      name: e.nome,
+      name: e.name,
+      status: e.status,
       quantidade: leads.filter((l) => l.status === e.status).length,
       cor: e.cor,
     }));
@@ -99,57 +96,54 @@ export function DashboardView() {
 
   return (
     <AppShell
-      titulo="Painel Comercial"
-      descricao="Monitoramento de estabelecimentos minerados, oportunidades sem site, lucratividade real e taxas de conversão da Meridian Tech"
-      acoes={
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={carregarDados}
-            disabled={carregando}
-            className="h-8 px-2.5 gap-1.5 text-xs"
-          >
-            <RefreshCw className={`size-3.5 ${carregando ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Atualizar</span>
-          </Button>
-          <Button
-            asChild
-            size="sm"
-            className="h-8 px-2.5 gap-1.5 text-xs bg-primary text-primary-foreground font-semibold shadow-sm"
-          >
-            <Link to="/nova-busca">
-              <Search className="size-3.5" />
-              <span>Detectar<span className="hidden sm:inline"> Estabelecimentos</span></span>
-            </Link>
-          </Button>
-        </div>
-      }
+      titulo="Dashboard"
+      descricao="Visão geral da operação comercial, pipeline de vendas e indicadores de mercado"
     >
-      <div className="space-y-6">
-        <DashboardKpis
-          totalLeads={totalLeads}
-          leadsSemSite={leadsSemSite}
-          percSemSite={percSemSite}
-          scoreMedio={scoreMedio}
-          taxaConversao={taxaConversao}
-          fechados={fechados}
-        />
+      {carregando && leads.length === 0 ? (
+        <DashboardSkeleton />
+      ) : (
+        <div className="space-y-6">
+          {/* 1. HEADER DO DASHBOARD */}
+          <DashboardHeader
+            carregando={carregando}
+            onAtualizar={carregarDados}
+            totalLeads={totalLeads}
+            fechados={fechados}
+          />
 
-        <FinancialSummaryWidget metricas={metricasFin} />
+          {/* 2. KPIS PRINCIPAIS */}
+          <DashboardKpis
+            totalLeads={totalLeads}
+            leadsSemSite={leadsSemSite}
+            percSemSite={percSemSite}
+            scoreMedio={scoreMedio}
+            taxaConversao={taxaConversao}
+            fechados={fechados}
+          />
 
-        <SegmentCharts
-          dadosCategorias={dadosCategorias}
-          dadosFunil={dadosFunil}
-          totalLeads={totalLeads}
-        />
+          {/* 3. SEÇÃO: REQUER SUA ATENÇÃO */}
+          <AttentionPanel leads={leads} onAbordar={handleAbordar} />
 
-        <HotOpportunities leads={leadsMaisQuentes} onAbordar={handleAbordar} />
+          {/* 4. BENTO GRID: PERFORMANCE COMERCIAL & FUNIL */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <CommercialPerformanceChart dadosCategorias={dadosCategorias} />
+            </div>
+            <div className="lg:col-span-1">
+              <FunnelOverview dadosFunil={dadosFunil} totalLeads={totalLeads} />
+            </div>
+          </div>
 
-        <RecentLeadsTable leads={leadsRecentes} onAbordar={handleAbordar} />
-      </div>
+          {/* 5. GESTÃO FINANCEIRA & PULSE WIDGET */}
+          <FinancialSummaryWidget metricas={metricasFin} />
 
-      <ModalMensagemWhatsApp
+          {/* 6. ATIVIDADE RECENTE (TOP 5) */}
+          <RecentLeadsTable leads={leadsRecentes} onAbordar={handleAbordar} />
+        </div>
+      )}
+
+      {/* MODAL WHATSAPP INTEGRADO */}
+      <WhatsAppModal
         lead={leadParaWhatsApp}
         aberto={modalWhatsAppAberto}
         onOpenChange={setModalWhatsAppAberto}

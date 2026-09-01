@@ -4,11 +4,10 @@ import { DashboardView } from "@/features/dashboard";
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
-      { title: "Painel Comercial & Lucratividade | Meridian Hub" },
+      { title: "Dashboard — Meridian" },
       {
         name: "description",
-        content:
-          "Visão geral da prospecção B2B de estabelecimentos sem site e controle financeiro da Meridian Tech",
+        content: "Visão geral da operação comercial, pipeline de vendas e métricas de conversão",
       },
     ],
   }),

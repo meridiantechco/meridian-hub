@@ -4,7 +4,7 @@ import { LeadDetailsView } from "@/features/leads";
 export const Route = createFileRoute("/_authenticated/leads/$id")({
   head: () => ({
     meta: [
-      { title: "Ficha do Estabelecimento | Meridian Hub" },
+      { title: "Detalhes do Estabelecimento — Meridian" },
       {
         name: "description",
         content: "Ficha comercial detalhada e histórico de contatos do estabelecimento",

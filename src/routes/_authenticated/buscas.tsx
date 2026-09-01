@@ -4,10 +4,10 @@ import { ProspectingHistoryView } from "@/features/prospecting";
 export const Route = createFileRoute("/_authenticated/buscas")({
   head: () => ({
     meta: [
-      { title: "Histórico de Varreduras | Meridian Hub" },
+      { title: "Histórico de Varreduras — Meridian" },
       {
         name: "description",
-        content: "Registro de varreduras cartográficas realizadas no Google Places",
+        content: "Registro consolidado de varreduras cartográficas e setores mapeados",
       },
     ],
   }),

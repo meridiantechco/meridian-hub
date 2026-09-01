@@ -7,11 +7,10 @@ const SUPER_ADMIN_EMAIL = "meridiantech.co@gmail.com";
 export const Route = createFileRoute("/_authenticated/usuarios")({
   head: () => ({
     meta: [
-      { title: "Gestão de Usuários & Equipe | Meridian Hub" },
+      { title: "Gestão de Usuários — Meridian" },
       {
         name: "description",
-        content:
-          "Administração de equipe comercial e controle exclusivo de novos acessos da Meridian Tech",
+        content: "Administração de equipe comercial e controle de permissões de acesso",
       },
     ],
   }),

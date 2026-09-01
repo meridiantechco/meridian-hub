@@ -4,11 +4,10 @@ import { FinancialView } from "@/features/financial";
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({
     meta: [
-      { title: "Gestão Financeira & Lucro | Meridian Hub" },
+      { title: "Financeiro — Meridian" },
       {
         name: "description",
-        content:
-          "Gestão de despesas operacionais, receitas e visão consolidada de lucro real da Meridian Tech.",
+        content: "Gestão de despesas operacionais, receitas e controle de fluxo de caixa",
       },
     ],
   }),

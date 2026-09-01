@@ -100,8 +100,8 @@ export function ProspectingView() {
 
   return (
     <AppShell
-      titulo="Detecção de Estabelecimentos"
-      descricao="Varredura inteligente para identificar estabelecimentos comerciais, redes sociais automáticas e oportunidades sem site da Meridian Tech"
+      titulo="Detectar Empresas"
+      descricao="Varredura geográfica para identificar estabelecimentos locais e oportunidades sem site"
     >
       <div className="space-y-6 max-w-6xl">
         <ProspectingForm

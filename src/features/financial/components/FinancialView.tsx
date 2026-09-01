@@ -109,8 +109,8 @@ export function FinancialView() {
 
   return (
     <AppShell
-      titulo="Financeiro & Lucratividade"
-      descricao="Gestão completa de despesas operacionais, receitas e visão consolidada de lucro real da Meridian Tech"
+      titulo="Financeiro"
+      descricao="Gestão de despesas operacionais, receitas e fluxo de caixa da operação"
       acoes={
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
           <Button

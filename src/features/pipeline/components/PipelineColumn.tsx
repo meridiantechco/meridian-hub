@@ -13,6 +13,7 @@ interface PipelineColumnProps {
   onDrop: (e: React.DragEvent, statusDestino: LeadItem["status"]) => void;
   onMoverStatus: (leadId: string, novoStatus: LeadItem["status"]) => void;
   onAbordar: (lead: LeadItem) => void;
+  onPreviewLead?: (lead: LeadItem) => void;
   onDragStart: (e: React.DragEvent, leadId: string) => void;
 }
 
@@ -27,6 +28,7 @@ export function PipelineColumn({
   onDrop,
   onMoverStatus,
   onAbordar,
+  onPreviewLead,
   onDragStart,
 }: PipelineColumnProps) {
   const scoreMedio =
@@ -47,14 +49,14 @@ export function PipelineColumn({
         }
       }}
       onDrop={(e) => onDrop(e, coluna.id)}
-      className={`w-[260px] sm:w-[280px] lg:flex-1 shrink-0 rounded-xl border bg-surface/40 p-3 flex flex-col min-h-[580px] transition-colors duration-150 border-t-4 ${
+      className={`w-[260px] sm:w-[280px] lg:flex-1 shrink-0 rounded-2xl border bg-surface/30 p-3 flex flex-col min-h-[600px] transition-colors duration-150 border-t-3 ${
         coluna.corBorda
-      } ${isHover ? "border-primary/90 bg-primary/10 ring-2 ring-primary/40 shadow-lg" : "border-border"}`}
+      } ${isHover ? "border-primary/80 bg-primary/10 ring-2 ring-primary/30 shadow-md" : "border-border/80"}`}
     >
       {/* Cabeçalho da Coluna */}
-      <div className="flex items-center justify-between pb-3 border-b border-border/60 mb-3">
+      <div className="flex items-center justify-between pb-2.5 border-b border-border/60 mb-2.5">
         <div>
-          <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">
+          <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider rotulo">
             {coluna.titulo}
           </h3>
           <p className="text-[10px] text-muted-foreground dado">Média: {scoreMedio} pts</p>
@@ -66,8 +68,8 @@ export function PipelineColumn({
         </span>
       </div>
 
-      {/* Lista de Cards */}
-      <div className="space-y-3 flex-1 overflow-y-auto max-h-[580px] pr-1">
+      {/* Lista de Cards com Scroll Interno */}
+      <div className="space-y-2.5 flex-1 overflow-y-auto max-h-[600px] pr-1">
         {leads.map((lead) => (
           <PipelineCard
             key={lead.id}
@@ -76,12 +78,13 @@ export function PipelineColumn({
             colProxima={colProxima}
             onMoverStatus={onMoverStatus}
             onAbordar={onAbordar}
+            onPreviewLead={onPreviewLead}
             onDragStart={onDragStart}
           />
         ))}
 
         {leads.length === 0 && (
-          <div className="h-36 flex items-center justify-center border border-dashed border-border rounded-lg text-[11px] text-muted-foreground text-center p-4">
+          <div className="h-36 flex items-center justify-center border border-dashed border-border/70 rounded-xl text-[11px] text-muted-foreground text-center p-4">
             Arraste um card até aqui
           </div>
         )}

@@ -18,7 +18,7 @@ import {
   Kanban,
   Trash2,
 } from "lucide-react";
-import { WhatsAppModal, type LeadItem } from "@/features/leads";
+import { WhatsAppModal, LeadDrawer, type LeadItem } from "@/features/leads";
 import { usePipeline } from "../hooks/usePipeline";
 import { COLUNAS_PIPELINE } from "../types";
 import { PipelineColumn } from "./PipelineColumn";
@@ -40,6 +40,10 @@ export function PipelineView() {
   const [leadParaWhatsApp, setLeadParaWhatsApp] = useState<LeadItem | null>(null);
   const [modalWhatsAppAberto, setModalWhatsAppAberto] = useState(false);
   const [modalZerarFunilAberto, setModalZerarFunilAberto] = useState(false);
+
+  // Drawer de preview do lead
+  const [leadDrawer, setLeadDrawer] = useState<LeadItem | null>(null);
+  const [drawerAberto, setDrawerAberto] = useState(false);
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     e.dataTransfer.setData("text/plain", id);
@@ -70,17 +74,22 @@ export function PipelineView() {
     setModalWhatsAppAberto(true);
   };
 
+  const handlePreviewLead = (lead: LeadItem) => {
+    setLeadDrawer(lead);
+    setDrawerAberto(true);
+  };
+
   return (
     <AppShell
-      titulo="Funil de Vendas (Kanban)"
-      descricao="Pipeline visual com atualização em tempo real e movimentação por arrastar e soltar da Meridian Tech"
+      titulo="Funil Comercial"
+      descricao="Pipeline interativo com movimentação por arrastar e soltar e atualização em tempo real"
       acoes={
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
-          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface border border-border text-[11px] text-muted-foreground dado">
+          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface/60 border border-border/80 text-[11px] text-muted-foreground dado">
             <Radio
               className={`size-3 ${conectadoRealtime ? "text-emerald-400 animate-pulse" : "text-amber-400"}`}
             />
-            <span>{conectadoRealtime ? "Tempo Real" : "Conectando..."}</span>
+            <span>{conectadoRealtime ? "Tempo Real Ativo" : "Conectando..."}</span>
           </div>
 
           <Button
@@ -100,20 +109,20 @@ export function PipelineView() {
             size="sm"
             onClick={carregarDados}
             disabled={carregando}
-            className="h-8 px-2.5 gap-1.5 text-xs"
+            className="h-8 px-2.5 gap-1.5 text-xs border-border/80"
           >
-            <RefreshCw className={`size-3.5 ${carregando ? "animate-spin" : ""}`} />
+            <RefreshCw className={`size-3.5 ${carregando ? "animate-spin text-primary" : ""}`} />
             <span className="hidden sm:inline">Atualizar</span>
           </Button>
 
           <Button
             asChild
             size="sm"
-            className="h-8 px-2.5 gap-1.5 text-xs bg-primary text-primary-foreground font-semibold"
+            className="h-8 px-3 gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs"
           >
             <Link to="/nova-busca">
               <Plus className="size-3.5" />
-              <span>Novo<span className="hidden sm:inline"> Lead</span></span>
+              <span>Novo Lead</span>
             </Link>
           </Button>
         </div>
@@ -138,6 +147,7 @@ export function PipelineView() {
                 onDrop={handleDrop}
                 onMoverStatus={moverStatus}
                 onAbordar={handleAbordar}
+                onPreviewLead={handlePreviewLead}
                 onDragStart={handleDragStart}
               />
             );
@@ -145,6 +155,7 @@ export function PipelineView() {
         </div>
       </div>
 
+      {/* MODAL WHATSAPP */}
       <WhatsAppModal
         lead={leadParaWhatsApp}
         aberto={modalWhatsAppAberto}
@@ -152,8 +163,22 @@ export function PipelineView() {
         onMensagemEnviada={carregarDados}
       />
 
+      {/* SLIDE-OVER DRAWER DE PREVIEW DO LEAD */}
+      <LeadDrawer
+        lead={leadDrawer}
+        aberto={drawerAberto}
+        onOpenChange={setDrawerAberto}
+        onStatusChange={moverStatus}
+        onAbordarWhatsApp={(l) => {
+          setLeadParaWhatsApp(l);
+          setModalWhatsAppAberto(true);
+        }}
+        onLeadAtualizado={carregarDados}
+      />
+
+      {/* DIÁLOGO ZERAR / REINICIAR FUNIL */}
       <Dialog open={modalZerarFunilAberto} onOpenChange={setModalZerarFunilAberto}>
-        <DialogContent className="max-w-md bg-card border-border">
+        <DialogContent className="max-w-md bg-card border-border shadow-2xl">
           <DialogHeader>
             <div className="size-10 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center mb-1">
               <RotateCcw className="size-5" />
@@ -162,8 +187,7 @@ export function PipelineView() {
               Zerar / Reiniciar Funil de Vendas
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              Você possui <strong>{leads.length} estabelecimentos</strong> no funil. Escolha a ação
-              desejada:
+              Você possui <strong>{leads.length} estabelecimentos</strong> no funil. Escolha a ação desejada:
             </DialogDescription>
           </DialogHeader>
 
@@ -179,8 +203,7 @@ export function PipelineView() {
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Mantém todos os estabelecimentos cadastrados na base, mas move todos eles de volta
-                para a primeira coluna ("Novo").
+                Mantém todos os estabelecimentos cadastrados na base, mas move todos eles de volta para a primeira coluna ("Novo").
               </p>
               <Button
                 type="button"

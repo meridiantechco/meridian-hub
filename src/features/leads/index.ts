@@ -7,5 +7,7 @@ export * from "./hooks/useLeads";
 export * from "./components/BadgePriority";
 export * from "./components/BadgeStatus";
 export * from "./components/WhatsAppModal";
+export * from "./components/LeadDrawer";
+export * from "./components/LeadsTableSkeleton";
 export * from "./components/LeadsView";
 export * from "./components/LeadDetailsView";
