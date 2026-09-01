@@ -4,11 +4,10 @@ import { PipelineView } from "@/features/pipeline";
 export const Route = createFileRoute("/_authenticated/funil")({
   head: () => ({
     meta: [
-      { title: "Funil de Vendas (Kanban) | Meridian Hub" },
+      { title: "Funil Comercial — Meridian" },
       {
         name: "description",
-        content:
-          "Pipeline visual kanban em tempo real com sincronização do Supabase da Meridian Tech",
+        content: "Pipeline comercial interativo em tempo real para controle de estágios de negociação",
       },
     ],
   }),

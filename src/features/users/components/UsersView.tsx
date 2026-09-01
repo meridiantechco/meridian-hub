@@ -189,8 +189,8 @@ export function UsersView() {
 
   return (
     <AppShell
-      titulo="Gestão de Equipe & Auditoria"
-      descricao="Controle de usuários, permissões de acesso e registro completo de produtividade da Meridian Tech"
+      titulo="Gestão de Usuários"
+      descricao="Controle de equipe, níveis de acesso e registro transparente de atividades"
       acoes={
         <Button
           size="sm"

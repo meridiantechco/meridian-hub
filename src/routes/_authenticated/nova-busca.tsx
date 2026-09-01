@@ -4,11 +4,10 @@ import { ProspectingView } from "@/features/prospecting";
 export const Route = createFileRoute("/_authenticated/nova-busca")({
   head: () => ({
     meta: [
-      { title: "Detecção de Estabelecimentos | Meridian Hub" },
+      { title: "Detectar Empresas — Meridian" },
       {
         name: "description",
-        content:
-          "Varredura e listagem inteligente de estabelecimentos comerciais locais da Meridian Tech",
+        content: "Varredura geográfica e detecção de estabelecimentos comerciais sem presença web",
       },
     ],
   }),
