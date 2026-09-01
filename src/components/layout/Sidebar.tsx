@@ -93,7 +93,7 @@ export const GRUPOS_NAV: NavGroup[] = [
   {
     rotulo: "Sistema",
     itens: [
-      { para: "/usuarios", rotulo: "Configurações & Equipe", icone: Settings, somenteAdmin: true },
+      { para: "/usuarios", rotulo: "Configurações & Equipe", icone: Settings },
     ],
   },
 ];

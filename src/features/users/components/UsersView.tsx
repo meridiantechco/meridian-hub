@@ -389,46 +389,42 @@ export function UsersView() {
                             <span>Movimentações</span>
                           </Button>
 
-                          {ehAdmin && (
-                            <Select
-                              value={u.papel}
-                              onValueChange={(val) => alterarPapel(u.id, val as "admin" | "vendedor")}
-                              disabled={u.email?.toLowerCase() === "meridiantech.co@gmail.com"}
-                            >
-                              <SelectTrigger className="h-8 w-28 text-xs bg-surface/50">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="vendedor">Vendedor</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          )}
+                          <Select
+                            value={u.papel}
+                            onValueChange={(val) => alterarPapel(u.id, val as "admin" | "vendedor")}
+                            disabled={u.email?.toLowerCase() === "meridiantech.co@gmail.com"}
+                          >
+                            <SelectTrigger className="h-8 w-28 text-xs bg-surface/50 border-border/70">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="vendedor">Vendedor</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
 
-                          {ehAdmin && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setUsuarioParaExcluir(u)}
-                              disabled={
-                                u.id === user?.id ||
-                                u.email?.toLowerCase() === user?.email?.toLowerCase() ||
-                                u.email?.toLowerCase() === "meridiantech.co@gmail.com"
-                              }
-                              className="size-8 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
-                              title={
-                                u.id === user?.id ||
-                                u.email?.toLowerCase() === user?.email?.toLowerCase()
-                                  ? "Você não pode remover sua própria conta de administrador"
-                                  : u.email?.toLowerCase() === "meridiantech.co@gmail.com"
-                                  ? "O Administrador Supremo não pode ser excluído"
-                                  : `Remover ${u.nome} permanentemente`
-                              }
-                              aria-label={`Remover usuário ${u.nome}`}
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setUsuarioParaExcluir(u)}
+                            disabled={
+                              u.id === user?.id ||
+                              u.email?.toLowerCase() === user?.email?.toLowerCase() ||
+                              u.email?.toLowerCase() === "meridiantech.co@gmail.com"
+                            }
+                            className="size-8 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+                            title={
+                              u.id === user?.id ||
+                              u.email?.toLowerCase() === user?.email?.toLowerCase()
+                                ? "Você não pode remover sua própria conta logada"
+                                : u.email?.toLowerCase() === "meridiantech.co@gmail.com"
+                                ? "O Administrador Supremo não pode ser excluído"
+                                : `Remover ${u.nome} permanentemente`
+                            }
+                            aria-label={`Remover usuário ${u.nome}`}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
                         </div>
                       </div>
                     );

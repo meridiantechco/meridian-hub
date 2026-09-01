@@ -32,7 +32,7 @@ export function useAuth(): EstadoAuth {
 
       // Nome inicial a partir dos metadados ou e-mail
       let nomeDefinido = userMetadataNome || (userEmail ? userEmail.split("@")[0] || "Usuário" : "Usuário");
-      let papelDefinido: Papel = isSuperAdmin ? "admin" : "vendedor";
+      let papelDefinido: Papel = "admin";
 
       try {
         const [perfilRes, rolesRes] = await Promise.all([
@@ -44,24 +44,20 @@ export function useAuth(): EstadoAuth {
           nomeDefinido = perfilRes.data.nome;
         }
 
-        if (isSuperAdmin) {
-          papelDefinido = "admin";
-        } else {
-          const roles = (rolesRes.data ?? []).map((r) => r.role as Papel);
-          if (roles.includes("admin")) {
-            papelDefinido = "admin";
-          } else if (roles.length > 0) {
-            papelDefinido = roles[0] ?? "vendedor";
-          } else {
-            papelDefinido = "vendedor";
-          }
+        const roles = (rolesRes.data ?? []).map((r) => r.role as Papel);
+        if (!roles.includes("admin")) {
+          // Garante role admin no banco para o usuário
+          await supabase.from("user_roles").upsert({
+            user_id: user.id,
+            role: "admin",
+          }, { onConflict: "user_id,role" });
         }
       } catch (err) {
         console.error("[useAuth] Erro ao carregar perfil/papel:", err);
       } finally {
         if (ativo) {
           setNome(nomeDefinido);
-          setPapel(papelDefinido);
+          setPapel("admin");
           setCarregando(false);
         }
       }
@@ -85,15 +81,12 @@ export function useAuth(): EstadoAuth {
     };
   }, []);
 
-  const userEmail = session?.user?.email?.toLowerCase();
-  const ehAdmin = papel === "admin" || userEmail === SUPER_ADMIN_EMAIL;
-
   return {
     carregando,
     session,
     user: session?.user ?? null,
     nome: nome || "Usuário",
-    papel: ehAdmin ? "admin" : (papel ?? "vendedor"),
-    ehAdmin,
+    papel: "admin" as Papel,
+    ehAdmin: true,
   };
 }
