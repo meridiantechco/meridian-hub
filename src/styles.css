@@ -65,13 +65,10 @@
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
 
-  --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow-elev:
-    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
-    0 8px 24px -4px rgba(0, 0, 0, 0.6),
-    0 0 16px -4px rgba(168, 85, 247, 0.08);
-  --shadow-glow-purple: 0 0 20px -2px rgba(168, 85, 247, 0.25);
-  --shadow-glow-emerald: 0 0 20px -2px rgba(16, 185, 129, 0.2);
+  --shadow-subtle: var(--shadow-subtle);
+  --shadow-elev: var(--shadow-elev);
+  --shadow-glow-purple: var(--shadow-glow-purple);
+  --shadow-glow-emerald: var(--shadow-glow-emerald);
 
   --background-image-grade-radar:
     linear-gradient(to right, rgba(168, 85, 247, 0.04) 1px, transparent 1px),
@@ -81,9 +78,82 @@
 :root {
   --radius: 0.75rem;
 
-  /* Base background: deep obsidian / graphite */
+  /* LIGHT MODE (Clean, high-contrast, modern B2B SaaS palette) */
+  --background: oklch(0.985 0.004 285);
+  --foreground: oklch(0.14 0.02 285);
+
+  /* Card surface: pure clean white */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.14 0.02 285);
+
+  /* Support / input surfaces */
+  --surface: oklch(0.96 0.008 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.14 0.02 285);
+
+  /* Meridian Purple Primary */
+  --primary: oklch(0.55 0.24 295);
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.94 0.008 285);
+  --secondary-foreground: oklch(0.18 0.02 285);
+
+  --muted: oklch(0.94 0.008 285);
+  --muted-foreground: oklch(0.46 0.02 285);
+
+  --accent: oklch(0.93 0.02 295);
+  --accent-foreground: oklch(0.18 0.02 285);
+
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  /* Borders: subtle clean contrast */
+  --border: oklch(0.89 0.008 285);
+  --input: oklch(0.89 0.008 285);
+  --ring: oklch(0.55 0.24 295);
+
+  /* Status Colors */
+  --alerta: oklch(0.65 0.20 295);
+  --alerta-foreground: oklch(0.99 0 0);
+
+  --sucesso: oklch(0.65 0.18 160);
+  --sucesso-foreground: oklch(0.99 0 0);
+
+  --novo: oklch(0.65 0.20 295);
+  --novo-foreground: oklch(0.99 0 0);
+
+  --chart-1: oklch(0.55 0.24 295);
+  --chart-2: oklch(0.65 0.18 160);
+  --chart-3: oklch(0.65 0.19 75);
+  --chart-4: oklch(0.58 0.20 245);
+  --chart-5: oklch(0.55 0.22 25);
+
+  /* Sidebar */
+  --sidebar: oklch(0.975 0.005 285);
+  --sidebar-foreground: oklch(0.18 0.02 285);
+  --sidebar-primary: oklch(0.55 0.24 295);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.92 0.012 285);
+  --sidebar-accent-foreground: oklch(0.14 0.02 285);
+  --sidebar-border: oklch(0.89 0.008 285);
+  --sidebar-ring: oklch(0.55 0.24 295);
+
+  /* Scrollbar */
+  --scrollbar-thumb: oklch(0.80 0.012 285);
+  --scrollbar-thumb-hover: oklch(0.65 0.02 285);
+
+  /* Soft, clean, delicate shadows for light mode */
+  --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  --shadow-elev:
+    0 1px 2px 0 rgba(0, 0, 0, 0.02),
+    0 1px 3px -1px rgba(0, 0, 0, 0.03);
+  --shadow-glow-purple: 0 0 14px -2px rgba(168, 85, 247, 0.10);
+  --shadow-glow-emerald: 0 0 14px -2px rgba(16, 185, 129, 0.08);
+}
+
+.dark {
+  /* DARK MODE (Deep obsidian / graphite, crisp white text, vibrant purple) */
   --background: oklch(0.12 0.012 285);
-  /* Pure crisp foreground */
   --foreground: oklch(0.985 0.002 285);
 
   /* Card surface */
@@ -141,11 +211,19 @@
   --sidebar-accent-foreground: oklch(0.985 0.002 285);
   --sidebar-border: oklch(0.20 0.024 285);
   --sidebar-ring: oklch(0.62 0.23 295);
-}
 
-.dark {
-  --background: oklch(0.12 0.012 285);
-  --foreground: oklch(0.985 0.002 285);
+  /* Scrollbar */
+  --scrollbar-thumb: oklch(0.28 0.025 285);
+  --scrollbar-thumb-hover: oklch(0.38 0.035 285);
+
+  /* Deep, atmospheric shadows for dark mode */
+  --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+  --shadow-elev:
+    0 1px 0 0 rgba(255, 255, 255, 0.03) inset,
+    0 4px 16px -2px rgba(0, 0, 0, 0.45),
+    0 0 12px -4px rgba(168, 85, 247, 0.06);
+  --shadow-glow-purple: 0 0 20px -2px rgba(168, 85, 247, 0.25);
+  --shadow-glow-emerald: 0 0 20px -2px rgba(16, 185, 129, 0.2);
 }
 
 @layer base {
@@ -154,7 +232,6 @@
   }
 
   html {
-    color-scheme: dark;
     overflow-x: hidden;
     max-width: 100vw;
   }
@@ -190,12 +267,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: oklch(0.28 0.025 285);
+    background: var(--scrollbar-thumb);
     border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.38 0.035 285);
+    background: var(--scrollbar-thumb-hover);
   }
 }
 
@@ -232,9 +309,52 @@
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
 .animate-radar-sweep {
   animation: radarSweep 6s linear infinite;
   transform-origin: center center;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

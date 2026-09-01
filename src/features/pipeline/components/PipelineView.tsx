@@ -19,6 +19,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { WhatsAppModal, LeadDrawer, type LeadItem } from "@/features/leads";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { KanbanSkeleton } from "@/components/ui/skeletons";
 import { usePipeline } from "../hooks/usePipeline";
 import { COLUNAS_PIPELINE } from "../types";
 import { PipelineColumn } from "./PipelineColumn";
@@ -33,6 +35,7 @@ export function PipelineView() {
     moverStatus,
     reiniciarFunil,
     zerarBase,
+    removerLead,
   } = usePipeline();
 
   const [leadArrastadoId, setLeadArrastadoId] = useState<string | null>(null);
@@ -40,6 +43,8 @@ export function PipelineView() {
   const [leadParaWhatsApp, setLeadParaWhatsApp] = useState<LeadItem | null>(null);
   const [modalWhatsAppAberto, setModalWhatsAppAberto] = useState(false);
   const [modalZerarFunilAberto, setModalZerarFunilAberto] = useState(false);
+  const [leadParaExcluir, setLeadParaExcluir] = useState<LeadItem | null>(null);
+  const [excluindoLead, setExcluindoLead] = useState(false);
 
   // Drawer de preview do lead
   const [leadDrawer, setLeadDrawer] = useState<LeadItem | null>(null);
@@ -128,32 +133,57 @@ export function PipelineView() {
         </div>
       }
     >
-      <div className="overflow-x-auto pb-4 scroll-smooth">
-        <div className="flex gap-3.5 sm:gap-4 min-w-max lg:min-w-full items-start">
-          {COLUNAS_PIPELINE.map((coluna, colIdx) => {
-            const leadsDaColuna = leads.filter((l) => l.status === coluna.id);
-            const isHover = colunaHover === coluna.id;
+      {carregando && leads.length === 0 ? (
+        <KanbanSkeleton colunas={5} cardsPorColuna={3} />
+      ) : (
+        <div className="overflow-x-auto pb-4 scroll-smooth animate-fade-in">
+          <div className="flex gap-3.5 sm:gap-4 min-w-max lg:min-w-full items-start">
+            {COLUNAS_PIPELINE.map((coluna, colIdx) => {
+              const leadsDaColuna = leads.filter((l) => l.status === coluna.id);
+              const isHover = colunaHover === coluna.id;
 
-            return (
-              <PipelineColumn
-                key={coluna.id}
-                coluna={coluna}
-                colIdx={colIdx}
-                todasColunas={COLUNAS_PIPELINE}
-                leads={leadsDaColuna}
-                isHover={isHover}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onMoverStatus={moverStatus}
-                onAbordar={handleAbordar}
-                onPreviewLead={handlePreviewLead}
-                onDragStart={handleDragStart}
-              />
-            );
-          })}
+              return (
+                <PipelineColumn
+                  key={coluna.id}
+                  coluna={coluna}
+                  colIdx={colIdx}
+                  todasColunas={COLUNAS_PIPELINE}
+                  leads={leadsDaColuna}
+                  isHover={isHover}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onMoverStatus={moverStatus}
+                  onAbordar={handleAbordar}
+                  onPreviewLead={handlePreviewLead}
+                  onSolicitarExcluir={(lead) => setLeadParaExcluir(lead)}
+                  onDragStart={handleDragStart}
+                />
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO INDIVIDUAL DE LEAD */}
+      <ConfirmDeleteDialog
+        open={Boolean(leadParaExcluir)}
+        onOpenChange={(open) => !open && setLeadParaExcluir(null)}
+        titulo="Excluir Estabelecimento do Funil?"
+        descricao="Você está prestes a remover este lead permanentemente do seu funil comercial e da base de dados."
+        itemNome={leadParaExcluir ? `${leadParaExcluir.nome} (${leadParaExcluir.categoria})` : undefined}
+        carregando={excluindoLead}
+        onConfirmar={async () => {
+          if (!leadParaExcluir) return;
+          setExcluindoLead(true);
+          try {
+            await removerLead(leadParaExcluir.id, leadParaExcluir.nome);
+            setLeadParaExcluir(null);
+          } finally {
+            setExcluindoLead(false);
+          }
+        }}
+      />
 
       {/* MODAL WHATSAPP */}
       <WhatsAppModal

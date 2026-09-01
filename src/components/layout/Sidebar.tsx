@@ -4,6 +4,8 @@ import {
   Target,
   Building2,
   Sun,
+  Moon,
+  Laptop,
   CheckSquare,
   Calendar,
   History,
@@ -26,9 +28,13 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/features/auth";
+import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 
 export interface NavGroup {
@@ -100,6 +106,7 @@ interface SidebarProps {
 
 export function Sidebar({ colapsada, onToggle, onSair }: SidebarProps) {
   const { ehAdmin, nome, papel, user } = useAuth();
+  const { theme, resolvedTheme, setTheme, toggleTheme } = useTheme();
 
   const iniciaisNome = (nome || user?.email || "M")
     .split(" ")
@@ -251,7 +258,7 @@ export function Sidebar({ colapsada, onToggle, onSair }: SidebarProps) {
         })}
       </div>
 
-      {/* RODAPÉ DA SIDEBAR: PERFIL & LOGOUT */}
+      {/* RODAPÉ DA SIDEBAR: PERFIL, TEMA & LOGOUT */}
       <div className="border-t border-sidebar-border/70 p-2 shrink-0">
         {colapsada ? (
           <DropdownMenu>
@@ -281,6 +288,18 @@ export function Sidebar({ colapsada, onToggle, onSair }: SidebarProps) {
                 </span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border/60" />
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="text-xs cursor-pointer">
+                  {resolvedTheme === "dark" ? <Moon className="size-3.5 mr-2" /> : <Sun className="size-3.5 mr-2" />}
+                  Tema
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => setTheme("light")} className="text-xs">Claro</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("dark")} className="text-xs">Escuro</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("system")} className="text-xs">Sistema</DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSeparator className="bg-border/60" />
               <DropdownMenuItem
                 onClick={onSair}
                 className="text-destructive focus:bg-destructive/15 cursor-pointer text-xs"
@@ -305,15 +324,26 @@ export function Sidebar({ colapsada, onToggle, onSair }: SidebarProps) {
               </div>
             </div>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onSair}
-              className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-              title="Encerrar Sessão"
-            >
-              <LogOut className="size-3.5" />
-            </Button>
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="size-7 text-muted-foreground hover:text-foreground transition-colors"
+                title="Alternar tema"
+              >
+                {resolvedTheme === "dark" ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onSair}
+                className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                title="Encerrar Sessão"
+              >
+                <LogOut className="size-3.5" />
+              </Button>
+            </div>
           </div>
         )}
       </div>

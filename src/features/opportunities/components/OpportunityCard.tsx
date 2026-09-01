@@ -8,6 +8,7 @@ import {
   Info,
   Building2,
   AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +20,7 @@ interface OpportunityCardProps {
   onVerExplicacaoScore: (op: OportunidadeEnriquecida) => void;
   onAbordarWhatsApp: (op: OportunidadeEnriquecida) => void;
   onPreviewDrawer: (op: OportunidadeEnriquecida) => void;
+  onSolicitarExcluir?: ((op: OportunidadeEnriquecida) => void) | undefined;
 }
 
 export function OpportunityCard({
@@ -26,6 +28,7 @@ export function OpportunityCard({
   onVerExplicacaoScore,
   onAbordarWhatsApp,
   onPreviewDrawer,
+  onSolicitarExcluir,
 }: OpportunityCardProps) {
   const { lead, score, proximaAcao, diasSemContato, valorEstimadoContrato } = oportunidade;
 
@@ -131,6 +134,18 @@ export function OpportunityCard({
                 <ArrowRight className="size-3" />
               </Link>
             </Button>
+
+            {onSolicitarExcluir && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => onSolicitarExcluir(oportunidade)}
+                className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                title="Descartar / Excluir oportunidade"
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>

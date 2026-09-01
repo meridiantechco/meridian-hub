@@ -1,11 +1,12 @@
 import { ReactNode } from "react";
 import { Search, Menu, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface TopbarProps {
   titulo: string;
-  descricao?: string;
-  acoes?: ReactNode;
+  descricao?: string | undefined;
+  acoes?: ReactNode | undefined;
   onAbrirMobile: () => void;
   onAbrirBusca: () => void;
 }
@@ -43,7 +44,7 @@ export function Topbar({
         </div>
       </div>
 
-      {/* Lado Direito: Command Palette trigger + Status + Notificações + Ações */}
+      {/* Lado Direito: Command Palette trigger + Status + Theme Toggle + Ações */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {/* Trigger de Busca / Command Palette */}
         <button
@@ -67,6 +68,9 @@ export function Topbar({
           </span>
           <span>Radar · Ativo</span>
         </div>
+
+        {/* Theme Toggle (Claro / Escuro / Sistema) */}
+        <ThemeToggle />
 
         {/* Slot de Ações da Página */}
         {acoes && <div className="flex items-center gap-1.5 sm:gap-2">{acoes}</div>}

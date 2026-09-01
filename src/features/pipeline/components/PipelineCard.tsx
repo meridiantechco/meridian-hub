@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MoveLeft, MoveRight, MessageSquare, ExternalLink, AlertCircle, Instagram, Star, Eye } from "lucide-react";
+import { MoveLeft, MoveRight, MessageSquare, ExternalLink, AlertCircle, Instagram, Star, Eye, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BadgePriority } from "@/features/leads";
@@ -12,7 +12,8 @@ interface PipelineCardProps {
   colProxima?: ColunaDef | undefined;
   onMoverStatus: (leadId: string, novoStatus: LeadItem["status"]) => void;
   onAbordar: (lead: LeadItem) => void;
-  onPreviewLead?: (lead: LeadItem) => void;
+  onPreviewLead?: ((lead: LeadItem) => void) | undefined;
+  onSolicitarExcluir?: ((lead: LeadItem) => void) | undefined;
   onDragStart: (e: React.DragEvent, leadId: string) => void;
 }
 
@@ -23,6 +24,7 @@ export function PipelineCard({
   onMoverStatus,
   onAbordar,
   onPreviewLead,
+  onSolicitarExcluir,
   onDragStart,
 }: PipelineCardProps) {
   return (
@@ -133,6 +135,18 @@ export function PipelineCard({
               <Link to="/leads/$id" params={{ id: lead.id }}>
                 <ExternalLink className="size-3" />
               </Link>
+            </Button>
+          )}
+
+          {onSolicitarExcluir && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onSolicitarExcluir(lead)}
+              className="size-6.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+              title="Excluir estabelecimento do funil"
+            >
+              <Trash2 className="size-3" />
             </Button>
           )}
         </div>

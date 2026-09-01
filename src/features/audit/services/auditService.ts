@@ -215,4 +215,13 @@ export const auditoriaService = {
 
     return mapa;
   },
+
+  async excluirAtividade(id: string): Promise<boolean> {
+    const { error } = await supabase.from("auditoria_atividades").delete().eq("id", id);
+    if (error) {
+      console.error("Erro ao excluir atividade:", error);
+      return false;
+    }
+    return true;
+  },
 };

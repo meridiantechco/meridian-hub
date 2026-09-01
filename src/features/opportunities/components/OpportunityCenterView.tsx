@@ -14,7 +14,10 @@ import {
   SlidersHorizontal,
   Target,
 } from "lucide-react";
-import { prospectaService, WhatsAppModal, LeadDrawer, type LeadItem } from "@/features/leads";
+import { leadsService, WhatsAppModal, LeadDrawer, type LeadItem } from "@/features/leads";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { CardGridSkeleton, MetricCardsSkeleton } from "@/components/ui/skeletons";
+import { toast } from "sonner";
 import { opportunityService } from "../services/opportunityService";
 import { OpportunityCard } from "./OpportunityCard";
 import { ScoreBreakdownModal } from "./ScoreBreakdownModal";
@@ -38,10 +41,13 @@ export function OpportunityCenterView() {
   const [leadDrawer, setLeadDrawer] = useState<LeadItem | null>(null);
   const [drawerAberto, setDrawerAberto] = useState(false);
 
+  const [opParaExcluir, setOpParaExcluir] = useState<OportunidadeEnriquecida | null>(null);
+  const [excluindoOp, setExcluindoOp] = useState(false);
+
   const carregarDados = async () => {
     setCarregando(true);
     try {
-      const lista = await prospectaService.listarLeads();
+      const lista = await leadsService.listarLeads();
       setLeads(lista);
     } finally {
       setCarregando(false);
@@ -144,19 +150,25 @@ export function OpportunityCenterView() {
         </Button>
       }
     >
-      <div className="space-y-6 max-w-6xl">
-        {/* CARDS RESUMO DO OPPORTUNITY CENTER */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-          <Card className="bg-card border-border/80 p-4 space-y-1 shadow-elev">
-            <div className="flex items-center justify-between">
-              <span className="rotulo text-[10px] text-muted-foreground">Oportunidades no Radar</span>
-              <Target className="size-4 text-primary" />
-            </div>
-            <p className="text-2xl font-bold font-display dado text-foreground">
-              {oportunidades.length}
-            </p>
-            <p className="text-[11px] text-muted-foreground">Base ativa para trabalho</p>
-          </Card>
+      {carregando && leads.length === 0 ? (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          <MetricCardsSkeleton quantidade={4} colunas="grid-cols-2 sm:grid-cols-4" />
+          <CardGridSkeleton quantidade={6} mostrarFiltros={true} />
+        </div>
+      ) : (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          {/* CARDS RESUMO DO OPPORTUNITY CENTER */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <Card className="bg-card border-border/80 p-4 space-y-1 shadow-elev">
+              <div className="flex items-center justify-between">
+                <span className="rotulo text-[10px] text-muted-foreground">Oportunidades no Radar</span>
+                <Target className="size-4 text-primary" />
+              </div>
+              <p className="text-2xl font-bold font-display dado text-foreground">
+                {oportunidades.length}
+              </p>
+              <p className="text-[11px] text-muted-foreground">Base ativa para trabalho</p>
+            </Card>
 
           <Card className="bg-card border-primary/30 p-4 space-y-1 shadow-elev ring-1 ring-primary/20">
             <div className="flex items-center justify-between">
@@ -296,6 +308,7 @@ export function OpportunityCenterView() {
               onVerExplicacaoScore={handleVerExplicacaoScore}
               onAbordarWhatsApp={handleAbordarWhatsApp}
               onPreviewDrawer={handlePreviewDrawer}
+              onSolicitarExcluir={(opItem) => setOpParaExcluir(opItem)}
             />
           ))}
         </div>
@@ -324,6 +337,29 @@ export function OpportunityCenterView() {
           </div>
         )}
       </div>
+      )}
+
+      {/* DIÁLOGO DE EXCLUSÃO DE OPORTUNIDADE */}
+      <ConfirmDeleteDialog
+        open={Boolean(opParaExcluir)}
+        onOpenChange={(open) => !open && setOpParaExcluir(null)}
+        titulo="Descartar / Excluir Oportunidade?"
+        descricao="Esta oportunidade será removida permanentemente do radar e da base comercial."
+        itemNome={opParaExcluir ? `${opParaExcluir.lead.nome} (${opParaExcluir.lead.categoria})` : undefined}
+        carregando={excluindoOp}
+        onConfirmar={async () => {
+          if (!opParaExcluir) return;
+          setExcluindoOp(true);
+          try {
+            await leadsService.removerLead(opParaExcluir.lead.id);
+            toast.success(`Oportunidade "${opParaExcluir.lead.nome}" removida com sucesso!`);
+            await carregarDados();
+            setOpParaExcluir(null);
+          } finally {
+            setExcluindoOp(false);
+          }
+        }}
+      />
 
       {/* MODAL DE EXPLICAÇÃO DO SCORE */}
       <ScoreBreakdownModal
@@ -351,7 +387,7 @@ export function OpportunityCenterView() {
         aberto={drawerAberto}
         onOpenChange={setDrawerAberto}
         onStatusChange={async (leadId, status) => {
-          await prospectaService.atualizarStatusLead(leadId, status);
+          await leadsService.atualizarStatusLead(leadId, status);
           await carregarDados();
         }}
         onAbordarWhatsApp={(l) => {

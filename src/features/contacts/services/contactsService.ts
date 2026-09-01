@@ -16,27 +16,7 @@ export const contactsService = {
       }
     }
 
-    // Inicialização automática a partir dos leads existentes
-    const leads = await leadsService.listarLeads();
-    const contatosIniciais: ContatoItem[] = leads.map((l, idx) => {
-      const primeiroNome = l.nome.split(" ")[0];
-      return {
-        id: `ct-${l.id}`,
-        empresa_id: l.id,
-        empresa_nome: l.nome,
-        nome: `${primeiroNome} (Sócio / Decisor)`,
-        cargo: "Proprietário / Diretor",
-        telefone: l.telefone,
-        whatsapp: l.telefone,
-        email: `contato@${l.nome.toLowerCase().replace(/[^a-z0-9]/g, "")}.com.br`,
-        linkedin: null,
-        observacoes: "Tomador de decisão comercial mapeado pela prospecção",
-        criado_em: l.criado_em,
-      };
-    });
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(contatosIniciais));
-    return contatosIniciais;
+    return [];
   },
 
   async salvarContato(contato: Omit<ContatoItem, "id" | "criado_em">): Promise<ContatoItem> {
@@ -54,11 +34,13 @@ export const contactsService = {
   async atualizarContato(id: string, campos: Partial<ContatoItem>): Promise<ContatoItem | null> {
     const lista = await this.listarContatos();
     const idx = lista.findIndex((c) => c.id === id);
-    if (idx === -1) return null;
+    const item = lista[idx];
+    if (idx === -1 || !item) return null;
 
-    lista[idx] = { ...lista[idx], ...campos };
+    const atualizado: ContatoItem = { ...item, ...campos, id: item.id, criado_em: item.criado_em };
+    lista[idx] = atualizado;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
-    return lista[idx];
+    return atualizado;
   },
 
   async excluirContato(id: string): Promise<boolean> {

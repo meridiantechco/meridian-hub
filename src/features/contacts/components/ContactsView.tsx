@@ -20,6 +20,8 @@ import {
 import { toast } from "sonner";
 import { contactsService } from "../services/contactsService";
 import { ContactModal } from "./ContactModal";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { TableSkeleton, MetricCardsSkeleton } from "@/components/ui/skeletons";
 import type { ContatoItem } from "../types";
 
 export function ContactsView() {
@@ -30,6 +32,8 @@ export function ContactsView() {
   // Modais
   const [modalAberto, setModalAberto] = useState(false);
   const [contatoEditando, setContatoEditando] = useState<ContatoItem | null>(null);
+  const [contatoParaExcluir, setContatoParaExcluir] = useState<ContatoItem | null>(null);
+  const [excluindoContato, setExcluindoContato] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
@@ -85,14 +89,6 @@ export function ContactsView() {
     await carregarDados();
   };
 
-  const handleExcluir = async (id: string, nome: string) => {
-    if (window.confirm(`Deseja remover o contato "${nome}"?`)) {
-      await contactsService.excluirContato(id);
-      await carregarDados();
-      toast.success("Contato removido!");
-    }
-  };
-
   const abrirWhatsApp = (telefone: string) => {
     const numLimpo = telefone.replace(/\D/g, "");
     const ddi = numLimpo.length <= 11 ? `55${numLimpo}` : numLimpo;
@@ -119,16 +115,22 @@ export function ContactsView() {
         </div>
       }
     >
-      <div className="space-y-4 max-w-6xl">
-        {/* CARDS RESUMO */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-xs flex items-center justify-between">
-            <div>
-              <p className="rotulo text-[10px]">Total de Contatos</p>
-              <p className="text-2xl font-bold font-display dado mt-0.5 text-foreground">
-                {contatos.length}
-              </p>
-            </div>
+      {carregando && contatos.length === 0 ? (
+        <div className="space-y-4 max-w-6xl animate-fade-in">
+          <MetricCardsSkeleton quantidade={4} colunas="grid-cols-2 sm:grid-cols-4" />
+          <TableSkeleton colunas={6} linhas={6} mostrarFiltros={true} />
+        </div>
+      ) : (
+        <div className="space-y-4 max-w-6xl animate-fade-in">
+          {/* CARDS RESUMO */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-xs flex items-center justify-between">
+              <div>
+                <p className="rotulo text-[10px]">Total de Contatos</p>
+                <p className="text-2xl font-bold font-display dado mt-0.5 text-foreground">
+                  {contatos.length}
+                </p>
+              </div>
             <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <Users className="size-4" />
             </div>
@@ -171,23 +173,24 @@ export function ContactsView() {
           </div>
         </div>
 
-        {/* BARRA DE BUSCA */}
-        <Card className="bg-card border-border/80 shadow-elev">
-          <CardContent className="p-3.5 flex items-center justify-between gap-3">
-            <div className="relative flex-1">
+        {/* TABELA DE CONTATOS COM TOOLBAR INTEGRADA */}
+        <Card className="bg-card border-border/80 shadow-elev overflow-hidden">
+          {/* TOOLBAR INTEGRADA */}
+          <div className="p-3.5 border-b border-border/60 bg-surface/30 flex items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-md">
               <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome, cargo, empresa ou e-mail..."
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                className="pl-8 text-xs h-8.5 bg-surface/50"
+                className="pl-8 text-xs h-8.5 bg-surface/50 border-border/70"
               />
             </div>
-          </CardContent>
-        </Card>
+            <span className="text-xs text-muted-foreground dado font-mono shrink-0">
+              {contatosFiltrados.length} {contatosFiltrados.length === 1 ? "contato" : "contatos"}
+            </span>
+          </div>
 
-        {/* TABELA DE CONTATOS */}
-        <Card className="bg-card border-border/80 shadow-elev overflow-hidden">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
@@ -279,8 +282,8 @@ export function ContactsView() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            onClick={() => handleExcluir(c.id, c.nome)}
-                            className="size-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => setContatoParaExcluir(c)}
+                            className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                             title="Remover contato"
                           >
                             <Trash2 className="size-3.5" />
@@ -309,6 +312,29 @@ export function ContactsView() {
           </CardContent>
         </Card>
       </div>
+      )}
+
+      {/* DIÁLOGO DE EXCLUSÃO DE CONTATO */}
+      <ConfirmDeleteDialog
+        open={Boolean(contatoParaExcluir)}
+        onOpenChange={(open) => !open && setContatoParaExcluir(null)}
+        titulo="Remover Contato?"
+        descricao="Este contato será removido permanentemente da base de decisores."
+        itemNome={contatoParaExcluir ? `${contatoParaExcluir.nome} (${contatoParaExcluir.cargo} - ${contatoParaExcluir.empresa_nome})` : undefined}
+        carregando={excluindoContato}
+        onConfirmar={async () => {
+          if (!contatoParaExcluir) return;
+          setExcluindoContato(true);
+          try {
+            await contactsService.excluirContato(contatoParaExcluir.id);
+            toast.success("Contato removido com sucesso!");
+            await carregarDados();
+            setContatoParaExcluir(null);
+          } finally {
+            setExcluindoContato(false);
+          }
+        }}
+      />
 
       {/* MODAL ADICIONAR / EDITAR CONTATO */}
       <ContactModal

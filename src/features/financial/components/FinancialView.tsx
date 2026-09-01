@@ -3,25 +3,23 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Calendar,
   Download,
   TrendingDown,
   TrendingUp,
   AlertTriangle,
+  MoreHorizontal,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { prospectaService } from "@/lib/prospecta-service";
-import type { LeadItem } from "@/lib/leads-mock";
+import { leadsService, type LeadItem } from "@/features/leads";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { MetricCardsSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import { useFinancial } from "../hooks/useFinancial";
 import { FinancialKpis } from "./FinancialKpis";
 import { FinancialCharts } from "./FinancialCharts";
@@ -43,7 +41,6 @@ export function FinancialView() {
     criarTransacao,
     atualizarTransacao,
     excluirTransacao,
-    restaurarDemo,
   } = useFinancial();
 
   const [abaAtiva, setAbaAtiva] = useState<"todas" | "despesas" | "receitas" | "pendentes">("todas");
@@ -53,7 +50,7 @@ export function FinancialView() {
   const [leadsDisponiveis, setLeadsDisponiveis] = useState<LeadItem[]>([]);
 
   useEffect(() => {
-    void prospectaService.listarLeads().then(setLeadsDisponiveis);
+    void leadsService.listarLeads().then(setLeadsDisponiveis);
   }, []);
 
   const mesesDisponiveis = useMemo(() => {
@@ -112,41 +109,59 @@ export function FinancialView() {
       titulo="Financeiro"
       descricao="Gestão de despesas operacionais, receitas e fluxo de caixa da operação"
       acoes={
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportarCSV}
-            className="h-8 px-2.5 gap-1.5 text-xs border-border/80 text-foreground"
-          >
-            <Download className="size-3.5" />
-            <span className="hidden md:inline">Exportar </span>CSV
-          </Button>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8.5 px-2.5 gap-1.5 text-xs border-border/80 text-foreground"
+              >
+                <MoreHorizontal className="size-3.5" />
+                <span className="hidden sm:inline">Opções</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-card border-border shadow-elev">
+              <DropdownMenuItem
+                onClick={exportarCSV}
+                className="text-xs cursor-pointer gap-2"
+              >
+                <Download className="size-3.5 text-primary" />
+                Exportar CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button
             variant="outline"
             size="sm"
             onClick={() => setModalNovaDespesaAberto(true)}
-            className="h-8 px-2.5 gap-1.5 text-xs border-pink-500/30 text-pink-400 hover:bg-pink-500/10 font-semibold"
+            className="h-8.5 px-3 gap-1.5 text-xs border-pink-500/30 text-pink-400 hover:bg-pink-500/10 font-semibold"
           >
             <TrendingDown className="size-3.5" />
-            <span>Novo Gasto<span className="hidden sm:inline"> / Despesa</span></span>
+            <span>Novo Gasto</span>
           </Button>
 
           <Button
             size="sm"
             onClick={() => setModalNovaReceitaAberto(true)}
-            className="h-8 px-2.5 gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm"
+            className="h-8.5 px-3 gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs"
           >
             <TrendingUp className="size-3.5" />
-            <span>Nova Receita<span className="hidden sm:inline"> / Fechamento</span></span>
+            <span>Nova Receita</span>
           </Button>
         </div>
       }
     >
-      <div className="space-y-6 max-w-7xl">
-        {/* BARRA DE SELEÇÃO DE PERÍODO */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border shadow-elev">
+      {transacoes.length === 0 ? (
+        <div className="space-y-6 max-w-7xl animate-fade-in">
+          <MetricCardsSkeleton quantidade={4} colunas="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" />
+          <TableSkeleton colunas={7} linhas={6} mostrarFiltros={true} />
+        </div>
+      ) : (
+        <div className="space-y-6 max-w-7xl animate-fade-in">
+          {/* BARRA DE SELEÇÃO DE PERÍODO */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border shadow-elev">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Calendar className="size-4 text-primary shrink-0" />
             <span className="text-xs font-semibold text-foreground whitespace-nowrap">Período:</span>
@@ -195,9 +210,9 @@ export function FinancialView() {
           setFiltroCategoria={setFiltroCategoria}
           onAlternarStatus={alternarStatus}
           onSolicitarExclusao={(tx) => setTransacaoParaExcluir(tx)}
-          onRestaurarDemo={restaurarDemo}
         />
       </div>
+      )}
 
       {/* MODAL CRIAR DESPESA */}
       <ModalNovaDespesa
@@ -219,36 +234,14 @@ export function FinancialView() {
       />
 
       {/* DIÁLOGO CONFIRMAÇÃO DE EXCLUSÃO */}
-      <AlertDialog
+      <ConfirmDeleteDialog
         open={Boolean(transacaoParaExcluir)}
         onOpenChange={(aberto) => !aberto && setTransacaoParaExcluir(null)}
-      >
-        <AlertDialogContent className="bg-card border-border">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-rose-400 flex items-center gap-2">
-              <AlertTriangle className="size-5" />
-              Excluir Lançamento Financeiro?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground">
-              Você está prestes a remover o registro de{" "}
-              <strong className="text-foreground">{transacaoParaExcluir?.titulo}</strong> no valor de{" "}
-              <strong className="text-foreground">
-                {transacaoParaExcluir ? formatarMoeda(transacaoParaExcluir.valor) : ""}
-              </strong>
-              . Esta ação recalculará as métricas de lucro.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="text-xs">Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmarExclusao}
-              className="bg-rose-600 hover:bg-rose-500 text-white text-xs"
-            >
-              Sim, Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        titulo="Excluir Lançamento Financeiro?"
+        descricao="Esta ação removerá permanentemente esta transação e recalculará as métricas financeiras."
+        itemNome={transacaoParaExcluir ? `${transacaoParaExcluir.titulo} (${formatarMoeda(transacaoParaExcluir.valor)})` : undefined}
+        onConfirmar={confirmarExclusao}
+      />
     </AppShell>
   );
 }

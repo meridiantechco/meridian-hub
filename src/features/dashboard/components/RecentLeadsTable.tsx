@@ -1,17 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import { Building2, ArrowRight, AlertCircle, Globe, Instagram, MessageSquare } from "lucide-react";
+import { Building2, ArrowRight, AlertCircle, Globe, Instagram, MessageSquare, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BadgePriority } from "@/features/leads/components/BadgePriority";
 import { BadgeStatus } from "@/features/leads/components/BadgeStatus";
-import type { LeadItem } from "@/lib/leads-mock";
+import type { LeadItem } from "@/features/leads";
 
 interface RecentLeadsTableProps {
   leads: LeadItem[];
   onAbordar: (lead: LeadItem) => void;
+  onSolicitarExcluir?: ((lead: LeadItem) => void) | undefined;
 }
 
-export function RecentLeadsTable({ leads, onAbordar }: RecentLeadsTableProps) {
+export function RecentLeadsTable({ leads, onAbordar, onSolicitarExcluir }: RecentLeadsTableProps) {
   return (
     <Card className="bg-card border-border/80 shadow-elev overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-border/60 bg-surface/30">
@@ -95,14 +96,28 @@ export function RecentLeadsTable({ leads, onAbordar }: RecentLeadsTableProps) {
                   </td>
 
                   <td className="p-3 pr-4 text-right">
-                    <Button
-                      size="sm"
-                      onClick={() => onAbordar(item)}
-                      className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] gap-1 font-semibold shadow-xs"
-                    >
-                      <MessageSquare className="size-3" />
-                      WhatsApp
-                    </Button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Button
+                        size="sm"
+                        onClick={() => onAbordar(item)}
+                        className="h-7 px-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] gap-1 font-semibold shadow-xs"
+                      >
+                        <MessageSquare className="size-3" />
+                        WhatsApp
+                      </Button>
+
+                      {onSolicitarExcluir && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => onSolicitarExcluir(item)}
+                          className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          title="Excluir estabelecimento"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

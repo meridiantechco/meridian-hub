@@ -85,29 +85,32 @@ export function FinancialCharts({ metricas }: FinancialChartsProps) {
                       <stop offset="95%" stopColor="#34d399" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2b2244" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} vertical={false} />
                   <XAxis
                     dataKey="mesRotulo"
-                    stroke="#a19cb2"
+                    stroke="currentColor"
+                    opacity={0.6}
                     fontSize={11}
                     tickLine={false}
-                    axisLine={{ stroke: "#2b2244" }}
+                    axisLine={false}
                   />
                   <YAxis
-                    stroke="#a19cb2"
+                    stroke="currentColor"
+                    opacity={0.6}
                     fontSize={11}
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(v) => `R$${v}`}
                   />
                   <Tooltip
-                    cursor={{ stroke: "#a855f7", strokeWidth: 1, strokeDasharray: "3 3" }}
+                    cursor={{ stroke: "var(--color-primary)", strokeWidth: 1, strokeDasharray: "3 3" }}
                     contentStyle={{
-                      backgroundColor: "#161224",
-                      borderColor: "#3b2f5c",
+                      backgroundColor: "var(--color-card)",
+                      borderColor: "var(--color-border)",
                       borderRadius: "8px",
-                      color: "#fff",
+                      color: "var(--color-foreground)",
                       fontSize: "12px",
+                      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2)",
                     }}
                     formatter={(val: any) => [formatarMoeda(Number(val)), ""]}
                   />
@@ -189,11 +192,12 @@ export function FinancialCharts({ metricas }: FinancialChartsProps) {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#161224",
-                      borderColor: "#3b2f5c",
+                      backgroundColor: "var(--color-card)",
+                      borderColor: "var(--color-border)",
                       borderRadius: "8px",
-                      color: "#fff",
+                      color: "var(--color-foreground)",
                       fontSize: "12px",
+                      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2)",
                     }}
                     formatter={(val: any) => [formatarMoeda(Number(val)), ""]}
                   />

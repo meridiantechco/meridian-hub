@@ -3,7 +3,7 @@ import { AlertCircle, Flame, MessageSquare, ArrowRight, Kanban, Clock, Sparkles 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BadgePriority } from "@/features/leads/components/BadgePriority";
-import type { LeadItem } from "@/lib/leads-mock";
+import type { LeadItem } from "@/features/leads";
 
 interface AttentionPanelProps {
   leads: LeadItem[];
@@ -162,46 +162,60 @@ export function AttentionPanel({ leads, onAbordar }: AttentionPanelProps) {
             </Button>
           </div>
 
-          {/* CARD 3: RECOMENDAÇÃO OPERACIONAL */}
-          <div className="p-3.5 rounded-xl bg-gradient-to-b from-primary/10 to-surface/50 border border-primary/25 flex flex-col justify-between space-y-3">
+          {/* CARD 3: LEADS CONTATADOS AGUARDANDO EVOLUÇÃO */}
+          <div className="p-3.5 rounded-xl bg-surface/50 border border-border/70 flex flex-col justify-between space-y-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  <Sparkles className="size-3.5 text-primary" />
-                  Próximo Passo Recomendado
+                <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                  <MessageSquare className="size-3.5" />
+                  Aguardando Follow-up
                 </span>
-                <span className="text-[10px] font-mono text-emerald-400 font-bold">RADAR</span>
+                <span className="text-[10px] font-mono text-muted-foreground dado">
+                  {leadsContatados.length} contatados
+                </span>
               </div>
 
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Mapeie novos estabelecimentos comerciais em bairros estratégicos para alimentar o topo do funil da equipe.
-              </p>
-
-              <div className="p-2.5 rounded-lg bg-card/60 border border-border/50 text-[11px] text-muted-foreground space-y-1">
-                <div className="flex justify-between text-foreground">
-                  <span>Leads contatados:</span>
-                  <strong className="dado">{leadsContatados.length}</strong>
+              {leadsContatados.length > 0 ? (
+                <div className="space-y-2">
+                  {leadsContatados.slice(0, 3).map((lead) => (
+                    <div
+                      key={lead.id}
+                      className="p-2 rounded-lg bg-card border border-border/60 flex items-center justify-between gap-2"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-semibold text-foreground truncate">{lead.nome}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          {lead.categoria} · Contato inicial feito
+                        </p>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => onAbordar(lead)}
+                        className="size-6 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 shrink-0"
+                        title="Reenviar mensagem via WhatsApp"
+                      >
+                        <MessageSquare className="size-3" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between text-foreground">
-                  <span>Conversão média:</span>
-                  <strong className="dado text-emerald-400">
-                    {leads.length > 0
-                      ? ((leads.filter((l) => l.status === "fechado").length / leads.length) * 100).toFixed(1)
-                      : "0.0"}
-                    %
-                  </strong>
-                </div>
-              </div>
+              ) : (
+                <p className="text-xs text-muted-foreground py-2">
+                  Nenhum lead contatado pendente de resposta no momento.
+                </p>
+              )}
             </div>
 
             <Button
+              variant="outline"
               size="sm"
               asChild
-              className="w-full h-7 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold gap-1"
+              className="w-full h-7 text-xs border-border text-foreground hover:border-primary/40 gap-1"
             >
-              <Link to="/nova-busca">
-                <Sparkles className="size-3" />
-                <span>Iniciar Varredura</span>
+              <Link to="/leads">
+                <span>Ver Todos os Contatados</span>
+                <ArrowRight className="size-3" />
               </Link>
             </Button>
           </div>

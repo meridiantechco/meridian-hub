@@ -17,6 +17,8 @@ import {
 import { toast } from "sonner";
 import { calendarService } from "../services/calendarService";
 import { MeetingModal } from "./MeetingModal";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { MetricCardsSkeleton, CardGridSkeleton } from "@/components/ui/skeletons";
 import type { ReuniaoItem } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +26,8 @@ export function CalendarView() {
   const [reunioes, setReunioes] = useState<ReuniaoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
+  const [reuniaoParaExcluir, setReuniaoParaExcluir] = useState<ReuniaoItem | null>(null);
+  const [excluindoReuniao, setExcluindoReuniao] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
@@ -67,14 +71,6 @@ export function CalendarView() {
     toast.success("Reunião marcada como realizada! Tarefa de follow-up criada automaticamente no módulo de Tarefas. 🚀");
   };
 
-  const handleExcluir = async (id: string) => {
-    if (window.confirm("Deseja cancelar e remover esta reunião?")) {
-      await calendarService.excluirReuniao(id);
-      await carregarDados();
-      toast.success("Reunião removida da agenda.");
-    }
-  };
-
   return (
     <AppShell
       titulo="Agenda Comercial & Reuniões"
@@ -90,14 +86,20 @@ export function CalendarView() {
         </Button>
       }
     >
-      <div className="space-y-6 max-w-6xl">
-        {/* CARDS RESUMO */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-card border-border/80 shadow-elev p-4 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="rotulo text-[10px] text-muted-foreground">Reuniões Agendadas</span>
-              <CalendarIcon className="size-4 text-primary" />
-            </div>
+      {carregando && reunioes.length === 0 ? (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          <MetricCardsSkeleton quantidade={3} colunas="grid-cols-1 sm:grid-cols-3" />
+          <CardGridSkeleton quantidade={4} colunasGrid="grid-cols-1" mostrarFiltros={false} />
+        </div>
+      ) : (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          {/* CARDS RESUMO */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="bg-card border-border/80 shadow-elev p-4 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="rotulo text-[10px] text-muted-foreground">Reuniões Agendadas</span>
+                <CalendarIcon className="size-4 text-primary" />
+              </div>
             <p className="text-2xl font-bold font-display dado text-foreground">
               {totalAgendadas}
             </p>
@@ -220,8 +222,8 @@ export function CalendarView() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => handleExcluir(r.id)}
-                      className="size-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => setReuniaoParaExcluir(r)}
+                      className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       title="Excluir reunião"
                     >
                       <Trash2 className="size-3.5" />
@@ -245,6 +247,29 @@ export function CalendarView() {
           </CardContent>
         </Card>
       </div>
+      )}
+
+      {/* DIÁLOGO DE EXCLUSÃO DE REUNIÃO */}
+      <ConfirmDeleteDialog
+        open={Boolean(reuniaoParaExcluir)}
+        onOpenChange={(open) => !open && setReuniaoParaExcluir(null)}
+        titulo="Cancelar e Excluir Reunião?"
+        descricao="Esta reunião será cancelada e removida permanentemente da sua agenda comercial."
+        itemNome={reuniaoParaExcluir ? `${reuniaoParaExcluir.titulo} (${reuniaoParaExcluir.empresa_nome || ""}) - ${reuniaoParaExcluir.data} às ${reuniaoParaExcluir.horario}` : undefined}
+        carregando={excluindoReuniao}
+        onConfirmar={async () => {
+          if (!reuniaoParaExcluir) return;
+          setExcluindoReuniao(true);
+          try {
+            await calendarService.excluirReuniao(reuniaoParaExcluir.id);
+            toast.success("Reunião removida com sucesso!");
+            await carregarDados();
+            setReuniaoParaExcluir(null);
+          } finally {
+            setExcluindoReuniao(false);
+          }
+        }}
+      />
 
       {/* MODAL AGENDAR REUNIÃO */}
       <MeetingModal

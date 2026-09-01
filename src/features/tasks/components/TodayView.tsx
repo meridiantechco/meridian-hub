@@ -15,11 +15,16 @@ import {
   ArrowRight,
   TrendingUp,
   AlertTriangle,
+  Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/features/auth";
 import { tasksService } from "../services/tasksService";
 import { opportunityService } from "@/features/opportunities";
+import { calendarService, type ReuniaoItem } from "@/features/calendar";
 import { prospectaService, WhatsAppModal, type LeadItem } from "@/features/leads";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { MetricCardsSkeleton, CardGridSkeleton } from "@/components/ui/skeletons";
 import type { TarefaItem } from "../types";
 
 export function TodayView() {
@@ -28,21 +33,26 @@ export function TodayView() {
 
   const [tarefas, setTarefas] = useState<TarefaItem[]>([]);
   const [leads, setLeads] = useState<LeadItem[]>([]);
+  const [reunioes, setReunioes] = useState<ReuniaoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   // Modais
   const [leadParaWhatsApp, setLeadParaWhatsApp] = useState<LeadItem | null>(null);
   const [modalWhatsAppAberto, setModalWhatsAppAberto] = useState(false);
+  const [tarefaParaExcluir, setTarefaParaExcluir] = useState<TarefaItem | null>(null);
+  const [excluindoTarefa, setExcluindoTarefa] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
     try {
-      const [listaTsk, listaLeads] = await Promise.all([
+      const [listaTsk, listaLeads, listaReunioes] = await Promise.all([
         tasksService.listarTarefas(),
         prospectaService.listarLeads(),
+        calendarService.listarReunioes(),
       ]);
       setTarefas(listaTsk);
       setLeads(listaLeads);
+      setReunioes(listaReunioes);
     } finally {
       setCarregando(false);
     }
@@ -57,6 +67,14 @@ export function TodayView() {
   const tarefasHoje = useMemo(() => {
     return tarefas.filter((t) => t.prazo <= hoje && t.status !== "concluida");
   }, [tarefas, hoje]);
+
+  const reunioesHoje = useMemo(() => {
+    return reunioes.filter((r) => r.data === hoje && r.status === "agendada");
+  }, [reunioes, hoje]);
+
+  const tarefasConcluidas = useMemo(() => {
+    return tarefas.filter((t) => t.status === "concluida");
+  }, [tarefas]);
 
   const oportunidadesCriticas = useMemo(() => {
     const enriched = opportunityService.enriquecerOportunidades(leads);
@@ -83,51 +101,57 @@ export function TodayView() {
       titulo="Central do Dia (Hoje)"
       descricao="Cockpit operacional diário com tarefas prioritárias, follow-ups e oportunidades críticas"
     >
-      <div className="space-y-6 max-w-6xl">
-        {/* BANNER DE BOM DIA */}
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-primary/20 via-card to-card border border-primary/30 shadow-elev flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="space-y-1 max-w-xl">
-            <div className="flex items-center gap-2">
-              <span className="flex size-9 items-center justify-center rounded-xl bg-primary/20 text-primary border border-primary/30">
-                <Sun className="size-5" />
-              </span>
-              <h2 className="text-xl sm:text-2xl font-bold font-display text-foreground">
-                Bom dia, {primeiroNome}!
-              </h2>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-11">
-              Hoje é <strong className="text-foreground">{dataFormatada}</strong>. Você possui{" "}
-              <strong className="text-primary">{tarefasHoje.length} tarefas</strong> e{" "}
-              <strong className="text-emerald-400">{oportunidadesCriticas.length} follow-ups prioritários</strong> para atender.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-border/40">
-            <Button
-              asChild
-              size="sm"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs h-8.5 px-4 shadow-sm"
-            >
-              <Link to="/opportunities">
-                <span>Ver Opportunity Center</span>
-                <ArrowRight className="size-3.5 ml-1" />
-              </Link>
-            </Button>
-          </div>
+      {carregando && tarefas.length === 0 && leads.length === 0 ? (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          <MetricCardsSkeleton quantidade={4} colunas="grid-cols-2 sm:grid-cols-4" />
+          <CardGridSkeleton quantidade={4} colunasGrid="grid-cols-1 lg:grid-cols-2" mostrarFiltros={false} />
         </div>
-
-        {/* 4 CARDS DE FOCO DO DIA */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-          <div className="p-4 rounded-xl bg-card border border-border/80 shadow-elev space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="rotulo text-[10px] text-muted-foreground">Tarefas do Dia</span>
-              <CheckSquare className="size-4 text-primary" />
+      ) : (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          {/* BANNER DE BOM DIA */}
+          <div className="p-6 rounded-2xl bg-gradient-to-r from-primary/20 via-card to-card border border-primary/30 shadow-elev flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-1 max-w-xl">
+              <div className="flex items-center gap-2">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-primary/20 text-primary border border-primary/30">
+                  <Sun className="size-5" />
+                </span>
+                <h2 className="text-xl sm:text-2xl font-bold font-display text-foreground">
+                  Bom dia, {primeiroNome}!
+                </h2>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-11">
+                Hoje é <strong className="text-foreground">{dataFormatada}</strong>. Você possui{" "}
+                <strong className="text-primary">{tarefasHoje.length} tarefas</strong> e{" "}
+                <strong className="text-emerald-400">{oportunidadesCriticas.length} follow-ups prioritários</strong> para atender.
+              </p>
             </div>
-            <p className="text-2xl font-bold font-display dado text-foreground">
-              {tarefasHoje.length}
-            </p>
-            <p className="text-[11px] text-muted-foreground">Pendentes para concluir hoje</p>
+
+            <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-border/40">
+              <Button
+                asChild
+                size="sm"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs h-8.5 px-4 shadow-sm"
+              >
+                <Link to="/opportunities">
+                  <span>Ver Opportunity Center</span>
+                  <ArrowRight className="size-3.5 ml-1" />
+                </Link>
+              </Button>
+            </div>
           </div>
+
+          {/* 4 CARDS DE FOCO DO DIA */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div className="p-4 rounded-xl bg-card border border-border/80 shadow-elev space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="rotulo text-[10px] text-muted-foreground">Tarefas do Dia</span>
+                <CheckSquare className="size-4 text-primary" />
+              </div>
+              <p className="text-2xl font-bold font-display dado text-foreground">
+                {tarefasHoje.length}
+              </p>
+              <p className="text-[11px] text-muted-foreground">Pendentes para concluir hoje</p>
+            </div>
 
           <div className="p-4 rounded-xl bg-card border border-border/80 shadow-elev space-y-1">
             <div className="flex items-center justify-between">
@@ -135,9 +159,9 @@ export function TodayView() {
               <Calendar className="size-4 text-emerald-400" />
             </div>
             <p className="text-2xl font-bold font-display dado text-emerald-400">
-              2 reuniões
+              {reunioesHoje.length} {reunioesHoje.length === 1 ? "reunião" : "reuniões"}
             </p>
-            <p className="text-[11px] text-muted-foreground">Demonstrações na agenda</p>
+            <p className="text-[11px] text-muted-foreground">Compromissos para hoje</p>
           </div>
 
           <div className="p-4 rounded-xl bg-card border border-amber-500/30 shadow-elev space-y-1">
@@ -153,13 +177,13 @@ export function TodayView() {
 
           <div className="p-4 rounded-xl bg-card border border-border/80 shadow-elev space-y-1">
             <div className="flex items-center justify-between">
-              <span className="rotulo text-[10px] text-muted-foreground">Ritmo Comercial</span>
+              <span className="rotulo text-[10px] text-muted-foreground">Tarefas Concluídas</span>
               <TrendingUp className="size-4 text-primary" />
             </div>
             <p className="text-2xl font-bold font-display dado text-primary">
-              Alta Atividade
+              {tarefasConcluidas.length}
             </p>
-            <p className="text-[11px] text-muted-foreground">Operação em andamento</p>
+            <p className="text-[11px] text-muted-foreground">Entregas finalizadas</p>
           </div>
         </div>
 
@@ -211,6 +235,16 @@ export function TodayView() {
                         </p>
                       )}
                     </div>
+
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setTarefaParaExcluir(t)}
+                      className="size-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                      title="Excluir tarefa"
+                    >
+                      <Trash2 className="size-3" />
+                    </Button>
                   </div>
                 ))}
 
@@ -297,6 +331,29 @@ export function TodayView() {
           </Card>
         </div>
       </div>
+      )}
+
+      {/* DIÁLOGO EXCLUSÃO DE TAREFA */}
+      <ConfirmDeleteDialog
+        open={Boolean(tarefaParaExcluir)}
+        onOpenChange={(open) => !open && setTarefaParaExcluir(null)}
+        titulo="Excluir Tarefa?"
+        descricao="Esta ação removerá permanentemente esta tarefa da sua lista de hoje."
+        itemNome={tarefaParaExcluir ? `${tarefaParaExcluir.titulo}` : undefined}
+        carregando={excluindoTarefa}
+        onConfirmar={async () => {
+          if (!tarefaParaExcluir) return;
+          setExcluindoTarefa(true);
+          try {
+            await tasksService.excluirTarefa(tarefaParaExcluir.id);
+            toast.success("Tarefa excluída com sucesso!");
+            await carregarDados();
+            setTarefaParaExcluir(null);
+          } finally {
+            setExcluindoTarefa(false);
+          }
+        }}
+      />
 
       {/* MODAL WHATSAPP */}
       <WhatsAppModal

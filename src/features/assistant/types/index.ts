@@ -3,5 +3,5 @@ export interface MensagemChat {
   autor: "usuario" | "assistente";
   conteudo: string;
   data_hora: string;
-  metadadosLeads?: { id: string; nome: string; categoria: string; score: number }[];
+  metadadosLeads?: { id: string; nome: string; categoria: string; score: number }[] | undefined;
 }

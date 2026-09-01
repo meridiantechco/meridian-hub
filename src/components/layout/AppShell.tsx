@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Sidebar, GRUPOS_NAV } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { CommandPalette } from "./CommandPalette";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface AppShellProps {
   titulo: string;
@@ -157,12 +158,18 @@ export function AppShell({ titulo, descricao, acoes, children }: AppShellProps) 
             </div>
 
             <div className="absolute bottom-0 inset-x-0 border-t border-sidebar-border p-3.5 bg-sidebar">
-              <p className="rotulo text-[9px]">Usuário Ativo</p>
-              <p className="truncate text-xs font-semibold text-foreground">{nome || user?.email}</p>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="rotulo text-[9px]">Usuário Ativo</p>
+                  <p className="truncate text-xs font-semibold text-foreground">{nome || user?.email}</p>
+                </div>
+                <ThemeToggle variant="icon" />
+              </div>
+
               <Button
                 variant="ghost"
                 size="sm"
-                className="mt-2 w-full justify-start text-xs text-destructive hover:bg-destructive/10 h-7 px-2"
+                className="w-full justify-start text-xs text-destructive hover:bg-destructive/10 h-7 px-2"
                 onClick={handleSair}
               >
                 <LogOut className="size-3.5 mr-2" /> Encerrar Sessão

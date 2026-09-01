@@ -57,30 +57,32 @@ export function CommercialPerformanceChart({
               margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
               barGap={4}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.04)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} vertical={false} />
               <XAxis
                 dataKey="categoria"
-                stroke="#71717a"
+                stroke="currentColor"
+                opacity={0.6}
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
-                stroke="#71717a"
+                stroke="currentColor"
+                opacity={0.6}
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
                 allowDecimals={false}
               />
               <Tooltip
-                cursor={{ fill: "rgba(255, 255, 255, 0.03)" }}
+                cursor={{ fill: "currentColor", opacity: 0.05 }}
                 contentStyle={{
-                  backgroundColor: "oklch(0.16 0.02 285)",
-                  borderColor: "oklch(0.26 0.035 285)",
+                  backgroundColor: "var(--color-card)",
+                  borderColor: "var(--color-border)",
                   borderRadius: "10px",
-                  color: "#ffffff",
+                  color: "var(--color-foreground)",
                   fontSize: "12px",
-                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.6)",
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2)",
                 }}
                 formatter={(val: number, name: string) => [
                   `${val} empresas`,
@@ -94,14 +96,15 @@ export function CommercialPerformanceChart({
               {metricaVisualizacao === "todas" && (
                 <Bar
                   dataKey="total"
-                  fill="oklch(0.24 0.025 285)"
+                  fill="var(--color-muted-foreground)"
+                  opacity={0.3}
                   radius={[4, 4, 0, 0]}
                   name="total"
                 />
               )}
               <Bar
                 dataKey="semSite"
-                fill="oklch(0.62 0.23 295)"
+                fill="var(--color-primary)"
                 radius={[4, 4, 0, 0]}
                 name="semSite"
               />
@@ -112,13 +115,13 @@ export function CommercialPerformanceChart({
         <div className="flex items-center justify-center gap-6 pt-2 border-t border-border/40 text-[11px] text-muted-foreground">
           {metricaVisualizacao === "todas" && (
             <div className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded bg-[oklch(0.24_0.025_285)]" />
-              <span>Total no segmento</span>
+              <span className="size-2.5 rounded bg-muted-foreground/30" />
+              <span>Total Mapeado</span>
             </div>
           )}
           <div className="flex items-center gap-1.5">
-            <span className="size-2.5 rounded bg-[oklch(0.62_0.23_295)]" />
-            <span className="text-foreground font-medium">Oportunidades sem site próprio</span>
+            <span className="size-2.5 rounded bg-primary" />
+            <span>Sem Site Próprio</span>
           </div>
         </div>
       </CardContent>

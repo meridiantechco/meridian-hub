@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 
 function NotFoundComponent() {
   return (
@@ -116,9 +117,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('meridian_theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(!t&&d)||(t==='system'&&d)){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light';}}catch(e){}})();`,
+          }}
+        />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased text-foreground selection:bg-primary/30 selection:text-white">
         {children}
@@ -128,20 +134,32 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
+function RootInner() {
+  const { resolvedTheme } = useTheme();
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <Outlet />
       <Toaster
-        theme="dark"
+        theme={resolvedTheme}
         richColors
         position="top-right"
         toastOptions={{
           className: "bg-card border-border text-foreground shadow-2xl rounded-xl",
         }}
       />
+    </>
+  );
+}
+
+function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="dark">
+        <RootInner />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

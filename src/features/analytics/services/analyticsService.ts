@@ -1,5 +1,7 @@
 import { leadsService } from "@/features/leads";
 import { financialService } from "@/features/financial";
+import { auditoriaService } from "@/features/audit";
+import { supabase } from "@/integrations/supabase/client";
 import type {
   MetricasGeraisAnalytics,
   DesempenhoVendedor,
@@ -29,62 +31,89 @@ export const analyticsService = {
     }, 0);
 
     const receitaFechada = transacoes
-      .filter((t) => t.tipo === "receita" && t.status_pagamento === "pago")
+      .filter((t) => t.tipo === "receita" && t.status === "pago")
       .reduce((acc, t) => acc + t.valor, 0);
 
-    const ticketMedio = fechados > 0 ? Math.round(receitaFechada / fechados) || 2200 : 2200;
+    const ticketMedio = fechados > 0 ? Math.round(receitaFechada / fechados) : (receitaFechada > 0 ? receitaFechada : 0);
 
     return {
       leadsGerados,
       leadsQualificados,
       taxaConversaoGeral,
       pipelineEstimado,
-      receitaFechada: receitaFechada || 8800,
+      receitaFechada,
       ticketMedio,
       tempoMedioFechamentoDias: 6,
     };
   },
 
   async obterDesempenhoEquipe(): Promise<DesempenhoVendedor[]> {
-    const leads = await leadsService.listarLeads();
-    const fechadosTotal = leads.filter((l) => l.status === "fechado").length;
+    const [leads, usuarios, metricasAuditoria, transacoes] = await Promise.all([
+      leadsService.listarLeads(),
+      supabase.from("profiles").select("id, nome, email"),
+      auditoriaService.obterMetricasUsuarios(),
+      financialService.listarTransacoes(),
+    ]);
 
-    return [
-      {
-        id: "usr-1",
-        nome: "Rayan Silva",
-        papel: "Admin & Closer",
-        leadsTrabalhados: Math.max(12, Math.floor(leads.length * 0.6)),
-        contatosFeitos: 28,
-        reunioesRealizadas: 8,
-        propostasEnviadas: 6,
-        fechamentos: Math.max(3, Math.ceil(fechadosTotal * 0.7)),
-        receitaGerada: 7500,
-        taxaConversao: 33,
-      },
-      {
-        id: "usr-2",
-        nome: "Equipe SDR",
-        papel: "Pré-vendas & Prospecção",
-        leadsTrabalhados: Math.max(8, Math.floor(leads.length * 0.4)),
-        contatosFeitos: 45,
-        reunioesRealizadas: 4,
-        propostasEnviadas: 3,
-        fechamentos: Math.max(1, Math.floor(fechadosTotal * 0.3)),
-        receitaGerada: 2500,
-        taxaConversao: 18,
-      },
-    ];
+    const perfis = usuarios.data || [];
+    const fechadosTotal = leads.filter((l) => l.status === "fechado").length;
+    const receitaTotal = transacoes
+      .filter((t) => t.tipo === "receita" && t.status === "pago")
+      .reduce((acc, t) => acc + t.valor, 0);
+
+    if (perfis.length === 0) {
+      return [];
+    }
+
+    return perfis.map((p, idx) => {
+      const stats = metricasAuditoria[p.id] || metricasAuditoria[p.email] || {
+        total: 0,
+        whatsapp: 0,
+        mudancas_status: 0,
+        mineracoes: 0,
+      };
+
+      const leadsTrabalhados = leads.filter((l) => (l as any).responsavel_id === p.id).length || (idx === 0 ? leads.length : 0);
+      const fechamentos = leads.filter((l) => (l as any).responsavel_id === p.id && l.status === "fechado").length || (idx === 0 ? fechadosTotal : 0);
+      const contatosFeitos = stats.whatsapp || 0;
+      const receitaGerada = transacoes
+        .filter((t) => (t as any).usuario_id === p.id && t.tipo === "receita" && t.status === "pago")
+        .reduce((acc, t) => acc + t.valor, 0) || (idx === 0 ? receitaTotal : 0);
+
+      const taxaConversao = leadsTrabalhados > 0 ? Math.round((fechamentos / leadsTrabalhados) * 100) : 0;
+
+      return {
+        id: p.id,
+        nome: p.nome || p.email?.split("@")[0] || "Consultor",
+        papel: p.email === "meridiantech.co@gmail.com" ? "Administrador" : "Consultor Comercial",
+        leadsTrabalhados,
+        contatosFeitos,
+        reunioesRealizadas: Math.floor(stats.mudancas_status / 2),
+        propostasEnviadas: Math.floor(stats.mudancas_status / 3),
+        fechamentos,
+        receitaGerada,
+        taxaConversao,
+      };
+    });
   },
 
   async obterDesempenhoGeografico(): Promise<DesempenhoGeografico[]> {
-    const leads = await leadsService.listarLeads();
+    const [leads, transacoes] = await Promise.all([
+      leadsService.listarLeads(),
+      financialService.listarTransacoes(),
+    ]);
+
+    const receitas = transacoes.filter((t) => t.tipo === "receita");
+    const ticketMedio =
+      receitas.length > 0
+        ? Math.round(receitas.reduce((acc, t) => acc + t.valor, 0) / receitas.length)
+        : 2500;
 
     const grupos: Record<string, { total: number; semSite: number; somaScore: number; fechados: number }> = {};
 
     leads.forEach((l) => {
-      const cidade = l.cidade || "Salvador";
-      const bairro = l.bairro || "Centro";
+      const cidade = l.cidade || "Região Mapeada";
+      const bairro = l.bairro || "Geral";
       const chave = `${cidade} — ${bairro}`;
 
       if (!grupos[chave]) {
@@ -100,10 +129,10 @@ export const analyticsService = {
       const [cidade, bairro] = regiao.split(" — ");
       const scoreMedio = Math.round(st.somaScore / st.total);
       const taxaConversao = st.total > 0 ? Math.round((st.fechados / st.total) * 100) : 0;
-      const potencialTotal = st.total * 2200;
+      const potencialTotal = st.semSite * ticketMedio;
 
       return {
-        cidade: cidade || "Salvador",
+        cidade: cidade || "Região Mapeada",
         bairro: bairro || "Geral",
         totalLeads: st.total,
         semSite: st.semSite,

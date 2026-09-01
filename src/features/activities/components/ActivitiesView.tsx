@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   History,
   Building2,
@@ -12,9 +12,12 @@ import {
   MessageSquare,
   Sparkles,
   Clock,
-  Filter,
+  Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { activitiesService } from "../services/activitiesService";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { TimelineSkeleton } from "@/components/ui/skeletons";
 import type { AtividadeGlobal, TipoAtividade } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +25,8 @@ export function ActivitiesView() {
   const [atividades, setAtividades] = useState<AtividadeGlobal[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [filtroTipo, setFiltroTipo] = useState<string>("todas");
+  const [atividadeParaExcluir, setAtividadeParaExcluir] = useState<AtividadeGlobal | null>(null);
+  const [excluindoAtividade, setExcluindoAtividade] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
@@ -69,11 +74,14 @@ export function ActivitiesView() {
       titulo="Histórico de Atividades & Timeline"
       descricao="Feed auditável de eventos operacionais, movimentações de funil, reuniões e contatos"
     >
-      <div className="space-y-6 max-w-4xl">
-        {/* BARRA DE FILTROS */}
-        <Card className="bg-card border-border/80 shadow-elev">
-          <CardContent className="p-3.5 flex items-center justify-between gap-3 overflow-x-auto">
-            <div className="flex items-center gap-1">
+      {carregando && atividades.length === 0 ? (
+        <TimelineSkeleton itens={6} />
+      ) : (
+        <div className="space-y-6 max-w-4xl animate-fade-in">
+          {/* BARRA DE FILTROS */}
+          <Card className="bg-card border-border/80 shadow-elev">
+            <CardContent className="p-3.5 flex items-center justify-between gap-3 overflow-x-auto">
+              <div className="flex items-center gap-1">
               {[
                 { id: "todas", rotulo: "Todas as Atividades" },
                 { id: "leads", rotulo: "Prospecções & Leads" },
@@ -116,10 +124,22 @@ export function ActivitiesView() {
                 <div className="p-3.5 rounded-xl bg-surface/40 border border-border/60 space-y-1.5 hover:border-primary/40 transition-colors">
                   <div className="flex items-center justify-between text-xs gap-2">
                     <h4 className="font-semibold text-foreground text-xs">{act.titulo}</h4>
-                    <span className="text-[10.5px] text-muted-foreground dado font-mono flex items-center gap-1 shrink-0">
-                      <Clock className="size-2.5" />
-                      {new Date(act.data_hora).toLocaleString("pt-BR")}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10.5px] text-muted-foreground dado font-mono flex items-center gap-1 shrink-0">
+                        <Clock className="size-2.5" />
+                        {new Date(act.data_hora).toLocaleString("pt-BR")}
+                      </span>
+
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setAtividadeParaExcluir(act)}
+                        className="size-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                        title="Remover este registro"
+                      >
+                        <Trash2 className="size-3" />
+                      </Button>
+                    </div>
                   </div>
 
                   {act.descricao && (
@@ -155,6 +175,29 @@ export function ActivitiesView() {
           </div>
         </Card>
       </div>
+      )}
+
+      {/* DIÁLOGO DE EXCLUSÃO DE ATIVIDADE */}
+      <ConfirmDeleteDialog
+        open={Boolean(atividadeParaExcluir)}
+        onOpenChange={(open) => !open && setAtividadeParaExcluir(null)}
+        titulo="Remover Registro de Atividade?"
+        descricao="Este evento será removido da linha do tempo e do histórico de atividades."
+        itemNome={atividadeParaExcluir ? `${atividadeParaExcluir.titulo}` : undefined}
+        carregando={excluindoAtividade}
+        onConfirmar={async () => {
+          if (!atividadeParaExcluir) return;
+          setExcluindoAtividade(true);
+          try {
+            await activitiesService.excluirAtividade(atividadeParaExcluir.id);
+            setAtividades((prev) => prev.filter((a) => a.id !== atividadeParaExcluir.id));
+            toast.success("Registro removido da timeline!");
+            setAtividadeParaExcluir(null);
+          } finally {
+            setExcluindoAtividade(false);
+          }
+        }}
+      />
     </AppShell>
   );
 }

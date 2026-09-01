@@ -1,7 +1,6 @@
 import {
   Receipt,
   Search,
-  RotateCcw,
   ArrowUpRight,
   ArrowDownRight,
   CheckCircle2,
@@ -41,7 +40,6 @@ interface TransactionsTableProps {
   setFiltroCategoria: (val: string) => void;
   onAlternarStatus: (tx: TransacaoFinanceira) => void;
   onSolicitarExclusao: (tx: TransacaoFinanceira) => void;
-  onRestaurarDemo?: () => void | Promise<void>;
 }
 
 export function TransactionsTable({
@@ -54,7 +52,6 @@ export function TransactionsTable({
   setFiltroCategoria,
   onAlternarStatus,
   onSolicitarExclusao,
-  onRestaurarDemo,
 }: TransactionsTableProps) {
   const formatarMoeda = (val: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -128,22 +125,6 @@ export function TransactionsTable({
               Pendentes
             </button>
           </div>
-
-          {onRestaurarDemo && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                void onRestaurarDemo();
-              }}
-              className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1"
-              title="Restaurar dados de exemplo"
-            >
-              <RotateCcw className="size-3" />
-              <span className="hidden sm:inline">Restaurar Demo</span>
-              <span className="sm:hidden">Demo</span>
-            </Button>
-          )}
         </div>
       </CardHeader>
 

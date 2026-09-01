@@ -61,40 +61,6 @@ export function OpportunityRadarView() {
       }
     >
       <div className="space-y-6 max-w-6xl">
-        {/* BANNER RADAR STATUS */}
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-primary/15 via-card to-card border border-primary/30 shadow-elev flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="relative flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/20 text-primary border border-primary/40 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
-              <Radar className="size-6 animate-spin" style={{ animationDuration: "12s" }} />
-              <span className="absolute -top-1 -right-1 size-3 rounded-full bg-emerald-400 border-2 border-card shadow-[0_0_8px_#34d399]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-base text-foreground font-display">
-                  Radar Comercial Meridian
-                </h3>
-                <span className="text-[9.5px] uppercase font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">
-                  Ativo & Monitorando
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {sinais.length} nichos comerciais rastreados com identificação em tempo real de carência web.
-              </p>
-            </div>
-          </div>
-
-          <Button
-            asChild
-            size="sm"
-            className="h-8.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs px-4 gap-1.5 shadow-xs shrink-0"
-          >
-            <Link to="/nova-busca">
-              <Sparkles className="size-3.5" />
-              <span>Mineração Geolocalizada</span>
-            </Link>
-          </Button>
-        </div>
-
         {/* GRID DE SINAIS DE MERCADO POR NICHO */}
         <div className="space-y-3">
           <h3 className="text-xs font-bold text-foreground uppercase tracking-wider rotulo">

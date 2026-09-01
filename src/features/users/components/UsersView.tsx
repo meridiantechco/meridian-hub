@@ -11,15 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Users,
   ShieldCheck,
   UserPlus,
@@ -44,6 +35,8 @@ import {
 import { auditoriaService, type AtividadeUsuario, type TipoAtividade } from "@/features/audit";
 import { useAuth } from "@/features/auth";
 import { cn } from "@/lib/utils";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { MetricCardsSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import { useUsers } from "../hooks/useUsers";
 import { UserCreateModal } from "./UserCreateModal";
 import { UserCredentialsModal } from "./UserCredentialsModal";
@@ -83,6 +76,7 @@ export function UsersView() {
   const {
     usuarios,
     atividades,
+    carregando,
     totalUsuarios,
     totalAdmins,
     totalVendedores,
@@ -202,10 +196,16 @@ export function UsersView() {
         </Button>
       }
     >
-      <div className="space-y-6 max-w-6xl">
-        {/* CARDS SUPERIORES */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between">
+      {carregando && usuarios.length === 0 ? (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          <MetricCardsSkeleton quantidade={4} colunas="grid-cols-2 sm:grid-cols-4" />
+          <TableSkeleton colunas={6} linhas={5} mostrarFiltros={false} />
+        </div>
+      ) : (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          {/* CARDS SUPERIORES */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-sm flex items-center justify-between">
             <div>
               <p className="rotulo text-[10px]">Membros Ativos</p>
               <p className="text-2xl font-bold font-display dado mt-0.5 text-foreground">
@@ -619,6 +619,7 @@ export function UsersView() {
           </TabsContent>
         </Tabs>
       </div>
+      )}
 
       <UserCreateModal
         aberto={modalCriarAberto}
@@ -639,64 +640,36 @@ export function UsersView() {
         atividades={atividadesUsuarioSelecionado}
       />
 
-      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO DE USUÁRIO (EXCLUSIVO PARA ADMIN) */}
-      <AlertDialog
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO DE USUÁRIO */}
+      <ConfirmDeleteDialog
         open={Boolean(usuarioParaExcluir)}
         onOpenChange={(aberto) => {
           if (!aberto && !removendo) setUsuarioParaExcluir(null);
         }}
-      >
-        <AlertDialogContent className="bg-card border-border shadow-2xl max-w-md">
-          <AlertDialogHeader>
-            <div className="size-11 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mb-2 mx-auto sm:mx-0">
-              <AlertTriangle className="size-5" />
-            </div>
-            <AlertDialogTitle className="text-base font-bold text-foreground">
-              Remover Usuário Permanentemente?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground space-y-2 text-left">
-              <p>
-                Você está prestes a excluir o acesso do membro{" "}
-                <strong className="text-foreground">{usuarioParaExcluir?.nome}</strong> (
-                <span className="font-mono text-foreground">{usuarioParaExcluir?.email}</span>) com papel de{" "}
-                <strong className="text-foreground capitalize">{usuarioParaExcluir?.papel}</strong>.
+        titulo="Remover Usuário Permanentemente?"
+        descricao={
+          <div className="space-y-2 text-left">
+            <p>
+              Você está prestes a excluir o acesso do membro{" "}
+              <strong className="text-foreground">{usuarioParaExcluir?.nome}</strong> (
+              <span className="font-mono text-foreground">{usuarioParaExcluir?.email}</span>) com papel de{" "}
+              <strong className="text-foreground capitalize">{usuarioParaExcluir?.papel}</strong>.
+            </p>
+            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[11px] space-y-1">
+              <p className="font-semibold flex items-center gap-1.5">
+                <ShieldAlert className="size-3.5" /> Atenção: Esta ação é definitiva e irreversível!
               </p>
-              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[11px] space-y-1">
-                <p className="font-semibold flex items-center gap-1.5">
-                  <ShieldAlert className="size-3.5" /> Atenção: Esta ação é definitiva e irreversível!
-                </p>
-                <p className="text-muted-foreground text-[10.5px] leading-relaxed">
-                  • O usuário perderá imediatamente o login e todas as credenciais no Meridian Hub.<br />
-                  • Estabelecimentos sob responsabilidade deste vendedor serão desvinculados para redistribuição.
-                </p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-3 gap-2">
-            <AlertDialogCancel disabled={removendo} className="text-xs h-9">
-              Cancelar
-            </AlertDialogCancel>
-            <Button
-              type="button"
-              disabled={removendo}
-              onClick={handleConfirmarExclusao}
-              className="bg-rose-600 hover:bg-rose-500 text-white text-xs h-9 font-semibold gap-1.5 shadow-sm"
-            >
-              {removendo ? (
-                <>
-                  <RefreshCw className="size-3.5 animate-spin" />
-                  Removendo...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="size-3.5" />
-                  Sim, Remover Usuário
-                </>
-              )}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              <p className="text-muted-foreground text-[10.5px] leading-relaxed">
+                • O usuário perderá imediatamente o login no Meridian Hub.<br />
+                • Estabelecimentos sob sua responsabilidade serão desvinculados para redistribuição.
+              </p>
+            </div>
+          </div>
+        }
+        carregando={removendo}
+        textoBotao="Sim, Remover Usuário"
+        onConfirmar={handleConfirmarExclusao}
+      />
     </AppShell>
   );
 }

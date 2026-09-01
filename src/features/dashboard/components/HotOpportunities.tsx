@@ -1,16 +1,17 @@
 import { Link } from "@tanstack/react-router";
-import { Flame, ArrowRight, MessageSquare, Star } from "lucide-react";
+import { Flame, ArrowRight, MessageSquare, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BadgePrioridade } from "@/components/prospecta/BadgePrioridade";
-import type { LeadItem } from "@/lib/leads-mock";
+import { BadgePriority } from "@/features/leads";
+import type { LeadItem } from "@/features/leads";
 
 interface HotOpportunitiesProps {
   leads: LeadItem[];
   onAbordar: (lead: LeadItem) => void;
+  onSolicitarExcluir?: ((lead: LeadItem) => void) | undefined;
 }
 
-export function HotOpportunities({ leads, onAbordar }: HotOpportunitiesProps) {
+export function HotOpportunities({ leads, onAbordar, onSolicitarExcluir }: HotOpportunitiesProps) {
   return (
     <Card className="bg-card border-border shadow-elev">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -42,7 +43,7 @@ export function HotOpportunities({ leads, onAbordar }: HotOpportunitiesProps) {
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider rotulo">
                     {lead.categoria}
                   </span>
-                  <BadgePrioridade score={lead.score} />
+                  <BadgePriority score={lead.score} />
                 </div>
 
                 <h4 className="font-semibold text-sm line-clamp-1 text-foreground">{lead.nome}</h4>
@@ -62,7 +63,7 @@ export function HotOpportunities({ leads, onAbordar }: HotOpportunitiesProps) {
                 )}
               </div>
 
-              <div className="pt-2 border-t border-border/60 flex items-center gap-2">
+              <div className="pt-2 border-t border-border/60 flex items-center gap-1.5">
                 <Button
                   size="sm"
                   className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white h-7 text-xs gap-1.5 font-semibold"
@@ -75,12 +76,23 @@ export function HotOpportunities({ leads, onAbordar }: HotOpportunitiesProps) {
                   variant="outline"
                   size="sm"
                   asChild
-                  className="h-7 text-xs px-2.5 border-border/80 hover:border-primary/40"
+                  className="h-7 text-xs px-2 border-border/80 hover:border-primary/40"
                 >
                   <Link to="/leads/$id" params={{ id: lead.id }}>
                     Ver
                   </Link>
                 </Button>
+                {onSolicitarExcluir && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => onSolicitarExcluir(lead)}
+                    className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                    title="Excluir estabelecimento"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                )}
               </div>
             </div>
           ))}

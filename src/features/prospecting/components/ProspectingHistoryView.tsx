@@ -4,13 +4,18 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { leadsService, type BuscaItem } from "@/features/leads";
-import { Plus, History, Radar, Sparkles, ArrowRight, MapPin, Calendar } from "lucide-react";
+import { prospectingService } from "../services/prospectingService";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { MetricCardsSkeleton, TableSkeleton } from "@/components/ui/skeletons";
+import { Plus, History, Radar, Sparkles, ArrowRight, MapPin, Calendar, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function ProspectingHistoryView() {
   const navigate = useNavigate();
   const [buscas, setBuscas] = useState<BuscaItem[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [buscaParaExcluir, setBuscaParaExcluir] = useState<BuscaItem | null>(null);
+  const [excluindoBusca, setExcluindoBusca] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
@@ -52,10 +57,16 @@ export function ProspectingHistoryView() {
         </Button>
       }
     >
-      <div className="space-y-6 max-w-6xl">
-        {/* KPI CARDS RESUMO DO HISTÓRICO */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-card border-border/80 shadow-elev p-4 space-y-2">
+      {carregando && buscas.length === 0 ? (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          <MetricCardsSkeleton quantidade={3} colunas="grid-cols-1 sm:grid-cols-3" />
+          <TableSkeleton colunas={6} linhas={5} mostrarFiltros={false} />
+        </div>
+      ) : (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          {/* KPI CARDS RESUMO DO HISTÓRICO */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="bg-card border-border/80 shadow-elev p-4 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider rotulo">
                 Varreduras Executadas
@@ -67,7 +78,7 @@ export function ProspectingHistoryView() {
             <div className="text-2xl font-bold font-display text-foreground dado">
               {totalVarreduras}
             </div>
-            <p className="text-[11px] text-muted-foreground">Histórico de sessões de radar</p>
+            <p className="text-[11px] text-muted-foreground">Sessões de prospecção registradas</p>
           </Card>
 
           <Card className="bg-card border-border/80 shadow-elev p-4 space-y-2">
@@ -173,15 +184,27 @@ export function ProspectingHistoryView() {
                         </td>
 
                         <td className="p-3 pr-4 text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => reexecutarBusca(b)}
-                            className="h-7 text-xs text-primary hover:bg-primary/10 gap-1 font-semibold"
-                          >
-                            <span>Escanear Novamente</span>
-                            <ArrowRight className="size-3" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => reexecutarBusca(b)}
+                              className="h-7 text-xs text-primary hover:bg-primary/10 gap-1 font-semibold"
+                            >
+                              <span>Escanear</span>
+                              <ArrowRight className="size-3" />
+                            </Button>
+
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setBuscaParaExcluir(b)}
+                              className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                              title="Excluir histórico de varredura"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -215,6 +238,29 @@ export function ProspectingHistoryView() {
           </CardContent>
         </Card>
       </div>
+      )}
+
+      {/* DIÁLOGO DE EXCLUSÃO DE BUSCA */}
+      <ConfirmDeleteDialog
+        open={Boolean(buscaParaExcluir)}
+        onOpenChange={(open) => !open && setBuscaParaExcluir(null)}
+        titulo="Excluir Histórico de Varredura?"
+        descricao="Este registro de prospecção será excluído permanentemente do seu histórico."
+        itemNome={buscaParaExcluir ? `${buscaParaExcluir.categoria || buscaParaExcluir.termo_busca} (${buscaParaExcluir.regiao || "Região"} - ${buscaParaExcluir.total_resultados} leads)` : undefined}
+        carregando={excluindoBusca}
+        onConfirmar={async () => {
+          if (!buscaParaExcluir) return;
+          setExcluindoBusca(true);
+          try {
+            await prospectingService.excluirBusca(buscaParaExcluir.id);
+            toast.success("Histórico de varredura excluído!");
+            await carregarDados();
+            setBuscaParaExcluir(null);
+          } finally {
+            setExcluindoBusca(false);
+          }
+        }}
+      />
     </AppShell>
   );
 }

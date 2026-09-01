@@ -13,92 +13,79 @@ export function useAuth(): EstadoAuth {
   const [papel, setPapel] = useState<Papel | null>(null);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_evento, novaSessao) => {
-      setSession(novaSessao);
-      if (!novaSessao) {
-        setNome("");
-        setPapel(null);
-        setCarregando(false);
-      }
-    });
-
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setCarregando(false);
-    });
-
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
-  const userId = session?.user?.id;
-  const userMetadataNome = session?.user?.user_metadata?.["nome"] as string | undefined;
-  const userEmail = session?.user?.email?.toLowerCase();
-
-  useEffect(() => {
-    if (!userId) {
-      setNome("");
-      setPapel(null);
-      return;
-    }
-
     let ativo = true;
 
-    // Regra prioritária para Super Admin pelo email do fundador
-    const isSuperAdmin = userEmail === SUPER_ADMIN_EMAIL;
+    async function carregarPermissoes(sessaoAtual: Session | null) {
+      if (!sessaoAtual?.user) {
+        if (ativo) {
+          setNome("");
+          setPapel(null);
+          setCarregando(false);
+        }
+        return;
+      }
 
-    // Preencher provisoriamente com metadata do signup enquanto busca no banco
-    if (userMetadataNome) {
-      setNome(userMetadataNome);
-    } else if (userEmail) {
-      setNome(userEmail.split("@")[0] || "Usuário");
-    }
+      const user = sessaoAtual.user;
+      const userEmail = user.email?.toLowerCase();
+      const userMetadataNome = user.user_metadata?.["nome"] as string | undefined;
+      const isSuperAdmin = userEmail === SUPER_ADMIN_EMAIL;
 
-    if (isSuperAdmin) {
-      setPapel("admin");
-    }
+      // Nome inicial a partir dos metadados ou e-mail
+      let nomeDefinido = userMetadataNome || (userEmail ? userEmail.split("@")[0] || "Usuário" : "Usuário");
+      let papelDefinido: Papel = isSuperAdmin ? "admin" : "vendedor";
 
-    void (async () => {
       try {
-        const [perfil, roles] = await Promise.all([
-          supabase.from("profiles").select("nome").eq("id", userId).maybeSingle(),
-          supabase.from("user_roles").select("role").eq("user_id", userId),
+        const [perfilRes, rolesRes] = await Promise.all([
+          supabase.from("profiles").select("nome").eq("id", user.id).maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", user.id),
         ]);
 
-        if (!ativo) return;
-
-        if (perfil.data?.nome) {
-          setNome(perfil.data.nome);
-        } else if (userMetadataNome) {
-          setNome(userMetadataNome);
+        if (perfilRes.data?.nome) {
+          nomeDefinido = perfilRes.data.nome;
         }
 
         if (isSuperAdmin) {
-          setPapel("admin");
-          return;
-        }
-
-        const papeis = (roles.data ?? []).map((r) => r.role as Papel);
-        if (papeis.includes("admin")) {
-          setPapel("admin");
-        } else if (papeis.length > 0) {
-          setPapel(papeis[0] ?? "vendedor");
+          papelDefinido = "admin";
         } else {
-          // Princípio de menor privilégio: vendedor por padrão
-          setPapel("vendedor");
+          const roles = (rolesRes.data ?? []).map((r) => r.role as Papel);
+          if (roles.includes("admin")) {
+            papelDefinido = "admin";
+          } else if (roles.length > 0) {
+            papelDefinido = roles[0] ?? "vendedor";
+          } else {
+            papelDefinido = "vendedor";
+          }
         }
       } catch (err) {
-        console.error("Erro ao carregar permissões do usuário:", err);
+        console.error("[useAuth] Erro ao carregar perfil/papel:", err);
+      } finally {
         if (ativo) {
-          setPapel(isSuperAdmin ? "admin" : "vendedor");
+          setNome(nomeDefinido);
+          setPapel(papelDefinido);
+          setCarregando(false);
         }
       }
-    })();
+    }
+
+    // 1. Ouvir mudanças no estado de autenticação
+    const { data: sub } = supabase.auth.onAuthStateChange((_evento, novaSessao) => {
+      setSession(novaSessao);
+      void carregarPermissoes(novaSessao);
+    });
+
+    // 2. Carregar sessão inicial
+    void supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      void carregarPermissoes(data.session);
+    });
 
     return () => {
       ativo = false;
+      sub.subscription.unsubscribe();
     };
-  }, [userId, userMetadataNome, userEmail]);
+  }, []);
 
+  const userEmail = session?.user?.email?.toLowerCase();
   const ehAdmin = papel === "admin" || userEmail === SUPER_ADMIN_EMAIL;
 
   return {

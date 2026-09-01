@@ -9,6 +9,8 @@ import {
   Users2,
   Kanban,
   Sun,
+  Moon,
+  Laptop,
   CheckSquare,
   Calendar,
   History,
@@ -38,6 +40,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { prospectaService, BadgePriority, type LeadItem } from "@/features/leads";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface CommandPaletteProps {
   aberto: boolean;
@@ -55,6 +58,7 @@ interface ActionItem {
 
 export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
   const navigate = useNavigate();
+  const { setTheme } = useTheme();
   const [termo, setTermo] = useState("");
   const [leads, setLeads] = useState<LeadItem[]>([]);
   const [carregandoLeads, setCarregandoLeads] = useState(false);
@@ -87,18 +91,12 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
       { id: "nav-tasks", titulo: "Tarefas Operacionais & Prazos", categoria: "Operação", icone: CheckSquare, rota: "/tasks" },
       { id: "nav-calendar", titulo: "Agenda & Reuniões", categoria: "Operação", icone: Calendar, rota: "/calendar" },
       { id: "nav-activities", titulo: "Histórico de Atividades & Timeline", categoria: "Operação", icone: History, rota: "/activities" },
-      { id: "nav-nova-busca", titulo: "Prospecção & Mineração (Scanner)", categoria: "Inteligência", icone: Radar, rota: "/nova-busca" },
-      { id: "nav-map", titulo: "Mapa Interativo de Oportunidades", categoria: "Inteligência", icone: MapPin, rota: "/map" },
-      { id: "nav-radar", titulo: "Radar de Demanda & Mercado", categoria: "Inteligência", icone: Radio, rota: "/radar" },
-      { id: "nav-insights", titulo: "Insights Estratégicos & Benchmarks", categoria: "Inteligência", icone: Lightbulb, rota: "/insights" },
-      { id: "nav-analytics", titulo: "Analytics de Vendas & Conversão", categoria: "Analytics", icone: BarChart3, rota: "/analytics" },
-      { id: "nav-analytics-team", titulo: "Performance da Equipe", categoria: "Analytics", icone: Users2, rota: "/analytics/team" },
-      { id: "nav-analytics-geo", titulo: "Performance Geográfica", categoria: "Analytics", icone: Compass, rota: "/analytics/geo" },
-      { id: "nav-reports", titulo: "Gerador de Relatórios & Exportação", categoria: "Analytics", icone: FileSpreadsheet, rota: "/reports" },
+      { id: "nav-nova-busca", titulo: "Prospecção de Empresas", categoria: "Prospecção", icone: Search, rota: "/nova-busca" },
+      { id: "nav-buscas", titulo: "Histórico de Varreduras", categoria: "Prospecção", icone: History, rota: "/buscas" },
+      { id: "nav-analytics", titulo: "Analytics & Desempenho", categoria: "Analytics", icone: BarChart3, rota: "/analytics" },
       { id: "nav-financial", titulo: "Financeiro & Lucro Real", categoria: "Financeiro", icone: Wallet, rota: "/financeiro" },
       { id: "nav-automations", titulo: "Automações & Workflows", categoria: "Automação", icone: Zap, rota: "/automations" },
-      { id: "nav-templates", titulo: "Templates & Scripts de Mensagem", categoria: "Comunicação", icone: MessageSquare, rota: "/templates" },
-      { id: "nav-assistant", titulo: "AI Sales Assistant", categoria: "IA", icone: Sparkles, rota: "/assistant" },
+      { id: "nav-templates", titulo: "Templates & Scripts Comerciais", categoria: "Comunicação", icone: MessageSquare, rota: "/templates" },
       { id: "nav-usuarios", titulo: "Gestão de Usuários & Equipe", categoria: "Admin", icone: Shield, rota: "/usuarios" },
       { id: "nav-notifications", titulo: "Central de Notificações", categoria: "Admin", icone: Bell, rota: "/notifications" },
     ],
@@ -107,6 +105,9 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
 
   const acoesRapidas: ActionItem[] = useMemo(
     () => [
+      { id: "act-tema-claro", titulo: "Mudar Tema para Claro", categoria: "Aparência", icone: Sun, acao: () => setTheme("light") },
+      { id: "act-tema-escuro", titulo: "Mudar Tema para Escuro", categoria: "Aparência", icone: Moon, acao: () => setTheme("dark") },
+      { id: "act-tema-sistema", titulo: "Usar Tema do Sistema", categoria: "Aparência", icone: Laptop, acao: () => setTheme("system") },
       { id: "act-prospeccao", titulo: "Iniciar Nova Varredura de Prospecção", categoria: "Ações", icone: Sparkles, rota: "/nova-busca" },
       { id: "act-criar-tarefa", titulo: "Criar Nova Tarefa Operacional", categoria: "Ações", icone: Plus, rota: "/tasks" },
       { id: "act-agendar-reuniao", titulo: "Agendar Nova Reunião / Demonstração", categoria: "Ações", icone: Calendar, rota: "/calendar" },
@@ -114,7 +115,7 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
       { id: "act-perguntar-ia", titulo: "Fazer Pergunta ao Assistente IA", categoria: "Ações", icone: Sparkles, rota: "/assistant" },
       { id: "act-relatorio", titulo: "Exportar Relatório Customizado", categoria: "Ações", icone: FileSpreadsheet, rota: "/reports" },
     ],
-    [],
+    [setTheme],
   );
 
   const paginasFiltradas = useMemo(() => {
@@ -126,7 +127,7 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
   const acoesFiltradas = useMemo(() => {
     if (!termo.trim()) return acoesRapidas;
     const t = termo.toLowerCase();
-    return acoesRapidas.filter((a) => a.titulo.toLowerCase().includes(t));
+    return acoesRapidas.filter((a) => a.titulo.toLowerCase().includes(t) || a.categoria.toLowerCase().includes(t));
   }, [acoesRapidas, termo]);
 
   const leadsFiltrados = useMemo(() => {
@@ -149,7 +150,9 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
 
   const executarItem = (item: ActionItem) => {
     onOpenChange(false);
-    if (item.rota) {
+    if (item.acao) {
+      item.acao();
+    } else if (item.rota) {
       void navigate({ to: item.rota as any });
     }
   };

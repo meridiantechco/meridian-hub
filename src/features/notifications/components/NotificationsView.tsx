@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { notificationsService } from "../services/notificationsService";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { TimelineSkeleton } from "@/components/ui/skeletons";
 import type { NotificacaoItem, TipoNotificacao } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +25,8 @@ export function NotificationsView() {
   const [notificacoes, setNotificacoes] = useState<NotificacaoItem[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [filtroAba, setFiltroAba] = useState<string>("todas");
+  const [notificacaoParaExcluir, setNotificacaoParaExcluir] = useState<NotificacaoItem | null>(null);
+  const [excluindoNotif, setExcluindoNotif] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
@@ -104,9 +108,12 @@ export function NotificationsView() {
         )
       }
     >
-      <div className="space-y-4 max-w-4xl">
-        {/* ABAS DE FILTRO */}
-        <Card className="bg-card border-border/80 shadow-elev">
+      {carregando && notificacoes.length === 0 ? (
+        <TimelineSkeleton itens={5} />
+      ) : (
+        <div className="space-y-4 max-w-4xl animate-fade-in">
+          {/* ABAS DE FILTRO */}
+          <Card className="bg-card border-border/80 shadow-elev">
           <CardContent className="p-3.5 flex items-center justify-between gap-3 overflow-x-auto">
             <div className="flex items-center gap-1">
               {[
@@ -196,9 +203,9 @@ export function NotificationsView() {
                 <Button
                   size="icon"
                   variant="ghost"
-                  onClick={() => handleExcluir(n.id)}
-                  className="size-7 text-muted-foreground hover:text-destructive"
-                  title="Remover"
+                  onClick={() => setNotificacaoParaExcluir(n)}
+                  className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  title="Excluir notificação"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
@@ -215,6 +222,29 @@ export function NotificationsView() {
           )}
         </div>
       </div>
+      )}
+
+      {/* DIÁLOGO DE EXCLUSÃO DE NOTIFICAÇÃO */}
+      <ConfirmDeleteDialog
+        open={Boolean(notificacaoParaExcluir)}
+        onOpenChange={(open) => !open && setNotificacaoParaExcluir(null)}
+        titulo="Excluir Notificação?"
+        descricao="Este alerta será removido permanentemente da sua central de notificações."
+        itemNome={notificacaoParaExcluir ? `${notificacaoParaExcluir.titulo}` : undefined}
+        carregando={excluindoNotif}
+        onConfirmar={async () => {
+          if (!notificacaoParaExcluir) return;
+          setExcluindoNotif(true);
+          try {
+            await notificationsService.excluirNotificacao(notificacaoParaExcluir.id);
+            toast.success("Notificação removida!");
+            await carregarDados();
+            setNotificacaoParaExcluir(null);
+          } finally {
+            setExcluindoNotif(false);
+          }
+        }}
+      />
     </AppShell>
   );
 }

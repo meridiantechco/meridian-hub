@@ -26,19 +26,21 @@ export const radarService = {
       if (taxaSemSite >= 60 || scoreMedio >= 70) status = "quente";
       else if (taxaSemSite >= 40) status = "em_alta";
 
+      const regiao = leads.find((l) => l.categoria === cat)?.cidade || "Região Mapeada";
+
       return {
         id: `sinal-${idx}`,
         nicho: cat,
-        regiao: "Salvador & RMS",
+        regiao,
         scoreMedio,
         volumeContas: stats.total,
         taxaSemSite,
-        variacaoDemanda: `+${15 + (idx % 20)}%`,
+        variacaoDemanda: `+${10 + (idx % 15)}%`,
         statusOportunidade: status,
         recomendacao:
           taxaSemSite >= 50
-            ? `Alta concentração de estabelecimentos sem site. Recomenda-se campanha massiva de WhatsApp com modelos de cardápio/agendamento.`
-            : `Segmento maduro com foco em propostas de redesign, tráfego local e SEO Google.`,
+            ? `Alta concentração de estabelecimentos sem site. Recomenda-se campanha de WhatsApp com modelos de cardápio/agendamento.`
+            : `Segmento com foco em propostas de modernização, tráfego local e SEO Google.`,
       };
     });
 
@@ -47,35 +49,41 @@ export const radarService = {
 
   async obterMudancasDetectadas(): Promise<MudancaDetectada[]> {
     const leads = await leadsService.listarLeads();
-    const l1 = leads[0];
-    const l2 = leads[1];
-    const l3 = leads[2];
+    if (leads.length === 0) return [];
 
-    return [
-      {
-        id: "m-1",
-        empresa_nome: l1?.nome || "Restaurante Porto",
-        empresa_id: l1?.id || null,
-        tipoMudanca: "sem_site_ativo",
-        descricao: "Detectada ausência de website próprio e crescimento de 12 novas avaliações no Google Places.",
-        data_deteccao: new Date().toISOString(),
-      },
-      {
-        id: "m-2",
-        empresa_nome: l2?.nome || "Barbearia Imperial",
-        empresa_id: l2?.id || null,
-        tipoMudanca: "instagram_ativo",
-        descricao: "Novo perfil comercial no Instagram mapeado com stories ativos.",
-        data_deteccao: new Date(Date.now() - 86400000).toISOString(),
-      },
-      {
-        id: "m-3",
-        empresa_nome: l3?.nome || "Clínica Vida",
-        empresa_id: l3?.id || null,
-        tipoMudanca: "novo_telefone",
-        descricao: "Número de WhatsApp corporativo validado pelo motor de prospecção.",
-        data_deteccao: new Date(Date.now() - 172800000).toISOString(),
-      },
-    ];
+    const mudancas: MudancaDetectada[] = [];
+
+    leads.slice(0, 10).forEach((l, idx) => {
+      if (!l.tem_site && (l.total_avaliacoes ?? 0) > 5) {
+        mudancas.push({
+          id: `m-site-${l.id}`,
+          empresa_nome: l.nome,
+          empresa_id: l.id,
+          tipoMudanca: "sem_site_ativo",
+          descricao: `Detectada carência de website próprio e ${l.total_avaliacoes} avaliações no Google Places.`,
+          data_deteccao: l.atualizado_em || l.criado_em,
+        });
+      } else if (l.instagram) {
+        mudancas.push({
+          id: `m-insta-${l.id}`,
+          empresa_nome: l.nome,
+          empresa_id: l.id,
+          tipoMudanca: "instagram_ativo",
+          descricao: `Presença digital mapeada no Instagram (@${l.instagram}).`,
+          data_deteccao: l.atualizado_em || l.criado_em,
+        });
+      } else if (l.telefone) {
+        mudancas.push({
+          id: `m-tel-${l.id}`,
+          empresa_nome: l.nome,
+          empresa_id: l.id,
+          tipoMudanca: "novo_telefone",
+          descricao: `Contato direto mapeado para abordagem comercial imediata.`,
+          data_deteccao: l.atualizado_em || l.criado_em,
+        });
+      }
+    });
+
+    return mudancas;
   },
 };

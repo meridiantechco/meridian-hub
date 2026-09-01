@@ -16,6 +16,9 @@ import {
 import { toast } from "sonner";
 import { templatesService } from "../services/templatesService";
 import { TemplateModal } from "./TemplateModal";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { CardGridSkeleton } from "@/components/ui/skeletons";
+import { leadsService } from "@/features/leads";
 import type { TemplateMensagem, CategoriaTemplate } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +30,8 @@ export function TemplatesView() {
   // Modais
   const [modalAberto, setModalAberto] = useState(false);
   const [templateEditando, setTemplateEditando] = useState<TemplateMensagem | null>(null);
+  const [templateParaExcluir, setTemplateParaExcluir] = useState<TemplateMensagem | null>(null);
+  const [excluindoTpl, setExcluindoTpl] = useState(false);
 
   // Simulador de variáveis
   const [simNome, setSimNome] = useState("Carlos");
@@ -46,6 +51,16 @@ export function TemplatesView() {
 
   useEffect(() => {
     void carregarDados();
+    void leadsService.listarLeads().then((leads) => {
+      if (leads.length > 0) {
+        const lead = leads[0];
+        if (lead) {
+          setSimEmpresa(lead.nome);
+          setSimSegmento(lead.categoria || "Geral");
+          setSimNome(lead.nome.split(" ")[0] || "Decisor");
+        }
+      }
+    });
   }, []);
 
   const templatesFiltrados = useMemo(() => {
@@ -76,14 +91,6 @@ export function TemplatesView() {
     await carregarDados();
   };
 
-  const handleExcluir = async (id: string, titulo: string) => {
-    if (window.confirm(`Deseja excluir o script "${titulo}"?`)) {
-      await templatesService.excluirTemplate(id);
-      await carregarDados();
-      toast.success("Script removido com sucesso!");
-    }
-  };
-
   return (
     <AppShell
       titulo="Templates & Scripts Comerciais"
@@ -102,15 +109,18 @@ export function TemplatesView() {
         </Button>
       }
     >
-      <div className="space-y-6 max-w-6xl">
-        {/* SIMULADOR DE VARIÁVEIS */}
-        <Card className="bg-card border-border/80 shadow-elev p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
-            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider rotulo">
-              Simulador de Variáveis Dinâmicas
-            </h4>
-          </div>
+      {carregando && templates.length === 0 ? (
+        <CardGridSkeleton quantidade={6} mostrarFiltros={true} />
+      ) : (
+        <div className="space-y-6 max-w-6xl animate-fade-in">
+          {/* SIMULADOR DE VARIÁVEIS */}
+          <Card className="bg-card border-border/80 shadow-elev p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="size-4 text-primary" />
+              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider rotulo">
+                Simulador de Variáveis Dinâmicas
+              </h4>
+            </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div className="space-y-1">
@@ -222,8 +232,8 @@ export function TemplatesView() {
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => handleExcluir(tpl.id, tpl.titulo)}
-                        className="size-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => setTemplateParaExcluir(tpl)}
+                        className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         title="Remover script"
                       >
                         <Trash2 className="size-3.5" />
@@ -281,6 +291,29 @@ export function TemplatesView() {
           )}
         </div>
       </div>
+      )}
+
+      {/* DIÁLOGO DE EXCLUSÃO DE TEMPLATE */}
+      <ConfirmDeleteDialog
+        open={Boolean(templateParaExcluir)}
+        onOpenChange={(open) => !open && setTemplateParaExcluir(null)}
+        titulo="Excluir Script de Mensagem?"
+        descricao="Este modelo de copy será removido permanentemente da sua biblioteca."
+        itemNome={templateParaExcluir ? `${templateParaExcluir.titulo} (${templateParaExcluir.categoria.toUpperCase()})` : undefined}
+        carregando={excluindoTpl}
+        onConfirmar={async () => {
+          if (!templateParaExcluir) return;
+          setExcluindoTpl(true);
+          try {
+            await templatesService.excluirTemplate(templateParaExcluir.id);
+            toast.success("Script removido com sucesso!");
+            await carregarDados();
+            setTemplateParaExcluir(null);
+          } finally {
+            setExcluindoTpl(false);
+          }
+        }}
+      />
 
       {/* MODAL ADICIONAR / EDITAR TEMPLATE */}
       <TemplateModal

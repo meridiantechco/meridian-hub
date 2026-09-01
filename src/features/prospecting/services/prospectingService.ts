@@ -78,81 +78,6 @@ export function formatarPlacesParaLeads(
   });
 }
 
-export function gerarLeadsContextuais(
-  termoCat: string,
-  termoRegiao: string,
-  lote: number,
-): LeadEncontrado[] {
-  const infoCidade = obterCoordenadasCidadeBrasil(termoRegiao);
-  const cidade = infoCidade.nome;
-  const estado = infoCidade.estado;
-  const bairros =
-    infoCidade.bairros && infoCidade.bairros.length > 0
-      ? infoCidade.bairros
-      : ["Centro", "Jardins", "Comercial", "Bela Vista", "América", "Primavera", "Industrial"];
-  const prefixos = [
-    "Prime",
-    "Imperial",
-    "Central",
-    "Studio",
-    "Master",
-    "Express",
-    "Vip",
-    "Elite",
-    "Concept",
-    "Top",
-    "Premium",
-    "Brasil",
-  ];
-
-  return Array.from({ length: 20 }).map((_, idx) => {
-    const num = (lote - 1) * 20 + idx + 1;
-    const bairro = bairros[(num + idx) % bairros.length] || "Centro";
-    const prefixo = prefixos[(num + idx) % prefixos.length] || "Elite";
-    const nomeEstabelecimento = `${termoCat} ${prefixo} #${num}`;
-    const semSite = idx % 4 !== 0;
-    const instaHandle = gerarHandleComercialLimpo(nomeEstabelecimento, cidade, estado);
-    const tel = `(${infoCidade.ddd}) 988${Math.floor(10 + Math.random() * 89)}-${Math.floor(1000 + Math.random() * 8999)}`;
-
-    const temLinktree = semSite && idx % 3 === 0;
-    const site_url = !semSite
-      ? `https://www.${instaHandle.replace(/_/g, "")}.com.br`
-      : temLinktree
-        ? `https://linktr.ee/${instaHandle}`
-        : null;
-
-    return {
-      idTemp: `sim-${lote}-${num}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      nome: nomeEstabelecimento,
-      categoria: termoCat,
-      endereco: `Av. Comercial, nº ${100 + num * 12} - ${bairro}`,
-      bairro,
-      cidade,
-      estado,
-      latitude: Number((infoCidade.lat + (Math.random() - 0.5) * 0.05).toFixed(6)),
-      longitude: Number((infoCidade.lng + (Math.random() - 0.5) * 0.05).toFixed(6)),
-      telefone: tel,
-      whatsapp_link: `https://wa.me/55${tel.replace(/\D/g, "")}`,
-      instagram: instaHandle,
-      facebook: idx % 2 === 0 ? instaHandle : null,
-      site_url,
-      tem_site: !semSite,
-      avaliacao_google: Number((4.1 + Math.random() * 0.9).toFixed(1)),
-      total_avaliacoes: Math.floor(18 + Math.random() * 140),
-      place_id: `gp_sim_${Date.now()}_${num}`,
-      score: calcularScoreLead({
-        tem_site: !semSite,
-        instagram: instaHandle,
-        facebook: idx % 2 === 0 ? instaHandle : null,
-        total_avaliacoes: Math.floor(18 + Math.random() * 140),
-        avaliacao_google: 4.5,
-        criado_em: new Date().toISOString(),
-      }),
-      selecionado: semSite,
-    };
-  });
-}
-
 export const prospectingService = {
   async buscarEstabelecimentos(
     categoria: string,
@@ -232,12 +157,11 @@ export const prospectingService = {
       // fallback
     }
 
-    // 3. Fallback Contextual inteligente
-    const fallback = gerarLeadsContextuais(categoria, regiao, 1);
+    // Se não encontrar resultados
     return {
-      resultados: fallback,
+      resultados: [],
       nextPageToken: null,
-      origem: "Detecção Contextual Meridian",
+      origem: "Google Places API (0 encontrados)",
     };
   },
 
@@ -288,16 +212,23 @@ export const prospectingService = {
           }
         }
       } catch {
-        // fallback para gerador contextual
+        // falha na paginação
       }
     }
 
-    const proximoOffset = offsetSimulacao + 1;
-    const novosSimulados = gerarLeadsContextuais(categoria, regiao, proximoOffset);
     return {
-      resultados: novosSimulados,
+      resultados: [],
       novoNextPageToken: null,
-      novoOffset: proximoOffset,
+      novoOffset: offsetSimulacao,
     };
+  },
+
+  async excluirBusca(id: string): Promise<boolean> {
+    const { error } = await supabase.from("buscas").delete().eq("id", id);
+    if (error) {
+      console.error("Erro ao excluir busca:", error);
+      return false;
+    }
+    return true;
   },
 };

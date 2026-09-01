@@ -81,11 +81,13 @@ export const templatesService = {
   async atualizarTemplate(id: string, campos: Partial<TemplateMensagem>): Promise<TemplateMensagem | null> {
     const lista = await this.listarTemplates();
     const idx = lista.findIndex((t) => t.id === id);
-    if (idx === -1) return null;
+    const item = lista[idx];
+    if (idx === -1 || !item) return null;
 
-    lista[idx] = { ...lista[idx], ...campos };
+    const atualizado: TemplateMensagem = { ...item, ...campos, id: item.id };
+    lista[idx] = atualizado;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
-    return lista[idx];
+    return atualizado;
   },
 
   async excluirTemplate(id: string): Promise<boolean> {

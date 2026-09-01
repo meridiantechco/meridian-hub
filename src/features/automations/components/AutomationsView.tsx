@@ -17,6 +17,8 @@ import {
 import { toast } from "sonner";
 import { automationsService } from "../services/automationsService";
 import { WorkflowModal } from "./WorkflowModal";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { MetricCardsSkeleton, CardGridSkeleton } from "@/components/ui/skeletons";
 import type { WorkflowRegra } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +26,8 @@ export function AutomationsView() {
   const [workflows, setWorkflows] = useState<WorkflowRegra[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
+  const [workflowParaExcluir, setWorkflowParaExcluir] = useState<WorkflowRegra | null>(null);
+  const [excluindoWf, setExcluindoWf] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
@@ -55,14 +59,6 @@ export function AutomationsView() {
     toast.success("Status do workflow atualizado!");
   };
 
-  const handleExcluir = async (id: string) => {
-    if (window.confirm("Deseja excluir esta regra de automação?")) {
-      await automationsService.excluirWorkflow(id);
-      await carregarDados();
-      toast.success("Workflow removido.");
-    }
-  };
-
   const handleSalvar = async (dados: Omit<WorkflowRegra, "id" | "criado_em" | "execucoesTotal">) => {
     await automationsService.salvarWorkflow(dados);
     await carregarDados();
@@ -83,10 +79,16 @@ export function AutomationsView() {
         </Button>
       }
     >
-      <div className="space-y-6 max-w-5xl">
-        {/* CARDS RESUMO */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-card border-primary/30 shadow-elev p-4 space-y-1 ring-1 ring-primary/20">
+      {carregando && workflows.length === 0 ? (
+        <div className="space-y-6 max-w-5xl animate-fade-in">
+          <MetricCardsSkeleton quantidade={3} colunas="grid-cols-1 sm:grid-cols-3" />
+          <CardGridSkeleton quantidade={4} colunasGrid="grid-cols-1" mostrarFiltros={false} />
+        </div>
+      ) : (
+        <div className="space-y-6 max-w-5xl animate-fade-in">
+          {/* CARDS RESUMO */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="bg-card border-primary/30 shadow-elev p-4 space-y-1 ring-1 ring-primary/20">
             <div className="flex items-center justify-between">
               <span className="rotulo text-[10px] text-primary font-bold">Workflows Ativos</span>
               <Zap className="size-4 text-primary fill-current" />
@@ -162,8 +164,9 @@ export function AutomationsView() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => handleExcluir(wf.id)}
-                      className="size-7 text-muted-foreground hover:text-destructive"
+                      onClick={() => setWorkflowParaExcluir(wf)}
+                      className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      title="Excluir regra de automação"
                     >
                       <Trash2 className="size-3.5" />
                     </Button>
@@ -207,6 +210,29 @@ export function AutomationsView() {
           </div>
         </div>
       </div>
+      )}
+
+      {/* DIÁLOGO DE EXCLUSÃO DE WORKFLOW */}
+      <ConfirmDeleteDialog
+        open={Boolean(workflowParaExcluir)}
+        onOpenChange={(open) => !open && setWorkflowParaExcluir(null)}
+        titulo="Excluir Automação de Workflow?"
+        descricao="Esta regra será desativada e removida permanentemente do motor de automações."
+        itemNome={workflowParaExcluir ? `${workflowParaExcluir.titulo} (${workflowParaExcluir.triggerTexto})` : undefined}
+        carregando={excluindoWf}
+        onConfirmar={async () => {
+          if (!workflowParaExcluir) return;
+          setExcluindoWf(true);
+          try {
+            await automationsService.excluirWorkflow(workflowParaExcluir.id);
+            toast.success("Workflow removido com sucesso!");
+            await carregarDados();
+            setWorkflowParaExcluir(null);
+          } finally {
+            setExcluindoWf(false);
+          }
+        }}
+      />
 
       {/* MODAL WORKFLOW BUILDER */}
       <WorkflowModal

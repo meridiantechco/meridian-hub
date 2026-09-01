@@ -22,6 +22,8 @@ import {
 import { toast } from "sonner";
 import { tasksService } from "../services/tasksService";
 import { TaskModal } from "./TaskModal";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { TableSkeleton, KanbanSkeleton, MetricCardsSkeleton } from "@/components/ui/skeletons";
 import type { TarefaItem, StatusTarefa, PrioridadeTarefa } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +37,8 @@ export function TasksView() {
   // Modais
   const [modalAberto, setModalAberto] = useState(false);
   const [tarefaEditando, setTarefaEditando] = useState<TarefaItem | null>(null);
+  const [tarefaParaExcluir, setTarefaParaExcluir] = useState<TarefaItem | null>(null);
+  const [excluindoTarefa, setExcluindoTarefa] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
@@ -137,60 +141,39 @@ export function TasksView() {
       titulo="Tarefas Operacionais"
       descricao="Gestão de pendências comerciais, follow-ups e rotina diária da equipe"
       acoes={
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-secondary/80 p-0.5 rounded-lg border border-border/80">
-            <button
-              type="button"
-              onClick={() => setModoExibicao("lista")}
-              className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-all",
-                modoExibicao === "lista"
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <TableIcon className="size-3.5" />
-              <span>Lista</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setModoExibicao("kanban")}
-              className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-all",
-                modoExibicao === "kanban"
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Kanban className="size-3.5" />
-              <span>Kanban</span>
-            </button>
-          </div>
-
-          <Button
-            onClick={() => {
-              setTarefaEditando(null);
-              setModalAberto(true);
-            }}
-            size="sm"
-            className="h-8.5 px-3.5 gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs"
-          >
-            <Plus className="size-3.5" />
-            <span>Nova Tarefa</span>
-          </Button>
-        </div>
+        <Button
+          onClick={() => {
+            setTarefaEditando(null);
+            setModalAberto(true);
+          }}
+          size="sm"
+          className="h-8.5 px-3.5 gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs"
+        >
+          <Plus className="size-3.5" />
+          <span>Nova Tarefa</span>
+        </Button>
       }
     >
-      <div className="space-y-4 max-w-6xl">
-        {/* CARDS RESUMO */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-xs flex items-center justify-between">
-            <div>
-              <p className="rotulo text-[10px]">Pendentes Total</p>
-              <p className="text-2xl font-bold font-display dado mt-0.5 text-foreground">
-                {totalPendentes}
-              </p>
-            </div>
+      {carregando && tarefas.length === 0 ? (
+        <div className="space-y-4 max-w-6xl animate-fade-in">
+          <MetricCardsSkeleton quantidade={4} colunas="grid-cols-2 sm:grid-cols-4" />
+          {modoExibicao === "lista" ? (
+            <TableSkeleton colunas={5} linhas={6} mostrarFiltros={true} />
+          ) : (
+            <KanbanSkeleton colunas={3} cardsPorColuna={3} />
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4 max-w-6xl animate-fade-in">
+          {/* CARDS RESUMO */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-xl bg-card border border-border/70 shadow-xs flex items-center justify-between">
+              <div>
+                <p className="rotulo text-[10px]">Pendentes Total</p>
+                <p className="text-2xl font-bold font-display dado mt-0.5 text-foreground">
+                  {totalPendentes}
+                </p>
+              </div>
             <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <CheckSquare className="size-4" />
             </div>
@@ -290,14 +273,48 @@ export function TasksView() {
               </button>
             </div>
 
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Buscar tarefa..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="pl-8 text-xs h-8.5 bg-surface/50"
-              />
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar tarefa..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="pl-8 text-xs h-8.5 bg-surface/50 border-border/70"
+                />
+              </div>
+
+              {/* Switcher Lista / Kanban */}
+              <div className="flex items-center gap-0.5 bg-surface/60 p-0.5 rounded-lg border border-border/80 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setModoExibicao("lista")}
+                  className={cn(
+                    "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-all",
+                    modoExibicao === "lista"
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  title="Exibir em Lista"
+                >
+                  <TableIcon className="size-3.5" />
+                  <span className="hidden sm:inline">Lista</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModoExibicao("kanban")}
+                  className={cn(
+                    "flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition-all",
+                    modoExibicao === "kanban"
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  title="Exibir em Kanban"
+                >
+                  <Kanban className="size-3.5" />
+                  <span className="hidden sm:inline">Kanban</span>
+                </button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -392,8 +409,9 @@ export function TasksView() {
                           <Button
                             size="icon"
                             variant="ghost"
-                            onClick={() => handleExcluir(t.id)}
-                            className="size-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => setTarefaParaExcluir(t)}
+                            className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            title="Excluir tarefa"
                           >
                             <Trash2 className="size-3.5" />
                           </Button>
@@ -483,17 +501,29 @@ export function TasksView() {
                             {t.status === "concluida" ? "Reabrir" : "Marcar Concluída"}
                           </button>
 
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => {
-                              setTarefaEditando(t);
-                              setModalAberto(true);
-                            }}
-                            className="size-6 text-muted-foreground hover:text-foreground"
-                          >
-                            <Pencil className="size-3" />
-                          </Button>
+                          <div className="flex items-center gap-0.5">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => {
+                                setTarefaEditando(t);
+                                setModalAberto(true);
+                              }}
+                              className="size-6 text-muted-foreground hover:text-foreground"
+                            >
+                              <Pencil className="size-3" />
+                            </Button>
+
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setTarefaParaExcluir(t)}
+                              className="size-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                              title="Excluir tarefa"
+                            >
+                              <Trash2 className="size-3" />
+                            </Button>
+                          </div>
                         </div>
                       </Card>
                     ))}
@@ -504,6 +534,29 @@ export function TasksView() {
           </div>
         )}
       </div>
+      )}
+
+      {/* DIÁLOGO EXCLUSÃO DE TAREFA */}
+      <ConfirmDeleteDialog
+        open={Boolean(tarefaParaExcluir)}
+        onOpenChange={(open) => !open && setTarefaParaExcluir(null)}
+        titulo="Excluir Tarefa?"
+        descricao="Esta ação removerá permanentemente esta tarefa da sua rotina operacional."
+        itemNome={tarefaParaExcluir ? `${tarefaParaExcluir.titulo} (${tarefaParaExcluir.prazo})` : undefined}
+        carregando={excluindoTarefa}
+        onConfirmar={async () => {
+          if (!tarefaParaExcluir) return;
+          setExcluindoTarefa(true);
+          try {
+            await tasksService.excluirTarefa(tarefaParaExcluir.id);
+            toast.success("Tarefa excluída com sucesso!");
+            await carregarDados();
+            setTarefaParaExcluir(null);
+          } finally {
+            setExcluindoTarefa(false);
+          }
+        }}
+      />
 
       {/* MODAL CRIAR / EDITAR TAREFA */}
       <TaskModal

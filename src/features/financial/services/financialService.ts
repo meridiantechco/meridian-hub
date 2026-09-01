@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { memoryCache } from "@/lib/memoryCache";
 import type {
   CategoriaDespesa,
   CategoriaReceita,
@@ -10,111 +11,7 @@ import type {
 
 const STORAGE_KEY_FINANCEIRO = "meridian_transacoes_financeiras";
 
-export const TRANSACOES_EXEMPLO_DEMO: Omit<TransacaoFinanceira, "id" | "criado_em">[] = [
-  {
-    tipo: "receita",
-    titulo: "Desenvolvimento de Site — Clínica Odonto Prime",
-    descricao: "Landing Page de alta conversão + SEO Local + Integração WhatsApp",
-    categoria: "venda_site",
-    valor: 2800.0,
-    data_competencia: new Date().toISOString().slice(0, 10),
-    data_pagamento: new Date().toISOString().slice(0, 10),
-    recorrencia: "pontual",
-    status: "pago",
-    lead_nome: "Clínica Odonto Prime",
-  },
-  {
-    tipo: "receita",
-    titulo: "Mensalidade / Hospedagem & Manutenção — Barbearia VIP",
-    descricao: "Suporte contínuo, backup e hospedagem em nuvem (MRR)",
-    categoria: "mensalidade",
-    valor: 199.0,
-    data_competencia: new Date().toISOString().slice(0, 10),
-    data_pagamento: new Date().toISOString().slice(0, 10),
-    recorrencia: "mensal",
-    status: "pago",
-    lead_nome: "Barbearia VIP",
-  },
-  {
-    tipo: "receita",
-    titulo: "Otimização Google Meu Negócio — Auto Mecânica Salvador",
-    descricao: "Configuração completa de perfil GMN, fotos e catálogo",
-    categoria: "consultoria",
-    valor: 750.0,
-    data_competencia: new Date().toISOString().slice(0, 10),
-    data_pagamento: null,
-    recorrencia: "pontual",
-    status: "pendente",
-    lead_nome: "Auto Mecânica Salvador",
-  },
-  {
-    tipo: "receita",
-    titulo: "Loja Virtual & Catálogo Digital — PetShop Estilo Animal",
-    descricao: "Catálogo de produtos integrado a pedidos WhatsApp",
-    categoria: "venda_site",
-    valor: 3200.0,
-    data_competencia: new Date(Date.now() - 20 * 86400000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 20 * 86400000).toISOString().slice(0, 10),
-    recorrencia: "pontual",
-    status: "pago",
-    lead_nome: "PetShop Estilo Animal",
-  },
-  {
-    tipo: "despesa",
-    titulo: "Google Places API & Maps SDK",
-    descricao: "Consumo de API de varredura e geolocalização",
-    categoria: "tecnologia",
-    valor: 185.5,
-    data_competencia: new Date().toISOString().slice(0, 10),
-    data_pagamento: new Date().toISOString().slice(0, 10),
-    recorrencia: "mensal",
-    status: "pago",
-  },
-  {
-    tipo: "despesa",
-    titulo: "WhatsApp Cloud API & Mensageria",
-    descricao: "Envio de mensagens comerciais automatizadas para leads",
-    categoria: "marketing",
-    valor: 129.9,
-    data_competencia: new Date().toISOString().slice(0, 10),
-    data_pagamento: new Date().toISOString().slice(0, 10),
-    recorrencia: "mensal",
-    status: "pago",
-  },
-  {
-    tipo: "despesa",
-    titulo: "Servidores em Nuvem & Supabase Database",
-    descricao: "Infraestrutura de alta disponibilidade e banco de dados",
-    categoria: "tecnologia",
-    valor: 145.0,
-    data_competencia: new Date().toISOString().slice(0, 10),
-    data_pagamento: new Date().toISOString().slice(0, 10),
-    recorrencia: "mensal",
-    status: "pago",
-  },
-  {
-    tipo: "despesa",
-    titulo: "Impostos Simples Nacional / DAS MEI",
-    descricao: "Guia mensal de arrecadação tributária da agência",
-    categoria: "impostos",
-    valor: 75.0,
-    data_competencia: new Date().toISOString().slice(0, 10),
-    data_pagamento: null,
-    recorrencia: "mensal",
-    status: "pendente",
-  },
-  {
-    tipo: "despesa",
-    titulo: "Registro.br (Domínios Anuais)",
-    descricao: "Registro e renovação de domínios dos clientes",
-    categoria: "tecnologia",
-    valor: 120.0,
-    data_competencia: new Date(Date.now() - 25 * 86400000).toISOString().slice(0, 10),
-    data_pagamento: new Date(Date.now() - 25 * 86400000).toISOString().slice(0, 10),
-    recorrencia: "anual",
-    status: "pago",
-  },
-];
+
 
 function obterTransacoesLocalStorage(): TransacaoFinanceira[] {
   if (typeof window === "undefined") return [];
@@ -142,26 +39,33 @@ export const financialService = {
    * Retorna todas as transações cadastradas (receitas e despesas)
    */
   async listarTransacoes(): Promise<TransacaoFinanceira[]> {
-    try {
-      const { data, error } = await supabase
-        .from("transacoes_financeiras")
-        .select("*")
-        .order("data_competencia", { ascending: false });
+    return memoryCache.fetchWithCache(
+      "financial:transacoes",
+      async () => {
+        try {
+          const { data, error } = await supabase
+            .from("transacoes_financeiras")
+            .select("*")
+            .order("data_competencia", { ascending: false });
 
-      if (!error && data && Array.isArray(data) && data.length > 0) {
-        return data as TransacaoFinanceira[];
-      }
-    } catch (err) {
-      console.warn("Aviso ao consultar Supabase para transações:", err);
-    }
+          if (!error && data && Array.isArray(data) && data.length > 0) {
+            return data as TransacaoFinanceira[];
+          }
+        } catch (err) {
+          console.warn("Aviso ao consultar Supabase para transações:", err);
+        }
 
-    // Fallback para armazenamento local
-    const locais = obterTransacoesLocalStorage();
-    if (locais.length > 0) {
-      return locais;
-    }
+        // Fallback para armazenamento local
+        const locais = obterTransacoesLocalStorage();
+        if (locais.length > 0) {
+          return locais;
+        }
 
-    return [];
+        return [];
+      },
+      20,
+      ["financial"],
+    );
   },
 
   /**
@@ -210,6 +114,7 @@ export const financialService = {
 
     const atual = obterTransacoesLocalStorage();
     salvarTransacoesLocalStorage([fallbackLocal, ...atual]);
+    memoryCache.invalidateTag("financial");
     return fallbackLocal;
   },
 
@@ -253,6 +158,7 @@ export const financialService = {
       return t;
     });
     salvarTransacoesLocalStorage(modificado);
+    memoryCache.invalidateTag("financial");
 
     return resultado;
   },
@@ -269,6 +175,7 @@ export const financialService = {
 
     const atual = obterTransacoesLocalStorage();
     salvarTransacoesLocalStorage(atual.filter((t) => t.id !== id));
+    memoryCache.invalidateTag("financial");
     return true;
   },
 
@@ -433,15 +340,6 @@ export const financialService = {
     }
     salvarTransacoesLocalStorage([]);
     return 0;
-  },
-
-  async restaurarDadosExemplo(): Promise<TransacaoFinanceira[]> {
-    const criadas: TransacaoFinanceira[] = [];
-    for (const item of TRANSACOES_EXEMPLO_DEMO) {
-      const nova = await this.criarTransacao(item);
-      criadas.push(nova);
-    }
-    return criadas;
   },
 };
 
