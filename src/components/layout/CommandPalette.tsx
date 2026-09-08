@@ -77,42 +77,82 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
 
   const paginas: ActionItem[] = useMemo(
     () => [
-      { id: "nav-painel", titulo: "Dashboard Comercial", categoria: "Overview", icone: LayoutDashboard, rota: "/painel" },
-      { id: "nav-opportunities", titulo: "Opportunity Center (Priorização)", categoria: "Overview", icone: Target, rota: "/opportunities" },
-      { id: "nav-companies", titulo: "CRM de Empresas & Contas", categoria: "CRM", icone: Building2, rota: "/companies" },
-      { id: "nav-contacts", titulo: "Diretório de Contatos & Decisores", categoria: "CRM", icone: Contact, rota: "/contacts" },
-      { id: "nav-leads", titulo: "Base de Estabelecimentos (Leads)", categoria: "CRM", icone: Users2, rota: "/leads" },
-      { id: "nav-funil", titulo: "Funil Comercial (Kanban)", categoria: "CRM", icone: Kanban, rota: "/funil" },
-      { id: "nav-today", titulo: "Central do Dia (Hoje)", categoria: "Operação", icone: Sun, rota: "/today" },
-      { id: "nav-tasks", titulo: "Tarefas Operacionais & Prazos", categoria: "Operação", icone: CheckSquare, rota: "/tasks" },
-      { id: "nav-calendar", titulo: "Agenda & Reuniões", categoria: "Operação", icone: Calendar, rota: "/calendar" },
-      { id: "nav-activities", titulo: "Histórico de Atividades & Timeline", categoria: "Operação", icone: History, rota: "/activities" },
-      { id: "nav-nova-busca", titulo: "Prospecção & Mineração (Scanner)", categoria: "Inteligência", icone: Radar, rota: "/nova-busca" },
-      { id: "nav-map", titulo: "Mapa Interativo de Oportunidades", categoria: "Inteligência", icone: MapPin, rota: "/map" },
-      { id: "nav-radar", titulo: "Radar de Demanda & Mercado", categoria: "Inteligência", icone: Radio, rota: "/radar" },
-      { id: "nav-insights", titulo: "Insights Estratégicos & Benchmarks", categoria: "Inteligência", icone: Lightbulb, rota: "/insights" },
-      { id: "nav-analytics", titulo: "Analytics de Vendas & Conversão", categoria: "Analytics", icone: BarChart3, rota: "/analytics" },
-      { id: "nav-analytics-team", titulo: "Performance da Equipe", categoria: "Analytics", icone: Users2, rota: "/analytics/team" },
-      { id: "nav-analytics-geo", titulo: "Performance Geográfica", categoria: "Analytics", icone: Compass, rota: "/analytics/geo" },
-      { id: "nav-reports", titulo: "Gerador de Relatórios & Exportação", categoria: "Analytics", icone: FileSpreadsheet, rota: "/reports" },
-      { id: "nav-financial", titulo: "Financeiro & Lucro Real", categoria: "Financeiro", icone: Wallet, rota: "/financeiro" },
-      { id: "nav-automations", titulo: "Automações & Workflows", categoria: "Automação", icone: Zap, rota: "/automations" },
-      { id: "nav-templates", titulo: "Templates & Scripts de Mensagem", categoria: "Comunicação", icone: MessageSquare, rota: "/templates" },
-      { id: "nav-assistant", titulo: "AI Sales Assistant", categoria: "IA", icone: Sparkles, rota: "/assistant" },
-      { id: "nav-usuarios", titulo: "Gestão de Usuários & Equipe", categoria: "Admin", icone: Shield, rota: "/usuarios" },
-      { id: "nav-notifications", titulo: "Central de Notificações", categoria: "Admin", icone: Bell, rota: "/notifications" },
+      {
+        id: "nav-nova-busca",
+        titulo: "Buscar Clientes (Minerador no Maps)",
+        categoria: "Prospecção",
+        icone: Search,
+        rota: "/nova-busca",
+      },
+      {
+        id: "nav-leads",
+        titulo: "Meus Clientes (Carteira & WhatsApp)",
+        categoria: "CRM",
+        icone: Building2,
+        rota: "/leads",
+      },
+      {
+        id: "nav-templates",
+        titulo: "Templates & Scripts (Modelos de WhatsApp)",
+        categoria: "Comunicação",
+        icone: MessageSquare,
+        rota: "/templates",
+      },
+      {
+        id: "nav-painel",
+        titulo: "Dashboard Comercial (Métricas & Funil)",
+        categoria: "Visão Geral",
+        icone: LayoutDashboard,
+        rota: "/painel",
+      },
+      {
+        id: "nav-financial",
+        titulo: "Painel Financeiro (Fluxo de Caixa)",
+        categoria: "Financeiro",
+        icone: Wallet,
+        rota: "/financeiro",
+      },
+      {
+        id: "nav-usuarios",
+        titulo: "Gestão de Equipe & Acessos",
+        categoria: "Configurações",
+        icone: Shield,
+        rota: "/usuarios",
+      },
     ],
     [],
   );
 
   const acoesRapidas: ActionItem[] = useMemo(
     () => [
-      { id: "act-prospeccao", titulo: "Iniciar Nova Varredura de Prospecção", categoria: "Ações", icone: Sparkles, rota: "/nova-busca" },
-      { id: "act-criar-tarefa", titulo: "Criar Nova Tarefa Operacional", categoria: "Ações", icone: Plus, rota: "/tasks" },
-      { id: "act-agendar-reuniao", titulo: "Agendar Nova Reunião / Demonstração", categoria: "Ações", icone: Calendar, rota: "/calendar" },
-      { id: "act-abrir-mapa", titulo: "Visualizar Mapa de Oportunidades", categoria: "Ações", icone: MapPin, rota: "/map" },
-      { id: "act-perguntar-ia", titulo: "Fazer Pergunta ao Assistente IA", categoria: "Ações", icone: Sparkles, rota: "/assistant" },
-      { id: "act-relatorio", titulo: "Exportar Relatório Customizado", categoria: "Ações", icone: FileSpreadsheet, rota: "/reports" },
+      {
+        id: "act-prospeccao",
+        titulo: "Iniciar Nova Busca de Empresas no Google Maps",
+        categoria: "Ações",
+        icone: Search,
+        rota: "/nova-busca",
+      },
+      {
+        id: "act-leads",
+        titulo: "Visualizar Meus Clientes e Disparar WhatsApp",
+        categoria: "Ações",
+        icone: Building2,
+        rota: "/leads",
+      },
+      {
+        id: "act-templates",
+        titulo: "Acessar Scripts e Mensagens Prontas",
+        categoria: "Ações",
+        icone: MessageSquare,
+        rota: "/templates",
+      },
+      {
+        id: "act-financeiro",
+        titulo: "Registrar Novo Gasto ou Receita",
+        categoria: "Ações",
+        icone: Wallet,
+        rota: "/financeiro",
+      },
     ],
     [],
   );
@@ -120,7 +160,9 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
   const paginasFiltradas = useMemo(() => {
     if (!termo.trim()) return paginas;
     const t = termo.toLowerCase();
-    return paginas.filter((p) => p.titulo.toLowerCase().includes(t) || p.categoria.toLowerCase().includes(t));
+    return paginas.filter(
+      (p) => p.titulo.toLowerCase().includes(t) || p.categoria.toLowerCase().includes(t),
+    );
   }, [paginas, termo]);
 
   const acoesFiltradas = useMemo(() => {
@@ -300,10 +342,12 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
         <div className="p-2.5 px-4 bg-surface/80 border-t border-border/70 flex items-center justify-between text-[11px] text-muted-foreground rotulo">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="font-mono bg-secondary px-1 py-0.2 rounded text-[10px]">↑↓</kbd> navegar
+              <kbd className="font-mono bg-secondary px-1 py-0.2 rounded text-[10px]">↑↓</kbd>{" "}
+              navegar
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="font-mono bg-secondary px-1 py-0.2 rounded text-[10px]">ENTER</kbd> selecionar
+              <kbd className="font-mono bg-secondary px-1 py-0.2 rounded text-[10px]">ENTER</kbd>{" "}
+              selecionar
             </span>
           </div>
           <span>{totalResultados} itens mapeados</span>

@@ -29,7 +29,9 @@ export function TasksView() {
   const [tarefas, setTarefas] = useState<TarefaItem[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState("");
-  const [abaFiltro, setAbaFiltro] = useState<"todas" | "hoje" | "atrasadas" | "concluidas">("todas");
+  const [abaFiltro, setAbaFiltro] = useState<"todas" | "hoje" | "atrasadas" | "concluidas">(
+    "todas",
+  );
   const [modoExibicao, setModoExibicao] = useState<"lista" | "kanban">("lista");
 
   // Modais

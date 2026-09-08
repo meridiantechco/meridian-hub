@@ -1,5 +1,6 @@
 import { leadsService } from "@/features/leads";
 import type { ContatoItem } from "../types";
+import { getScopedItem, setScopedItem } from "@/lib/userStorage";
 
 const STORAGE_KEY = "meridian_crm_contatos_v1";
 
@@ -7,13 +8,9 @@ export const contactsService = {
   async listarContatos(): Promise<ContatoItem[]> {
     if (typeof window === "undefined") return [];
 
-    const salvo = localStorage.getItem(STORAGE_KEY);
-    if (salvo) {
-      try {
-        return JSON.parse(salvo) as ContatoItem[];
-      } catch {
-        // fallback
-      }
+    const salvo = await getScopedItem<ContatoItem[]>(STORAGE_KEY);
+    if (salvo && Array.isArray(salvo) && salvo.length > 0) {
+      return salvo;
     }
 
     // Inicialização automática a partir dos leads existentes
@@ -35,7 +32,7 @@ export const contactsService = {
       };
     });
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(contatosIniciais));
+    await setScopedItem(STORAGE_KEY, contatosIniciais);
     return contatosIniciais;
   },
 
@@ -47,7 +44,7 @@ export const contactsService = {
       criado_em: new Date().toISOString(),
     };
     const atualizada = [novo, ...lista];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizada));
+    await setScopedItem(STORAGE_KEY, atualizada);
     return novo;
   },
 
@@ -56,15 +53,19 @@ export const contactsService = {
     const idx = lista.findIndex((c) => c.id === id);
     if (idx === -1) return null;
 
-    lista[idx] = { ...lista[idx], ...campos };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
-    return lista[idx];
+    const atual = lista[idx];
+    if (!atual) return null;
+
+    const atualizado: ContatoItem = { ...atual, ...campos, id: atual.id };
+    lista[idx] = atualizado;
+    await setScopedItem(STORAGE_KEY, lista);
+    return atualizado;
   },
 
   async excluirContato(id: string): Promise<boolean> {
     const lista = await this.listarContatos();
     const filtrada = lista.filter((c) => c.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtrada));
+    await setScopedItem(STORAGE_KEY, filtrada);
     return true;
   },
 };

@@ -1,6 +1,7 @@
 import { leadsService } from "@/features/leads";
 import { tasksService } from "@/features/tasks";
 import type { ReuniaoItem } from "../types";
+import { getScopedItem, setScopedItem } from "@/lib/userStorage";
 
 const STORAGE_KEY = "meridian_agenda_reunioes_v1";
 
@@ -8,13 +9,9 @@ export const calendarService = {
   async listarReunioes(): Promise<ReuniaoItem[]> {
     if (typeof window === "undefined") return [];
 
-    const salvo = localStorage.getItem(STORAGE_KEY);
-    if (salvo) {
-      try {
-        return JSON.parse(salvo) as ReuniaoItem[];
-      } catch {
-        // fallback
-      }
+    const salvo = await getScopedItem<ReuniaoItem[]>(STORAGE_KEY);
+    if (salvo && Array.isArray(salvo) && salvo.length > 0) {
+      return salvo;
     }
 
     const hoje = new Date().toISOString().slice(0, 10);
@@ -58,7 +55,7 @@ export const calendarService = {
       },
     ];
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(iniciais));
+    await setScopedItem(STORAGE_KEY, iniciais);
     return iniciais;
   },
 
@@ -70,7 +67,7 @@ export const calendarService = {
       criado_em: new Date().toISOString(),
     };
     const atualizada = [nova, ...lista];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizada));
+    await setScopedItem(STORAGE_KEY, atualizada);
     return nova;
   },
 
@@ -84,8 +81,9 @@ export const calendarService = {
     if (idx === -1) return null;
 
     const r = lista[idx];
+    if (!r) return null;
     r.status = status;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+    await setScopedItem(STORAGE_KEY, lista);
 
     // Se realizou e pediu follow-up automático:
     if (status === "realizada" && criarFollowUpAuto) {
@@ -108,7 +106,7 @@ export const calendarService = {
   async excluirReuniao(id: string): Promise<boolean> {
     const lista = await this.listarReunioes();
     const filtrada = lista.filter((r) => r.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtrada));
+    await setScopedItem(STORAGE_KEY, filtrada);
     return true;
   },
 };

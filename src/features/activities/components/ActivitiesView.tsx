@@ -41,7 +41,11 @@ export function ActivitiesView() {
     return atividades.filter((act) => {
       if (filtroTipo === "leads" && act.tipo !== "lead_criado") return false;
       if (filtroTipo === "reunioes" && !act.tipo.includes("reuniao")) return false;
-      if (filtroTipo === "status" && act.tipo !== "status_alterado" && act.tipo !== "proposta_enviada")
+      if (
+        filtroTipo === "status" &&
+        act.tipo !== "status_alterado" &&
+        act.tipo !== "proposta_enviada"
+      )
         return false;
       if (filtroTipo === "tarefas" && act.tipo !== "tarefa_concluida") return false;
       return true;

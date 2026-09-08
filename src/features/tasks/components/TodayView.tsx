@@ -61,12 +61,19 @@ export function TodayView() {
   const oportunidadesCriticas = useMemo(() => {
     const enriched = opportunityService.enriquecerOportunidades(leads);
     return enriched
-      .filter((o) => o.categoriaOportunidade.includes("quentes") || o.categoriaOportunidade.includes("em_risco"))
+      .filter(
+        (o) =>
+          o.categoriaOportunidade.includes("quentes") ||
+          o.categoriaOportunidade.includes("em_risco"),
+      )
       .slice(0, 4);
   }, [leads]);
 
   const alternarConclusao = async (tarefa: TarefaItem) => {
-    await tasksService.alternarStatus(tarefa.id, tarefa.status === "concluida" ? "pendente" : "concluida");
+    await tasksService.alternarStatus(
+      tarefa.id,
+      tarefa.status === "concluida" ? "pendente" : "concluida",
+    );
     await carregarDados();
   };
 
@@ -98,7 +105,10 @@ export function TodayView() {
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-11">
               Hoje é <strong className="text-foreground">{dataFormatada}</strong>. Você possui{" "}
               <strong className="text-primary">{tarefasHoje.length} tarefas</strong> e{" "}
-              <strong className="text-emerald-400">{oportunidadesCriticas.length} follow-ups prioritários</strong> para atender.
+              <strong className="text-emerald-400">
+                {oportunidadesCriticas.length} follow-ups prioritários
+              </strong>{" "}
+              para atender.
             </p>
           </div>
 
@@ -134,9 +144,7 @@ export function TodayView() {
               <span className="rotulo text-[10px] text-muted-foreground">Reuniões Marcadas</span>
               <Calendar className="size-4 text-emerald-400" />
             </div>
-            <p className="text-2xl font-bold font-display dado text-emerald-400">
-              2 reuniões
-            </p>
+            <p className="text-2xl font-bold font-display dado text-emerald-400">2 reuniões</p>
             <p className="text-[11px] text-muted-foreground">Demonstrações na agenda</p>
           </div>
 
@@ -156,9 +164,7 @@ export function TodayView() {
               <span className="rotulo text-[10px] text-muted-foreground">Ritmo Comercial</span>
               <TrendingUp className="size-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold font-display dado text-primary">
-              Alta Atividade
-            </p>
+            <p className="text-2xl font-bold font-display dado text-primary">Alta Atividade</p>
             <p className="text-[11px] text-muted-foreground">Operação em andamento</p>
           </div>
         </div>
@@ -179,7 +185,7 @@ export function TodayView() {
               </div>
 
               <Button variant="ghost" size="sm" asChild className="h-7 text-xs text-primary gap-1">
-                <Link to="/tasks">
+                <Link to="/funil">
                   <span>Ver todas</span>
                   <ArrowRight className="size-3" />
                 </Link>
@@ -200,9 +206,13 @@ export function TodayView() {
                     />
 
                     <div className="space-y-0.5 flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-foreground line-clamp-1">{t.titulo}</p>
+                      <p className="text-xs font-semibold text-foreground line-clamp-1">
+                        {t.titulo}
+                      </p>
                       {t.descricao && (
-                        <p className="text-[11px] text-muted-foreground line-clamp-1">{t.descricao}</p>
+                        <p className="text-[11px] text-muted-foreground line-clamp-1">
+                          {t.descricao}
+                        </p>
                       )}
                       {t.empresa_nome && (
                         <p className="text-[10.5px] text-primary flex items-center gap-1">
@@ -257,7 +267,9 @@ export function TodayView() {
                         <span className="text-[9.5px] uppercase font-bold text-muted-foreground rotulo">
                           {op.lead.categoria}
                         </span>
-                        <h4 className="font-bold text-xs text-foreground truncate">{op.lead.nome}</h4>
+                        <h4 className="font-bold text-xs text-foreground truncate">
+                          {op.lead.nome}
+                        </h4>
                       </div>
 
                       <span className="text-xs font-bold font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">

@@ -29,20 +29,21 @@ src/
 
 Cada feature em `src/features/<nome>/` possui estrutura padronizada:
 
-| Subpasta / Arquivo | Responsabilidade |
-| :--- | :--- |
-| `components/` | Componentes visuais React específicos da funcionalidade. |
-| `hooks/` | Custom hooks encapsulando estado, efeitos e integrações. |
-| `services/` | Comunicação com Supabase, Edge Functions e APIs externas. |
-| `utils/` | Algoritmos, parsers, formatadores e regras de negócio puras. |
-| `types/` | Interfaces, types e DTOs estritos do TypeScript. |
-| `index.ts` | Barrel export público com o contrato exposto pelo módulo. |
+| Subpasta / Arquivo | Responsabilidade                                             |
+| :----------------- | :----------------------------------------------------------- |
+| `components/`      | Componentes visuais React específicos da funcionalidade.     |
+| `hooks/`           | Custom hooks encapsulando estado, efeitos e integrações.     |
+| `services/`        | Comunicação com Supabase, Edge Functions e APIs externas.    |
+| `utils/`           | Algoritmos, parsers, formatadores e regras de negócio puras. |
+| `types/`           | Interfaces, types e DTOs estritos do TypeScript.             |
+| `index.ts`         | Barrel export público com o contrato exposto pelo módulo.    |
 
 ---
 
-## 3. Regras para Rotas (*Thin Controllers*)
+## 3. Regras para Rotas (_Thin Controllers_)
 
 As rotas em `src/routes/_authenticated/` devem ter no máximo 20 a 30 linhas:
+
 1. Exportar `Route = createFileRoute(...)`.
 2. Declarar `head` com metadados e título institucional.
 3. Declarar `component` apontando diretamente para a `<FeatureView />` exportada de `src/features/<dominio>`.
@@ -59,4 +60,4 @@ Nenhuma rota deve conter estados locais extensos, lógica de cálculo ou requisi
 
 ---
 
-*Meridian Tech — Arquitetura de Software e Engenharia.*
+_Meridian Tech — Arquitetura de Software e Engenharia._

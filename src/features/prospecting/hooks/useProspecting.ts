@@ -177,10 +177,61 @@ export function useProspecting() {
       setTimeout(() => {
         void navigate({ to: "/leads" });
       }, 1000);
-    } catch {
-      toast.error("Erro ao salvar novos estabelecimentos.");
+    } catch (err: any) {
+      console.error("Erro detalhado ao importar estabelecimentos:", err);
+      toast.error("Erro ao salvar estabelecimentos", {
+        description: err?.message || "Verifique sua conexão ou tente novamente.",
+      });
     } finally {
       setSalvando(false);
+    }
+  };
+
+  const [salvandoId, setSalvandoId] = useState<string | null>(null);
+  const [salvosSet, setSalvosSet] = useState<Set<string>>(new Set());
+
+  const salvarLeadIndividual = async (item: LeadEncontrado) => {
+    setSalvandoId(item.idTemp);
+    try {
+      await leadsService.salvarLeadUnico({
+        nome: item.nome,
+        categoria: item.categoria,
+        endereco: item.endereco,
+        bairro: item.bairro,
+        cidade: item.cidade,
+        estado: item.estado,
+        latitude: item.latitude,
+        longitude: item.longitude,
+        telefone: item.telefone || null,
+        whatsapp_link: item.whatsapp_link || null,
+        instagram: item.instagram || null,
+        facebook: item.facebook || null,
+        site_url: item.site_url || null,
+        tem_site: item.tem_site,
+        avaliacao_google: item.avaliacao_google,
+        total_avaliacoes: item.total_avaliacoes,
+        place_id: item.place_id,
+        score: item.score,
+        status: "novo",
+        origem: "google_places",
+      });
+
+      setSalvosSet((prev) => new Set(prev).add(item.idTemp));
+
+      await auditoriaService.registrarAtividade({
+        tipo: "novo_lead",
+        titulo: `Cliente adicionado: ${item.nome}`,
+        descricao: `${item.nome} (${item.categoria || "Comércio"}) cadastrado diretamente na carteira privativa.`,
+      });
+
+      toast.success(`"${item.nome}" adicionado a Meus Clientes!`);
+    } catch (err: any) {
+      console.error("Erro detalhado ao salvar cliente:", err);
+      toast.error(`Erro ao salvar "${item.nome}"`, {
+        description: err?.message || "Tente novamente.",
+      });
+    } finally {
+      setSalvandoId(null);
     }
   };
 
@@ -206,6 +257,8 @@ export function useProspecting() {
     setRaioKm,
     buscando,
     salvando,
+    salvandoId,
+    salvosSet,
     carregandoMais,
     resultados,
     setResultados,
@@ -222,5 +275,6 @@ export function useProspecting() {
     selecionarTodos,
     selecionarApenasSemSite,
     salvarLeadsSelecionados,
+    salvarLeadIndividual,
   };
 }

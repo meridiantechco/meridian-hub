@@ -79,7 +79,7 @@ export function ModalNovaDespesa({ aberto, onOpenChange, onSalvar }: ModalNovaDe
 
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-card border-border">
+      <DialogContent className="max-w-md bg-card/95 backdrop-blur-sm border-border rounded-3xl p-6">
         <DialogHeader>
           <DialogTitle className="text-foreground text-base flex items-center gap-2">
             <TrendingDown className="size-4 text-pink-400" />
@@ -101,7 +101,7 @@ export function ModalNovaDespesa({ aberto, onOpenChange, onSalvar }: ModalNovaDe
               value={titulo}
               onChange={(e) => setTitulo(e.target.value)}
               required
-              className="text-xs h-9 bg-surface/50"
+              className="text-xs h-9 rounded-full bg-surface/50"
             />
           </div>
 
@@ -114,10 +114,10 @@ export function ModalNovaDespesa({ aberto, onOpenChange, onSalvar }: ModalNovaDe
                 value={categoria}
                 onValueChange={(val) => setCategoria(val as CategoriaDespesa)}
               >
-                <SelectTrigger id="desp-cat" className="text-xs h-9 bg-surface/50">
+                <SelectTrigger id="desp-cat" className="text-xs h-9 rounded-full bg-surface/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl bg-card border-border">
                   <SelectItem value="tecnologia">🔌 Tecnologia & APIs</SelectItem>
                   <SelectItem value="marketing">📢 Marketing & Vendas</SelectItem>
                   <SelectItem value="equipe">👥 Equipe & Pessoal</SelectItem>
@@ -138,7 +138,7 @@ export function ModalNovaDespesa({ aberto, onOpenChange, onSalvar }: ModalNovaDe
                 value={valor}
                 onChange={(e) => setValor(e.target.value)}
                 required
-                className="text-xs h-9 bg-surface/50 font-mono"
+                className="text-xs h-9 rounded-full bg-surface/50 font-mono"
               />
             </div>
           </div>
@@ -153,7 +153,7 @@ export function ModalNovaDespesa({ aberto, onOpenChange, onSalvar }: ModalNovaDe
                 type="date"
                 value={dataCompetencia}
                 onChange={(e) => setDataCompetencia(e.target.value)}
-                className="text-xs h-9 bg-surface/50"
+                className="text-xs h-9 rounded-full bg-surface/50"
               />
             </div>
 
@@ -165,10 +165,10 @@ export function ModalNovaDespesa({ aberto, onOpenChange, onSalvar }: ModalNovaDe
                 value={recorrencia}
                 onValueChange={(val) => setRecorrencia(val as RecorrenciaTransacao)}
               >
-                <SelectTrigger id="desp-rec" className="text-xs h-9 bg-surface/50">
+                <SelectTrigger id="desp-rec" className="text-xs h-9 rounded-full bg-surface/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl bg-card border-border">
                   <SelectItem value="pontual">Pontual / Avulso</SelectItem>
                   <SelectItem value="mensal">Mensal (Recorrente)</SelectItem>
                   <SelectItem value="anual">Anual</SelectItem>
@@ -182,10 +182,10 @@ export function ModalNovaDespesa({ aberto, onOpenChange, onSalvar }: ModalNovaDe
               Situação do Pagamento
             </Label>
             <Select value={status} onValueChange={(val) => setStatus(val as StatusTransacao)}>
-              <SelectTrigger id="desp-status" className="text-xs h-9 bg-surface/50">
+              <SelectTrigger id="desp-status" className="text-xs h-9 rounded-full bg-surface/50">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-2xl bg-card border-border">
                 <SelectItem value="pago">🟢 Pago / Liquidado</SelectItem>
                 <SelectItem value="pendente">🟡 Pendente / A Pagar</SelectItem>
               </SelectContent>
@@ -198,7 +198,7 @@ export function ModalNovaDespesa({ aberto, onOpenChange, onSalvar }: ModalNovaDe
               variant="ghost"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="text-xs h-8"
+              className="text-xs h-8.5 rounded-full"
             >
               Cancelar
             </Button>
@@ -206,7 +206,7 @@ export function ModalNovaDespesa({ aberto, onOpenChange, onSalvar }: ModalNovaDe
               type="submit"
               size="sm"
               disabled={salvando}
-              className="bg-pink-600 hover:bg-pink-500 text-white text-xs h-8 gap-1.5 font-semibold"
+              className="bg-pink-600 hover:bg-pink-500 text-white text-xs h-8.5 px-4 rounded-full gap-1.5 font-semibold"
             >
               {salvando ? "Salvando..." : "Salvar Despesa"}
             </Button>
@@ -293,7 +293,7 @@ export function ModalNovaReceita({
 
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-card border-border">
+      <DialogContent className="max-w-md bg-card/95 backdrop-blur-sm border-border rounded-3xl p-6">
         <DialogHeader>
           <DialogTitle className="text-foreground text-base flex items-center gap-2">
             <TrendingUp className="size-4 text-emerald-400" />
@@ -310,10 +310,10 @@ export function ModalNovaReceita({
               Vincular a Estabelecimento da Base (Opcional)
             </Label>
             <Select value={leadSelecionadoId} onValueChange={handleLeadChange}>
-              <SelectTrigger id="rec-lead" className="text-xs h-9 bg-surface/50">
+              <SelectTrigger id="rec-lead" className="text-xs h-9 rounded-full bg-surface/50">
                 <SelectValue placeholder="Selecione um lead (opcional)" />
               </SelectTrigger>
-              <SelectContent className="max-h-48">
+              <SelectContent className="max-h-48 rounded-2xl bg-card border-border">
                 <SelectItem value="nenhum">Nenhum (Receita Avulsa)</SelectItem>
                 {leadsDisponiveis.map((l) => (
                   <SelectItem key={l.id} value={l.id}>
@@ -334,7 +334,7 @@ export function ModalNovaReceita({
               value={titulo}
               onChange={(e) => setTitulo(e.target.value)}
               required
-              className="text-xs h-9 bg-surface/50"
+              className="text-xs h-9 rounded-full bg-surface/50"
             />
           </div>
 
@@ -347,10 +347,10 @@ export function ModalNovaReceita({
                 value={categoria}
                 onValueChange={(val) => setCategoria(val as CategoriaReceita)}
               >
-                <SelectTrigger id="rec-cat" className="text-xs h-9 bg-surface/50">
+                <SelectTrigger id="rec-cat" className="text-xs h-9 rounded-full bg-surface/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl bg-card border-border">
                   <SelectItem value="venda_site">💻 Desenvolvimento de Site</SelectItem>
                   <SelectItem value="mensalidade">🔄 Mensalidade / Hospedagem</SelectItem>
                   <SelectItem value="consultoria">🔍 Consultoria Google Meu Negócio</SelectItem>
@@ -370,7 +370,7 @@ export function ModalNovaReceita({
                 value={valor}
                 onChange={(e) => setValor(e.target.value)}
                 required
-                className="text-xs h-9 bg-surface/50 font-mono"
+                className="text-xs h-9 rounded-full bg-surface/50 font-mono"
               />
             </div>
           </div>
@@ -385,7 +385,7 @@ export function ModalNovaReceita({
                 type="date"
                 value={dataCompetencia}
                 onChange={(e) => setDataCompetencia(e.target.value)}
-                className="text-xs h-9 bg-surface/50"
+                className="text-xs h-9 rounded-full bg-surface/50"
               />
             </div>
 
@@ -397,10 +397,10 @@ export function ModalNovaReceita({
                 value={recorrencia}
                 onValueChange={(val) => setRecorrencia(val as RecorrenciaTransacao)}
               >
-                <SelectTrigger id="rec-rec" className="text-xs h-9 bg-surface/50">
+                <SelectTrigger id="rec-rec" className="text-xs h-9 rounded-full bg-surface/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl bg-card border-border">
                   <SelectItem value="pontual">Pontual / Projeto Único</SelectItem>
                   <SelectItem value="mensal">Mensalidade (MRR)</SelectItem>
                   <SelectItem value="anual">Anual</SelectItem>
@@ -414,10 +414,10 @@ export function ModalNovaReceita({
               Situação do Recebimento
             </Label>
             <Select value={status} onValueChange={(val) => setStatus(val as StatusTransacao)}>
-              <SelectTrigger id="rec-status" className="text-xs h-9 bg-surface/50">
+              <SelectTrigger id="rec-status" className="text-xs h-9 rounded-full bg-surface/50">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-2xl bg-card border-border">
                 <SelectItem value="pago">🟢 Recebido / Liquidado</SelectItem>
                 <SelectItem value="pendente">🟡 A Receber / Pendente</SelectItem>
               </SelectContent>
@@ -430,7 +430,7 @@ export function ModalNovaReceita({
               variant="ghost"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="text-xs h-8"
+              className="text-xs h-8.5 rounded-full"
             >
               Cancelar
             </Button>
@@ -438,7 +438,7 @@ export function ModalNovaReceita({
               type="submit"
               size="sm"
               disabled={salvando}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs h-8 gap-1.5 font-semibold"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs h-8.5 px-4 rounded-full gap-1.5 font-semibold"
             >
               {salvando ? "Salvando..." : "Salvar Receita"}
             </Button>

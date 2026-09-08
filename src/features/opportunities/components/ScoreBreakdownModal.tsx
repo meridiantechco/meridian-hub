@@ -59,7 +59,9 @@ export function ScoreBreakdownModal({
               </span>
             </div>
             <p className="text-xs font-semibold text-foreground">{proximaAcao.titulo}</p>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">{proximaAcao.motivo}</p>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              {proximaAcao.motivo}
+            </p>
           </div>
 
           {/* LISTA DE FATORES DE SCORE */}

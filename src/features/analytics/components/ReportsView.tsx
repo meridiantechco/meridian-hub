@@ -78,7 +78,10 @@ export function ReportsView() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `relatorio_meridian_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute(
+      "download",
+      `relatorio_meridian_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -97,7 +100,10 @@ export function ReportsView() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `relatorio_meridian_${new Date().toISOString().slice(0, 10)}.json`);
+    link.setAttribute(
+      "download",
+      `relatorio_meridian_${new Date().toISOString().slice(0, 10)}.json`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -231,7 +237,9 @@ export function ReportsView() {
                 Pré-visualização do Relatório Gerado
               </h4>
               <p className="text-xs text-muted-foreground">
-                Total de <strong className="text-foreground">{leadsFiltrados.length} registros</strong> correspondentes aos filtros
+                Total de{" "}
+                <strong className="text-foreground">{leadsFiltrados.length} registros</strong>{" "}
+                correspondentes aos filtros
               </p>
             </div>
           </div>

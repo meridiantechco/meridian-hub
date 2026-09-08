@@ -149,7 +149,9 @@ export function OpportunityCenterView() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
           <Card className="bg-card border-border/80 p-4 space-y-1 shadow-elev">
             <div className="flex items-center justify-between">
-              <span className="rotulo text-[10px] text-muted-foreground">Oportunidades no Radar</span>
+              <span className="rotulo text-[10px] text-muted-foreground">
+                Oportunidades no Radar
+              </span>
               <Target className="size-4 text-primary" />
             </div>
             <p className="text-2xl font-bold font-display dado text-foreground">
@@ -160,7 +162,9 @@ export function OpportunityCenterView() {
 
           <Card className="bg-card border-primary/30 p-4 space-y-1 shadow-elev ring-1 ring-primary/20">
             <div className="flex items-center justify-between">
-              <span className="rotulo text-[10px] text-primary font-bold">🔥 Quentes (Score &ge; 75)</span>
+              <span className="rotulo text-[10px] text-primary font-bold">
+                🔥 Quentes (Score &ge; 75)
+              </span>
               <Flame className="size-4 text-primary fill-current" />
             </div>
             <p className="text-2xl font-bold font-display dado text-primary">{totalQuentes}</p>
@@ -169,7 +173,9 @@ export function OpportunityCenterView() {
 
           <Card className="bg-card border-amber-500/30 p-4 space-y-1 shadow-elev">
             <div className="flex items-center justify-between">
-              <span className="rotulo text-[10px] text-amber-400 font-bold">⚠ Em Risco / Follow-up</span>
+              <span className="rotulo text-[10px] text-amber-400 font-bold">
+                ⚠ Em Risco / Follow-up
+              </span>
               <AlertTriangle className="size-4 text-amber-400" />
             </div>
             <p className="text-2xl font-bold font-display dado text-amber-400">{totalEmRisco}</p>
@@ -178,7 +184,9 @@ export function OpportunityCenterView() {
 
           <Card className="bg-card border-emerald-500/30 p-4 space-y-1 shadow-elev">
             <div className="flex items-center justify-between">
-              <span className="rotulo text-[10px] text-emerald-400 font-bold">Pipeline Estimado</span>
+              <span className="rotulo text-[10px] text-emerald-400 font-bold">
+                Pipeline Estimado
+              </span>
               <Coins className="size-4 text-emerald-400" />
             </div>
             <p className="text-2xl font-bold font-display dado text-emerald-400">
@@ -308,7 +316,8 @@ export function OpportunityCenterView() {
               Nenhuma oportunidade encontrada nesta categoria
             </h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              Tente selecionar outra aba ou realizar uma nova varredura de estabelecimentos para alimentar o radar.
+              Tente selecionar outra aba ou realizar uma nova varredura de estabelecimentos para
+              alimentar o radar.
             </p>
             <Button
               variant="outline"

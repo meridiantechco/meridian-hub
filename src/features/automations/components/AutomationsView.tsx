@@ -39,10 +39,7 @@ export function AutomationsView() {
     void carregarDados();
   }, []);
 
-  const totalAtivos = useMemo(
-    () => workflows.filter((w) => w.ativo).length,
-    [workflows],
-  );
+  const totalAtivos = useMemo(() => workflows.filter((w) => w.ativo).length, [workflows]);
 
   const totalExecucoes = useMemo(
     () => workflows.reduce((acc, w) => acc + w.execucoesTotal, 0),
@@ -63,7 +60,9 @@ export function AutomationsView() {
     }
   };
 
-  const handleSalvar = async (dados: Omit<WorkflowRegra, "id" | "criado_em" | "execucoesTotal">) => {
+  const handleSalvar = async (
+    dados: Omit<WorkflowRegra, "id" | "criado_em" | "execucoesTotal">,
+  ) => {
     await automationsService.salvarWorkflow(dados);
     await carregarDados();
   };
@@ -99,7 +98,9 @@ export function AutomationsView() {
 
           <Card className="bg-card border-emerald-500/30 shadow-elev p-4 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="rotulo text-[10px] text-emerald-400 font-bold">Ações Disparadas</span>
+              <span className="rotulo text-[10px] text-emerald-400 font-bold">
+                Ações Disparadas
+              </span>
               <CheckCircle2 className="size-4 text-emerald-400" />
             </div>
             <p className="text-2xl font-bold font-display dado text-emerald-400">
@@ -196,7 +197,8 @@ export function AutomationsView() {
 
                 <div className="flex items-center justify-between pt-1 border-t border-border/50 text-[11px] text-muted-foreground">
                   <span>
-                    Disparado automaticamente <strong className="text-foreground">{wf.execucoesTotal} vezes</strong>
+                    Disparado automaticamente{" "}
+                    <strong className="text-foreground">{wf.execucoesTotal} vezes</strong>
                   </span>
                   <span className="dado font-mono">
                     Criado em: {new Date(wf.criado_em).toLocaleDateString("pt-BR")}
@@ -209,11 +211,7 @@ export function AutomationsView() {
       </div>
 
       {/* MODAL WORKFLOW BUILDER */}
-      <WorkflowModal
-        aberto={modalAberto}
-        onOpenChange={setModalAberto}
-        onSalvar={handleSalvar}
-      />
+      <WorkflowModal aberto={modalAberto} onOpenChange={setModalAberto} onSalvar={handleSalvar} />
     </AppShell>
   );
 }

@@ -1,5 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { MoveLeft, MoveRight, MessageSquare, ExternalLink, AlertCircle, Instagram, Star, Eye } from "lucide-react";
+import {
+  MoveLeft,
+  MoveRight,
+  MessageSquare,
+  ExternalLink,
+  AlertCircle,
+  Instagram,
+  Star,
+  Eye,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BadgePriority } from "@/features/leads";
@@ -12,7 +21,7 @@ interface PipelineCardProps {
   colProxima?: ColunaDef | undefined;
   onMoverStatus: (leadId: string, novoStatus: LeadItem["status"]) => void;
   onAbordar: (lead: LeadItem) => void;
-  onPreviewLead?: (lead: LeadItem) => void;
+  onPreviewLead?: ((lead: LeadItem) => void) | undefined;
   onDragStart: (e: React.DragEvent, leadId: string) => void;
 }
 

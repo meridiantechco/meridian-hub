@@ -1,5 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { AlertCircle, Flame, MessageSquare, ArrowRight, Kanban, Clock, Sparkles } from "lucide-react";
+import {
+  AlertCircle,
+  Flame,
+  MessageSquare,
+  ArrowRight,
+  Kanban,
+  Clock,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BadgePriority } from "@/features/leads/components/BadgePriority";
@@ -64,7 +72,9 @@ export function AttentionPanel({ leads, onAbordar }: AttentionPanelProps) {
                       className="p-2 rounded-lg bg-card border border-border/60 flex items-center justify-between gap-2"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-foreground truncate">{lead.nome}</p>
+                        <p className="text-xs font-semibold text-foreground truncate">
+                          {lead.nome}
+                        </p>
                         <p className="text-[10px] text-muted-foreground truncate">
                           {lead.categoria} · 📍 {lead.bairro || lead.cidade}
                         </p>
@@ -125,7 +135,9 @@ export function AttentionPanel({ leads, onAbordar }: AttentionPanelProps) {
                       className="p-2 rounded-lg bg-card border border-border/60 flex items-center justify-between gap-2"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-foreground truncate">{lead.nome}</p>
+                        <p className="text-xs font-semibold text-foreground truncate">
+                          {lead.nome}
+                        </p>
                         <p className="text-[10px] text-muted-foreground truncate">
                           {lead.categoria} · Proposta enviada
                         </p>
@@ -174,7 +186,8 @@ export function AttentionPanel({ leads, onAbordar }: AttentionPanelProps) {
               </div>
 
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Mapeie novos estabelecimentos comerciais em bairros estratégicos para alimentar o topo do funil da equipe.
+                Mapeie novos estabelecimentos comerciais em bairros estratégicos para alimentar o
+                topo do funil da equipe.
               </p>
 
               <div className="p-2.5 rounded-lg bg-card/60 border border-border/50 text-[11px] text-muted-foreground space-y-1">
@@ -186,7 +199,10 @@ export function AttentionPanel({ leads, onAbordar }: AttentionPanelProps) {
                   <span>Conversão média:</span>
                   <strong className="dado text-emerald-400">
                     {leads.length > 0
-                      ? ((leads.filter((l) => l.status === "fechado").length / leads.length) * 100).toFixed(1)
+                      ? (
+                          (leads.filter((l) => l.status === "fechado").length / leads.length) *
+                          100
+                        ).toFixed(1)
                       : "0.0"}
                     %
                   </strong>

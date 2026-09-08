@@ -15,6 +15,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   LogOut,
+  Kanban,
 } from "lucide-react";
 import { MeridianLogo } from "@/components/brand/MeridianLogo";
 import { Button } from "@/components/ui/button";
@@ -31,65 +32,22 @@ import {
 import { useAuth } from "@/features/auth";
 import { cn } from "@/lib/utils";
 
-export interface NavGroup {
-  rotulo?: string;
-  itens: {
-    para: string;
-    rotulo: string;
-    icone: typeof LayoutDashboard;
-    somenteAdmin?: boolean;
-    badge?: string;
-  }[];
+export interface NavItem {
+  para: string;
+  rotulo: string;
+  icone: typeof LayoutDashboard;
+  somenteAdmin?: boolean;
+  badge?: string;
 }
 
-export const GRUPOS_NAV: NavGroup[] = [
-  {
-    rotulo: "Overview",
-    itens: [
-      { para: "/painel", rotulo: "Dashboard", icone: LayoutDashboard },
-      { para: "/opportunities", rotulo: "Oportunidades", icone: Target, badge: "Foco" },
-    ],
-  },
-  {
-    rotulo: "CRM",
-    itens: [
-      { para: "/leads", rotulo: "Relacionamentos", icone: Building2 },
-    ],
-  },
-  {
-    rotulo: "Operação",
-    itens: [
-      { para: "/today", rotulo: "Hoje", icone: Sun },
-      { para: "/tasks", rotulo: "Tarefas", icone: CheckSquare },
-      { para: "/calendar", rotulo: "Agenda", icone: Calendar },
-      { para: "/activities", rotulo: "Atividades", icone: History },
-    ],
-  },
-  {
-    rotulo: "Prospecção",
-    itens: [
-      { para: "/nova-busca", rotulo: "Buscar Empresas", icone: Search },
-    ],
-  },
-  {
-    rotulo: "Comunicação & Automação",
-    itens: [
-      { para: "/automations", rotulo: "Workflows", icone: Zap, badge: "Auto" },
-      { para: "/templates", rotulo: "Templates & Scripts", icone: MessageSquare },
-    ],
-  },
-  {
-    rotulo: "Financeiro",
-    itens: [
-      { para: "/financeiro", rotulo: "Financeiro", icone: Wallet },
-    ],
-  },
-  {
-    rotulo: "Sistema",
-    itens: [
-      { para: "/usuarios", rotulo: "Configurações & Equipe", icone: Settings, somenteAdmin: true },
-    ],
-  },
+export const ITENS_NAV: NavItem[] = [
+  { para: "/nova-busca", rotulo: "Buscar Clientes", icone: Search, badge: "Radar" },
+  { para: "/painel", rotulo: "Dashboard", icone: LayoutDashboard },
+  { para: "/funil", rotulo: "Quadro Kanban", icone: Kanban, badge: "Status" },
+  { para: "/leads", rotulo: "Meus Clientes", icone: Building2 },
+  { para: "/templates", rotulo: "Templates & Scripts", icone: MessageSquare },
+  { para: "/financeiro", rotulo: "Financeiro", icone: Wallet },
+  { para: "/usuarios", rotulo: "Equipe", icone: Settings, somenteAdmin: true },
 ];
 
 interface SidebarProps {
@@ -132,9 +90,7 @@ export function Sidebar({ colapsada, onToggle, onSair }: SidebarProps) {
               <p className="font-display text-sm font-bold tracking-tight text-sidebar-foreground">
                 Meridian
               </p>
-              <p className="rotulo text-[9.5px] text-muted-foreground/75">
-                Inteligência Comercial
-              </p>
+              <p className="rotulo text-[9.5px] text-muted-foreground/75">Inteligência Comercial</p>
             </div>
           )}
         </Link>
@@ -172,83 +128,64 @@ export function Sidebar({ colapsada, onToggle, onSair }: SidebarProps) {
       )}
 
       {/* LISTA DE NAVEGAÇÃO */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden p-2.5 space-y-4">
-        {GRUPOS_NAV.map((grupo, gIdx) => {
-          const itensVisiveis = grupo.itens.filter((i) => !i.somenteAdmin || ehAdmin);
-          if (itensVisiveis.length === 0) return null;
-
-          return (
-            <div key={grupo.rotulo || gIdx} className="space-y-1">
-              {!colapsada && grupo.rotulo && (
-                <div className="px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-wider rotulo text-muted-foreground/60 select-none">
-                  {grupo.rotulo}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-2.5 space-y-1.5">
+        <nav className="flex flex-col gap-1.5">
+          {ITENS_NAV.map((item) => {
+            const conteudoLink = (
+              <Link
+                key={item.para}
+                to={item.para}
+                className={cn(
+                  "flex items-center gap-3 rounded-2xl text-xs font-medium text-muted-foreground transition-all duration-200 group relative",
+                  colapsada
+                    ? "h-11 w-11 justify-center mx-auto p-0"
+                    : "px-3.5 py-2.5 justify-between hover:bg-secondary/60 hover:text-foreground",
+                )}
+                activeProps={{
+                  className: cn(
+                    "bg-foreground text-background font-semibold shadow-md",
+                    colapsada && "bg-foreground text-background shadow-md",
+                  ),
+                }}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <item.icone
+                    className={cn(
+                      "size-4 shrink-0 transition-transform duration-200 group-hover:scale-110",
+                    )}
+                  />
+                  {!colapsada && (
+                    <span className="truncate text-xs font-medium">{item.rotulo}</span>
+                  )}
                 </div>
-              )}
 
-              {colapsada && (
-                <div className="my-1 border-t border-sidebar-border/40 mx-2" />
-              )}
+                {!colapsada && item.badge && (
+                  <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            );
 
-              <nav className="flex flex-col gap-0.5">
-                {itensVisiveis.map((item) => {
-                  const conteudoLink = (
-                    <Link
-                      key={item.para}
-                      to={item.para}
-                      className={cn(
-                        "flex items-center gap-2.5 rounded-lg text-xs font-medium text-sidebar-foreground/75 transition-all duration-150 group relative",
-                        colapsada
-                          ? "h-10 w-10 justify-center mx-auto p-0"
-                          : "px-2.5 py-1.5 justify-between hover:bg-sidebar-accent/70 hover:text-sidebar-foreground",
-                      )}
-                      activeProps={{
-                        className: cn(
-                          "bg-primary/15 text-foreground font-semibold border-l-2 border-l-primary shadow-xs",
-                          colapsada && "border-l-0 bg-primary/20 text-primary",
-                        ),
-                      }}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <item.icone
-                          className={cn(
-                            "size-4 shrink-0 transition-colors text-muted-foreground group-hover:text-primary",
-                          )}
-                        />
-                        {!colapsada && (
-                          <span className="truncate text-xs">{item.rotulo}</span>
-                        )}
-                      </div>
+            if (colapsada) {
+              return (
+                <Tooltip key={item.para}>
+                  <TooltipTrigger asChild>{conteudoLink}</TooltipTrigger>
+                  <TooltipContent side="right" className="flex items-center gap-2 rounded-xl">
+                    <span>{item.rotulo}</span>
+                    {item.badge && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-mono">
+                        {item.badge}
+                      </span>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            }
 
-                      {!colapsada && item.badge && (
-                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-primary/20 text-primary border border-primary/30">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-
-                  if (colapsada) {
-                    return (
-                      <Tooltip key={item.para}>
-                        <TooltipTrigger asChild>{conteudoLink}</TooltipTrigger>
-                        <TooltipContent side="right" className="flex items-center gap-2">
-                          <span>{item.rotulo}</span>
-                          {item.badge && (
-                            <span className="text-[10px] px-1 py-0.5 rounded bg-primary/20 text-primary font-mono">
-                              {item.badge}
-                            </span>
-                          )}
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  }
-
-                  return conteudoLink;
-                })}
-              </nav>
-            </div>
-          );
-        })}
+            return conteudoLink;
+          })}
+        </nav>
       </div>
 
       {/* RODAPÉ DA SIDEBAR: PERFIL & LOGOUT */}

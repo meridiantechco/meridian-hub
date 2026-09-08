@@ -78,7 +78,8 @@ export function OpportunityRadarView() {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {sinais.length} nichos comerciais rastreados com identificação em tempo real de carência web.
+                {sinais.length} nichos comerciais rastreados com identificação em tempo real de
+                carência web.
               </p>
             </div>
           </div>
@@ -130,19 +131,25 @@ export function OpportunityRadarView() {
 
                   <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-surface/50 border border-border/60 text-xs text-center dado">
                     <div>
-                      <span className="text-[9.5px] text-muted-foreground block rotulo">Mapeados</span>
+                      <span className="text-[9.5px] text-muted-foreground block rotulo">
+                        Mapeados
+                      </span>
                       <strong className="text-foreground font-display text-xs">
                         {sinal.volumeContas}
                       </strong>
                     </div>
                     <div>
-                      <span className="text-[9.5px] text-muted-foreground block rotulo">Sem Site</span>
+                      <span className="text-[9.5px] text-muted-foreground block rotulo">
+                        Sem Site
+                      </span>
                       <strong className="text-emerald-400 font-display text-xs">
                         {sinal.taxaSemSite}%
                       </strong>
                     </div>
                     <div>
-                      <span className="text-[9.5px] text-muted-foreground block rotulo">Score Médio</span>
+                      <span className="text-[9.5px] text-muted-foreground block rotulo">
+                        Score Médio
+                      </span>
                       <strong className="text-primary font-display text-xs">
                         {sinal.scoreMedio}
                       </strong>

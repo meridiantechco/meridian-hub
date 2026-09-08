@@ -82,7 +82,9 @@ export function ProspectingHistoryView() {
             <div className="text-2xl font-bold font-display text-emerald-400 dado">
               {totalResultadosGeral.toLocaleString("pt-BR")}
             </div>
-            <p className="text-[11px] text-muted-foreground">Volume total de estabelecimentos encontrados</p>
+            <p className="text-[11px] text-muted-foreground">
+              Volume total de estabelecimentos encontrados
+            </p>
           </Card>
 
           <Card className="bg-card border-border/80 shadow-elev p-4 space-y-2 ring-1 ring-primary/25">
@@ -195,7 +197,8 @@ export function ProspectingHistoryView() {
                           Nenhuma varredura registrada ainda
                         </p>
                         <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                          Inicie uma nova varredura para minerar estabelecimentos e oportunidades sem site próprio.
+                          Inicie uma nova varredura para minerar estabelecimentos e oportunidades
+                          sem site próprio.
                         </p>
                         <Button
                           asChild

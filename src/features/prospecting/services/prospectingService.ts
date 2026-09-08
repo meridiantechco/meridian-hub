@@ -1,8 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import {
-  extrairLocalizacaoCompleta,
-  obterCoordenadasCidadeBrasil,
-} from "@/lib/geo-brasil";
+import { extrairLocalizacaoCompleta, obterCoordenadasCidadeBrasil } from "@/lib/geo-brasil";
 import {
   extrairFacebookAvancado,
   extrairOuResolverInstagram,

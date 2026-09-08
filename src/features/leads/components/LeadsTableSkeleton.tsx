@@ -7,7 +7,10 @@ export function LeadsTableSkeleton() {
       {/* 5 KPI Summary Cards Skeleton */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="p-3.5 rounded-xl bg-card border border-border/70 flex justify-between items-center">
+          <div
+            key={i}
+            className="p-3.5 rounded-xl bg-card border border-border/70 flex justify-between items-center"
+          >
             <div className="space-y-1.5">
               <Skeleton className="h-3 w-20" />
               <Skeleton className="h-6 w-12" />
@@ -38,7 +41,10 @@ export function LeadsTableSkeleton() {
         </div>
         <div className="p-4 space-y-3">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex items-center justify-between gap-4 py-2 border-b border-border/40">
+            <div
+              key={i}
+              className="flex items-center justify-between gap-4 py-2 border-b border-border/40"
+            >
               <Skeleton className="h-4 w-48" />
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-4 w-28" />

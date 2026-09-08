@@ -60,7 +60,9 @@ export function FunnelOverview({ dadosFunil, totalLeads }: FunnelOverviewProps) 
                   </span>
                   <div className="flex items-center gap-2 text-muted-foreground dado">
                     <span className="font-semibold text-foreground">{etapa.quantidade}</span>
-                    <span className="text-[11px] text-muted-foreground/80">({perc.toFixed(0)}%)</span>
+                    <span className="text-[11px] text-muted-foreground/80">
+                      ({perc.toFixed(0)}%)
+                    </span>
                   </div>
                 </div>
 

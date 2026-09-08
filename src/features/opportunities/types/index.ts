@@ -1,12 +1,7 @@
 import type { LeadItem } from "@/features/leads";
 
 export type CategoriaOportunidade =
-  | "todas"
-  | "quentes"
-  | "em_risco"
-  | "novas"
-  | "paradas"
-  | "alto_potencial";
+  "todas" | "quentes" | "em_risco" | "novas" | "paradas" | "alto_potencial";
 
 export interface FatorScore {
   rotulo: string;

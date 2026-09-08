@@ -51,7 +51,7 @@ export const usersService = {
           const papel: "admin" | "vendedor" =
             emailLower === "meridiantech.co@gmail.com"
               ? "admin"
-              : (roleData?.role as "admin" | "vendedor") ?? "vendedor";
+              : ((roleData?.role as "admin" | "vendedor") ?? "vendedor");
 
           return {
             id: p.id,

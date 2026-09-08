@@ -27,7 +27,13 @@ import {
   Coins,
 } from "lucide-react";
 import { toast } from "sonner";
-import { BadgePriority, BadgeStatus, WhatsAppModal, LeadDrawer, type LeadItem } from "@/features/leads";
+import {
+  BadgePriority,
+  BadgeStatus,
+  WhatsAppModal,
+  LeadDrawer,
+  type LeadItem,
+} from "@/features/leads";
 import { companiesService } from "../services/companiesService";
 import type { EmpresaItem } from "../types";
 

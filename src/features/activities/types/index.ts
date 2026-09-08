@@ -12,9 +12,9 @@ export interface AtividadeGlobal {
   id: string;
   tipo: TipoAtividade;
   titulo: string;
-  descricao?: string | null;
-  empresa_nome?: string | null;
-  empresa_id?: string | null;
+  descricao?: string | null | undefined;
+  empresa_nome?: string | null | undefined;
+  empresa_id?: string | null | undefined;
   usuario_nome: string;
   data_hora: string;
 }

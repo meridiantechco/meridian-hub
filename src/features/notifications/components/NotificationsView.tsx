@@ -38,10 +38,7 @@ export function NotificationsView() {
     void carregarDados();
   }, []);
 
-  const totalNaoLidas = useMemo(
-    () => notificacoes.filter((n) => !n.lida).length,
-    [notificacoes],
-  );
+  const totalNaoLidas = useMemo(() => notificacoes.filter((n) => !n.lida).length, [notificacoes]);
 
   const notificacoesFiltradas = useMemo(() => {
     return notificacoes.filter((n) => {

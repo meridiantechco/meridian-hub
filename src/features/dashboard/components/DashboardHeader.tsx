@@ -38,7 +38,8 @@ export function DashboardHeader({
           </span>
         </div>
         <p className="text-xs sm:text-sm text-muted-foreground">
-          Visão consolidada de inteligência comercial, detecção de estabelecimentos e conversão de contratos.
+          Visão consolidada de inteligência comercial, detecção de estabelecimentos e conversão de
+          contratos.
         </p>
       </div>
 

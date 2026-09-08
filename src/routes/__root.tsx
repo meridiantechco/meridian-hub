@@ -77,13 +77,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Meridian Hub | Prospecção B2B Inteligente" },
       {
         name: "description",
-        content: "Plataforma avançada de inteligência comercial e prospecção de leads da Meridian Tech",
+        content:
+          "Plataforma avançada de inteligência comercial e prospecção de leads da Meridian Tech",
       },
       { name: "author", content: "Meridian Tech" },
+      { name: "referrer", content: "strict-origin-when-cross-origin" },
       { property: "og:title", content: "Meridian Hub" },
       {
         property: "og:description",
-        content: "Plataforma avançada de inteligência comercial e prospecção de leads da Meridian Tech",
+        content:
+          "Plataforma avançada de inteligência comercial e prospecção de leads da Meridian Tech",
       },
       { property: "og:image", content: "/logo-app-badge.png" },
       { property: "og:type", content: "website" },

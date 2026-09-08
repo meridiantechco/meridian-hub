@@ -32,7 +32,8 @@ export function MarketInsightsView() {
       taxaConversao: "34%",
       ticketMedio: "R$ 3.500",
       tempoFechamento: "9 dias",
-      argumentoPrincipal: "Posicionamento no topo do Google para buscas de especialidades e convênios.",
+      argumentoPrincipal:
+        "Posicionamento no topo do Google para buscas de especialidades e convênios.",
     },
     {
       nicho: "Petshops & Veterinárias",
@@ -52,7 +53,9 @@ export function MarketInsightsView() {
         {/* CARDS DE DESTAQUE */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="bg-card border-border/80 shadow-elev p-4 space-y-1">
-            <span className="rotulo text-[10px] text-muted-foreground">Maior Taxa de Fechamento</span>
+            <span className="rotulo text-[10px] text-muted-foreground">
+              Maior Taxa de Fechamento
+            </span>
             <p className="text-xl font-bold font-display text-emerald-400">
               Barbearias & Beleza (42%)
             </p>
@@ -64,14 +67,16 @@ export function MarketInsightsView() {
             <p className="text-xl font-bold font-display text-primary">
               Clínicas & Saúde (R$ 3.500)
             </p>
-            <p className="text-[11px] text-muted-foreground">Projetos com páginas de especialidades</p>
+            <p className="text-[11px] text-muted-foreground">
+              Projetos com páginas de especialidades
+            </p>
           </Card>
 
           <Card className="bg-card border-border/80 shadow-elev p-4 space-y-1">
-            <span className="rotulo text-[10px] text-muted-foreground">Canal de Maior Resposta</span>
-            <p className="text-xl font-bold font-display text-amber-400">
-              WhatsApp Direto (68%)
-            </p>
+            <span className="rotulo text-[10px] text-muted-foreground">
+              Canal de Maior Resposta
+            </span>
+            <p className="text-xl font-bold font-display text-amber-400">WhatsApp Direto (68%)</p>
             <p className="text-[11px] text-muted-foreground">Abordagem com foto do mockup</p>
           </Card>
         </div>
@@ -124,7 +129,9 @@ export function MarketInsightsView() {
         <Card className="bg-card border-border/80 shadow-elev p-5 space-y-3">
           <div className="flex items-center gap-2">
             <Lightbulb className="size-4 text-amber-400" />
-            <h4 className="text-sm font-bold text-foreground">Diretrizes Práticas para a Prospecção</h4>
+            <h4 className="text-sm font-bold text-foreground">
+              Diretrizes Práticas para a Prospecção
+            </h4>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -134,7 +141,8 @@ export function MarketInsightsView() {
                 1. Priorize leads sem site e com nota &ge; 4.2 no Google
               </span>
               <p className="text-[11px] text-muted-foreground leading-relaxed pl-5">
-                Empresas com boa reputação já possuem demanda e faturamento, necessitando apenas da ferramenta digital de captação.
+                Empresas com boa reputação já possuem demanda e faturamento, necessitando apenas da
+                ferramenta digital de captação.
               </p>
             </div>
 
@@ -144,7 +152,8 @@ export function MarketInsightsView() {
                 2. Envie mensagem personalizada em até 24h
               </span>
               <p className="text-[11px] text-muted-foreground leading-relaxed pl-5">
-                A taxa de resposta diminui em 60% após o 3º dia de mineração se nenhum contato for realizado.
+                A taxa de resposta diminui em 60% após o 3º dia de mineração se nenhum contato for
+                realizado.
               </p>
             </div>
           </div>

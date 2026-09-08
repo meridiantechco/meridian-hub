@@ -57,7 +57,8 @@ export const radarService = {
         empresa_nome: l1?.nome || "Restaurante Porto",
         empresa_id: l1?.id || null,
         tipoMudanca: "sem_site_ativo",
-        descricao: "Detectada ausência de website próprio e crescimento de 12 novas avaliações no Google Places.",
+        descricao:
+          "Detectada ausência de website próprio e crescimento de 12 novas avaliações no Google Places.",
         data_deteccao: new Date().toISOString(),
       },
       {

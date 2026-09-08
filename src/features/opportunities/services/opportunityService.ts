@@ -1,5 +1,10 @@
 import type { LeadItem } from "@/features/leads";
-import type { FatorScore, OportunidadeEnriquecida, ProximaAcao, CategoriaOportunidade } from "../types";
+import type {
+  FatorScore,
+  OportunidadeEnriquecida,
+  ProximaAcao,
+  CategoriaOportunidade,
+} from "../types";
 
 export const opportunityService = {
   calcularFatoresScore(lead: LeadItem): FatorScore[] {
@@ -11,14 +16,16 @@ export const opportunityService = {
         rotulo: "Carência de Site Próprio",
         pontos: 25,
         tipo: "positivo",
-        descricao: "O estabelecimento opera apenas com presença local/social, necessitando de portal web profissional.",
+        descricao:
+          "O estabelecimento opera apenas com presença local/social, necessitando de portal web profissional.",
       });
     } else {
       fatores.push({
         rotulo: "Possui Website",
         pontos: 5,
         tipo: "neutro",
-        descricao: "Já possui website, oportunidade focada em redesign, SEO ou otimização de conversão.",
+        descricao:
+          "Já possui website, oportunidade focada em redesign, SEO ou otimização de conversão.",
       });
     }
 
@@ -158,7 +165,8 @@ export const opportunityService = {
     if (lead.status === "fechado") {
       return {
         titulo: "Onboarding & Coleta de Briefing",
-        motivo: "Contrato fechado com sucesso! Iniciar coleta de identidade visual e dados para o desenvolvimento.",
+        motivo:
+          "Contrato fechado com sucesso! Iniciar coleta de identidade visual e dados para o desenvolvimento.",
         tipo: "reuniao",
         urgencia: "normal",
       };
@@ -166,7 +174,8 @@ export const opportunityService = {
 
     return {
       titulo: "Reavaliar Motivo de Recusa",
-      motivo: "Lead arquivado ou recusado. Oportunidade para reativação em 60 dias com nova oferta.",
+      motivo:
+        "Lead arquivado ou recusado. Oportunidade para reativação em 60 dias com nova oferta.",
       tipo: "follow_up",
       urgencia: "normal",
     };
@@ -202,10 +211,7 @@ export const opportunityService = {
         categoriasOportunidade.push("quentes");
       }
 
-      if (
-        (lead.status === "proposta" || lead.status === "contatado") &&
-        diasSemContato >= 3
-      ) {
+      if ((lead.status === "proposta" || lead.status === "contatado") && diasSemContato >= 3) {
         categoriasOportunidade.push("em_risco");
       }
 

@@ -17,8 +17,7 @@ export const analyticsService = {
     const leadsGerados = leads.length;
     const leadsQualificados = leads.filter((l) => l.score >= 60).length;
     const fechados = leads.filter((l) => l.status === "fechado").length;
-    const taxaConversaoGeral =
-      leadsGerados > 0 ? Math.round((fechados / leadsGerados) * 100) : 0;
+    const taxaConversaoGeral = leadsGerados > 0 ? Math.round((fechados / leadsGerados) * 100) : 0;
 
     const pipelineEstimado = leads.reduce((acc, l) => {
       const cat = (l.categoria || "").toLowerCase();
@@ -29,7 +28,7 @@ export const analyticsService = {
     }, 0);
 
     const receitaFechada = transacoes
-      .filter((t) => t.tipo === "receita" && t.status_pagamento === "pago")
+      .filter((t) => t.tipo === "receita" && t.status === "pago")
       .reduce((acc, t) => acc + t.valor, 0);
 
     const ticketMedio = fechados > 0 ? Math.round(receitaFechada / fechados) || 2200 : 2200;
@@ -80,7 +79,10 @@ export const analyticsService = {
   async obterDesempenhoGeografico(): Promise<DesempenhoGeografico[]> {
     const leads = await leadsService.listarLeads();
 
-    const grupos: Record<string, { total: number; semSite: number; somaScore: number; fechados: number }> = {};
+    const grupos: Record<
+      string,
+      { total: number; semSite: number; somaScore: number; fechados: number }
+    > = {};
 
     leads.forEach((l) => {
       const cidade = l.cidade || "Salvador";

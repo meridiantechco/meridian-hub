@@ -50,10 +50,7 @@ export function ContactsView() {
     [contatos],
   );
 
-  const totalComEmail = useMemo(
-    () => contatos.filter((c) => Boolean(c.email)).length,
-    [contatos],
-  );
+  const totalComEmail = useMemo(() => contatos.filter((c) => Boolean(c.email)).length, [contatos]);
 
   const totalEmpresasVinculadas = useMemo(() => {
     const s = new Set(contatos.map((c) => c.empresa_nome));
@@ -204,9 +201,7 @@ export function ContactsView() {
                 <tbody className="divide-y divide-border/60">
                   {contatosFiltrados.map((c) => (
                     <tr key={c.id} className="hover:bg-secondary/30 transition-colors group">
-                      <td className="p-3 pl-4 font-semibold text-foreground text-xs">
-                        {c.nome}
-                      </td>
+                      <td className="p-3 pl-4 font-semibold text-foreground text-xs">{c.nome}</td>
 
                       <td className="p-3 text-muted-foreground text-xs">{c.cargo}</td>
 

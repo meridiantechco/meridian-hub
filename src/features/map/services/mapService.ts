@@ -10,7 +10,8 @@ export const mapService = {
     return leads.map((l, index) => {
       // Se não tiver coordenadas gravadas, gera distribuição realista em volta da base
       const lat = l.latitude ?? BASE_LAT + ((index % 7) - 3) * 0.015 + Math.sin(index) * 0.008;
-      const lng = l.longitude ?? BASE_LNG + (((index * 3) % 7) - 3) * 0.015 + Math.cos(index) * 0.008;
+      const lng =
+        l.longitude ?? BASE_LNG + (((index * 3) % 7) - 3) * 0.015 + Math.cos(index) * 0.008;
 
       let nivel: NivelOportunidadeMapa = "atencao";
       if (l.score >= 75) nivel = "alta";
@@ -47,7 +48,9 @@ export const mapService = {
     }
 
     const totalEmpresas = pontos.length;
-    const totalOportunidades = pontos.filter((p) => p.nivel === "alta" || p.nivel === "qualificado").length;
+    const totalOportunidades = pontos.filter(
+      (p) => p.nivel === "alta" || p.nivel === "qualificado",
+    ).length;
     const somaScore = pontos.reduce((acc, p) => acc + p.score, 0);
     const scoreMedio = Math.round(somaScore / totalEmpresas);
     const potencialEstimadoTotal = pontos.reduce((acc, p) => acc + p.potencialValor, 0);

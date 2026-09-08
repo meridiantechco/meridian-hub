@@ -1,6 +1,7 @@
 import { leadsService } from "@/features/leads";
 import { tasksService } from "@/features/tasks";
 import type { NotificacaoItem } from "../types";
+import { getScopedItem, setScopedItem } from "@/lib/userStorage";
 
 const STORAGE_KEY = "meridian_notificacoes_centro_v1";
 
@@ -8,13 +9,9 @@ export const notificationsService = {
   async listarNotificacoes(): Promise<NotificacaoItem[]> {
     if (typeof window === "undefined") return [];
 
-    const salvo = localStorage.getItem(STORAGE_KEY);
-    if (salvo) {
-      try {
-        return JSON.parse(salvo) as NotificacaoItem[];
-      } catch {
-        // fallback
-      }
+    const salvo = await getScopedItem<NotificacaoItem[]>(STORAGE_KEY);
+    if (salvo && Array.isArray(salvo) && salvo.length > 0) {
+      return salvo;
     }
 
     const leads = await leadsService.listarLeads();
@@ -55,33 +52,34 @@ export const notificationsService = {
         titulo: "Demonstração comercial agendada",
         mensagem: "Reunião de apresentação às 15:00 via Google Meet.",
         lida: true,
-        link: "/calendar",
+        link: "/funil",
         criado_em: new Date(Date.now() - 14400000).toISOString(),
       },
     ];
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(iniciais));
+    await setScopedItem(STORAGE_KEY, iniciais);
     return iniciais;
   },
 
   async marcarComoLida(id: string): Promise<void> {
     const lista = await this.listarNotificacoes();
     const idx = lista.findIndex((n) => n.id === id);
-    if (idx !== -1) {
-      lista[idx].lida = true;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+    const item = lista[idx];
+    if (item) {
+      item.lida = true;
+      await setScopedItem(STORAGE_KEY, lista);
     }
   },
 
   async marcarTodasComoLidas(): Promise<void> {
     const lista = await this.listarNotificacoes();
     const atualizada = lista.map((n) => ({ ...n, lida: true }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizada));
+    await setScopedItem(STORAGE_KEY, atualizada);
   },
 
   async excluirNotificacao(id: string): Promise<void> {
     const lista = await this.listarNotificacoes();
     const filtrada = lista.filter((n) => n.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtrada));
+    await setScopedItem(STORAGE_KEY, filtrada);
   },
 };

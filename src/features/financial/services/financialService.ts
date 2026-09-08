@@ -116,10 +116,20 @@ export const TRANSACOES_EXEMPLO_DEMO: Omit<TransacaoFinanceira, "id" | "criado_e
   },
 ];
 
-function obterTransacoesLocalStorage(): TransacaoFinanceira[] {
+async function obterCurrentUserId(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data?.session?.user?.id ?? null;
+}
+
+function obterStorageKey(userId?: string | null): string {
+  return userId ? `${STORAGE_KEY_FINANCEIRO}_${userId}` : STORAGE_KEY_FINANCEIRO;
+}
+
+function obterTransacoesLocalStorage(userId?: string | null): TransacaoFinanceira[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_FINANCEIRO);
+    const key = obterStorageKey(userId);
+    const raw = localStorage.getItem(key);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as TransacaoFinanceira[]) : [];
@@ -128,10 +138,11 @@ function obterTransacoesLocalStorage(): TransacaoFinanceira[] {
   }
 }
 
-function salvarTransacoesLocalStorage(lista: TransacaoFinanceira[]) {
+function salvarTransacoesLocalStorage(lista: TransacaoFinanceira[], userId?: string | null) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY_FINANCEIRO, JSON.stringify(lista));
+    const key = obterStorageKey(userId);
+    localStorage.setItem(key, JSON.stringify(lista));
   } catch {
     // ignore
   }
@@ -139,42 +150,44 @@ function salvarTransacoesLocalStorage(lista: TransacaoFinanceira[]) {
 
 export const financialService = {
   /**
-   * Retorna todas as transações cadastradas (receitas e despesas)
+   * Retorna todas as transações cadastradas do operador logado
    */
   async listarTransacoes(): Promise<TransacaoFinanceira[]> {
+    const userId = await obterCurrentUserId();
+    if (!userId) return [];
+
     try {
       const { data, error } = await supabase
         .from("transacoes_financeiras")
         .select("*")
+        .eq("usuario_id", userId)
         .order("data_competencia", { ascending: false });
 
-      if (!error && data && Array.isArray(data) && data.length > 0) {
+      if (!error && data && Array.isArray(data)) {
         return data as TransacaoFinanceira[];
       }
     } catch (err) {
       console.warn("Aviso ao consultar Supabase para transações:", err);
     }
 
-    // Fallback para armazenamento local
-    const locais = obterTransacoesLocalStorage();
-    if (locais.length > 0) {
-      return locais;
-    }
-
-    return [];
+    // Fallback para armazenamento local exclusivo do operador
+    const locais = obterTransacoesLocalStorage(userId);
+    return locais;
   },
 
   /**
-   * Cria uma nova transação financeira
+   * Cria uma nova transação financeira vinculada ao operador
    */
   async criarTransacao(
     dados: Omit<TransacaoFinanceira, "id" | "criado_em">,
   ): Promise<TransacaoFinanceira> {
+    const userId = await obterCurrentUserId();
     const novaId = `tx-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const agora = new Date().toISOString();
     const fallbackLocal: TransacaoFinanceira = {
       ...dados,
       id: novaId,
+      usuario_id: userId,
       criado_em: agora,
     };
 
@@ -191,6 +204,7 @@ export const financialService = {
         status: dados.status,
         lead_id: dados.lead_id ?? null,
         lead_nome: dados.lead_nome ?? null,
+        usuario_id: userId,
       };
 
       const { data, error } = await supabase
@@ -200,16 +214,16 @@ export const financialService = {
         .single();
 
       if (!error && data) {
-        const atual = obterTransacoesLocalStorage();
-        salvarTransacoesLocalStorage([data as TransacaoFinanceira, ...atual]);
+        const atual = obterTransacoesLocalStorage(userId);
+        salvarTransacoesLocalStorage([data as TransacaoFinanceira, ...atual], userId);
         return data as TransacaoFinanceira;
       }
     } catch (err) {
       console.warn("Salvando transação no armazenamento local:", err);
     }
 
-    const atual = obterTransacoesLocalStorage();
-    salvarTransacoesLocalStorage([fallbackLocal, ...atual]);
+    const atual = obterTransacoesLocalStorage(userId);
+    salvarTransacoesLocalStorage([fallbackLocal, ...atual], userId);
     return fallbackLocal;
   },
 
@@ -220,6 +234,7 @@ export const financialService = {
     id: string,
     dados: Partial<Omit<TransacaoFinanceira, "id" | "criado_em">>,
   ): Promise<TransacaoFinanceira | null> {
+    const userId = await obterCurrentUserId();
     const agora = new Date().toISOString();
     let resultado: TransacaoFinanceira | null = null;
 
@@ -229,12 +244,12 @@ export const financialService = {
         atualizado_em: agora,
       };
 
-      const { data, error } = await supabase
-        .from("transacoes_financeiras")
-        .update(payload)
-        .eq("id", id)
-        .select()
-        .maybeSingle();
+      let query = supabase.from("transacoes_financeiras").update(payload).eq("id", id);
+      if (userId) {
+        query = query.eq("usuario_id", userId);
+      }
+
+      const { data, error } = await query.select().maybeSingle();
 
       if (!error && data) {
         resultado = data as TransacaoFinanceira;
@@ -243,7 +258,7 @@ export const financialService = {
       console.warn("Atualizando transação localmente:", err);
     }
 
-    const atual = obterTransacoesLocalStorage();
+    const atual = obterTransacoesLocalStorage(userId);
     const modificado = atual.map((t) => {
       if (t.id === id) {
         const atualizado = { ...t, ...dados, atualizado_em: agora };
@@ -252,7 +267,7 @@ export const financialService = {
       }
       return t;
     });
-    salvarTransacoesLocalStorage(modificado);
+    salvarTransacoesLocalStorage(modificado, userId);
 
     return resultado;
   },
@@ -261,14 +276,22 @@ export const financialService = {
    * Exclui uma transação financeira
    */
   async excluirTransacao(id: string): Promise<boolean> {
+    const userId = await obterCurrentUserId();
     try {
-      await supabase.from("transacoes_financeiras").delete().eq("id", id);
+      let query = supabase.from("transacoes_financeiras").delete().eq("id", id);
+      if (userId) {
+        query = query.eq("usuario_id", userId);
+      }
+      await query;
     } catch (err) {
       console.warn("Excluindo transação localmente:", err);
     }
 
-    const atual = obterTransacoesLocalStorage();
-    salvarTransacoesLocalStorage(atual.filter((t) => t.id !== id));
+    const atual = obterTransacoesLocalStorage(userId);
+    salvarTransacoesLocalStorage(
+      atual.filter((t) => t.id !== id),
+      userId,
+    );
     return true;
   },
 

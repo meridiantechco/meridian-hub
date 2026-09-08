@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { calendarService } from "../services/calendarService";
 import { MeetingModal } from "./MeetingModal";
 import type { ReuniaoItem } from "../types";
-import { cn } from "@/lib/utils";
+import { cn, sanitizarUrlExterna } from "@/lib/utils";
 
 export function CalendarView() {
   const [reunioes, setReunioes] = useState<ReuniaoItem[]>([]);
@@ -64,7 +64,9 @@ export function CalendarView() {
   const handleMarcarRealizada = async (r: ReuniaoItem) => {
     await calendarService.atualizarStatus(r.id, "realizada", true);
     await carregarDados();
-    toast.success("Reunião marcada como realizada! Tarefa de follow-up criada automaticamente no módulo de Tarefas. 🚀");
+    toast.success(
+      "Reunião marcada como realizada! Tarefa de follow-up criada automaticamente no módulo de Tarefas. 🚀",
+    );
   };
 
   const handleExcluir = async (id: string) => {
@@ -98,9 +100,7 @@ export function CalendarView() {
               <span className="rotulo text-[10px] text-muted-foreground">Reuniões Agendadas</span>
               <CalendarIcon className="size-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold font-display dado text-foreground">
-              {totalAgendadas}
-            </p>
+            <p className="text-2xl font-bold font-display dado text-foreground">{totalAgendadas}</p>
             <p className="text-[11px] text-muted-foreground">Demonstrações e alinhamentos</p>
           </Card>
 
@@ -109,15 +109,15 @@ export function CalendarView() {
               <span className="rotulo text-[10px] text-primary font-bold">Hoje na Agenda</span>
               <Clock className="size-4 text-primary" />
             </div>
-            <p className="text-2xl font-bold font-display dado text-primary">
-              {totalHoje}
-            </p>
+            <p className="text-2xl font-bold font-display dado text-primary">{totalHoje}</p>
             <p className="text-[11px] text-muted-foreground">Compromissos para o dia</p>
           </Card>
 
           <Card className="bg-card border-emerald-500/30 shadow-elev p-4 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="rotulo text-[10px] text-emerald-400 font-bold">Realizadas & Follow-up</span>
+              <span className="rotulo text-[10px] text-emerald-400 font-bold">
+                Realizadas & Follow-up
+              </span>
               <CheckCircle2 className="size-4 text-emerald-400" />
             </div>
             <p className="text-2xl font-bold font-display dado text-emerald-400">
@@ -179,7 +179,8 @@ export function CalendarView() {
 
                       <span className="flex items-center gap-1 dado font-mono text-foreground">
                         <Clock className="size-3.5 text-primary" />
-                        {new Date(r.data + "T12:00:00").toLocaleDateString("pt-BR")} às {r.horario} ({r.duracao_minutos} min)
+                        {new Date(r.data + "T12:00:00").toLocaleDateString("pt-BR")} às {r.horario}{" "}
+                        ({r.duracao_minutos} min)
                       </span>
                     </div>
 
@@ -191,14 +192,18 @@ export function CalendarView() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0 justify-end border-t md:border-t-0 pt-2 md:pt-0 border-border/50">
-                    {r.link_reuniao && (
+                    {sanitizarUrlExterna(r.link_reuniao) && (
                       <Button
                         size="sm"
                         variant="outline"
                         asChild
                         className="h-8 text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
                       >
-                        <a href={r.link_reuniao} target="_blank" rel="noreferrer">
+                        <a
+                          href={sanitizarUrlExterna(r.link_reuniao)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <Video className="size-3.5" />
                           <span>Entrar no Meet</span>
                           <ExternalLink className="size-3 opacity-70" />
@@ -233,9 +238,7 @@ export function CalendarView() {
               {reunioes.length === 0 && !carregando && (
                 <div className="py-12 text-center space-y-2">
                   <CalendarIcon className="size-8 text-muted-foreground/40 mx-auto" />
-                  <p className="text-sm font-semibold text-foreground">
-                    Nenhuma reunião agendada
-                  </p>
+                  <p className="text-sm font-semibold text-foreground">Nenhuma reunião agendada</p>
                   <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                     Agende reuniões com decisores para avançar o pipeline comercial.
                   </p>
@@ -247,11 +250,7 @@ export function CalendarView() {
       </div>
 
       {/* MODAL AGENDAR REUNIÃO */}
-      <MeetingModal
-        aberto={modalAberto}
-        onOpenChange={setModalAberto}
-        onSalvar={handleSalvar}
-      />
+      <MeetingModal aberto={modalAberto} onOpenChange={setModalAberto} onSalvar={handleSalvar} />
     </AppShell>
   );
 }

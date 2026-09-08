@@ -261,15 +261,24 @@ export function UsersView() {
         <Tabs value={abaAtiva} onValueChange={(val) => setAbaAtiva(val as any)} className="w-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/80 pb-3">
             <TabsList className="bg-secondary/70 p-1 flex flex-wrap h-auto w-full sm:w-auto gap-1">
-              <TabsTrigger value="equipe" className="text-xs font-semibold gap-1.5 flex-1 sm:flex-initial">
+              <TabsTrigger
+                value="equipe"
+                className="text-xs font-semibold gap-1.5 flex-1 sm:flex-initial"
+              >
                 <Users className="size-3.5" />
                 Membros da Equipe ({usuarios.length})
               </TabsTrigger>
-              <TabsTrigger value="auditoria" className="text-xs font-semibold gap-1.5 flex-1 sm:flex-initial">
+              <TabsTrigger
+                value="auditoria"
+                className="text-xs font-semibold gap-1.5 flex-1 sm:flex-initial"
+              >
                 <Activity className="size-3.5" />
                 Histórico ({atividades.length})
               </TabsTrigger>
-              <TabsTrigger value="metricas" className="text-xs font-semibold gap-1.5 flex-1 sm:flex-initial">
+              <TabsTrigger
+                value="metricas"
+                className="text-xs font-semibold gap-1.5 flex-1 sm:flex-initial"
+              >
                 <TrendingUp className="size-3.5" />
                 Produtividade
               </TabsTrigger>
@@ -392,7 +401,9 @@ export function UsersView() {
                           {ehAdmin && (
                             <Select
                               value={u.papel}
-                              onValueChange={(val) => alterarPapel(u.id, val as "admin" | "vendedor")}
+                              onValueChange={(val) =>
+                                alterarPapel(u.id, val as "admin" | "vendedor")
+                              }
                               disabled={u.email?.toLowerCase() === "meridiantech.co@gmail.com"}
                             >
                               <SelectTrigger className="h-8 w-28 text-xs bg-surface/50">
@@ -421,8 +432,8 @@ export function UsersView() {
                                 u.email?.toLowerCase() === user?.email?.toLowerCase()
                                   ? "Você não pode remover sua própria conta de administrador"
                                   : u.email?.toLowerCase() === "meridiantech.co@gmail.com"
-                                  ? "O Administrador Supremo não pode ser excluído"
-                                  : `Remover ${u.nome} permanentemente`
+                                    ? "O Administrador Supremo não pode ser excluído"
+                                    : `Remover ${u.nome} permanentemente`
                               }
                               aria-label={`Remover usuário ${u.nome}`}
                             >
@@ -658,16 +669,19 @@ export function UsersView() {
               <p>
                 Você está prestes a excluir o acesso do membro{" "}
                 <strong className="text-foreground">{usuarioParaExcluir?.nome}</strong> (
-                <span className="font-mono text-foreground">{usuarioParaExcluir?.email}</span>) com papel de{" "}
+                <span className="font-mono text-foreground">{usuarioParaExcluir?.email}</span>) com
+                papel de{" "}
                 <strong className="text-foreground capitalize">{usuarioParaExcluir?.papel}</strong>.
               </p>
               <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[11px] space-y-1">
                 <p className="font-semibold flex items-center gap-1.5">
-                  <ShieldAlert className="size-3.5" /> Atenção: Esta ação é definitiva e irreversível!
+                  <ShieldAlert className="size-3.5" /> Atenção: Esta ação é definitiva e
+                  irreversível!
                 </p>
                 <p className="text-muted-foreground text-[10.5px] leading-relaxed">
-                  • O usuário perderá imediatamente o login e todas as credenciais no Meridian Hub.<br />
-                  • Estabelecimentos sob responsabilidade deste vendedor serão desvinculados para redistribuição.
+                  • O usuário perderá imediatamente o login e todas as credenciais no Meridian Hub.
+                  <br />• Estabelecimentos sob responsabilidade deste vendedor serão desvinculados
+                  para redistribuição.
                 </p>
               </div>
             </AlertDialogDescription>

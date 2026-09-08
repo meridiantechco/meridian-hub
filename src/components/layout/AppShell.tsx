@@ -10,7 +10,7 @@ import { useAuth } from "@/features/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-import { Sidebar, GRUPOS_NAV } from "./Sidebar";
+import { Sidebar, ITENS_NAV } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { CommandPalette } from "./CommandPalette";
 
@@ -70,13 +70,9 @@ export function AppShell({ titulo, descricao, acoes, children }: AppShellProps) 
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="min-h-screen bg-background text-foreground flex antialiased">
+      <div className="min-h-screen bg-background text-foreground flex antialiased selection:bg-primary/25">
         {/* SIDEBAR DESKTOP */}
-        <Sidebar
-          colapsada={colapsada}
-          onToggle={toggleSidebar}
-          onSair={handleSair}
-        />
+        <Sidebar colapsada={colapsada} onToggle={toggleSidebar} onSair={handleSair} />
 
         {/* CONTAINER PRINCIPAL */}
         <div
@@ -95,10 +91,8 @@ export function AppShell({ titulo, descricao, acoes, children }: AppShellProps) 
           />
 
           {/* MAIN CONTENT WRAPPER COM MAX-WIDTH 1600PX PARA ULTRA-WIDE E DESKTOP */}
-          <main className="flex-1 min-h-[calc(100vh-64px)] p-4 sm:p-5 md:p-6 lg:p-7 min-w-0">
-            <div className="max-w-[1600px] mx-auto w-full space-y-6">
-              {children}
-            </div>
+          <main className="flex-1 min-h-[calc(100vh-64px)] p-3 sm:p-5 md:p-6 lg:p-7 min-w-0">
+            <div className="max-w-[1600px] mx-auto w-full space-y-6">{children}</div>
           </main>
         </div>
 
@@ -112,53 +106,46 @@ export function AppShell({ titulo, descricao, acoes, children }: AppShellProps) 
               </span>
               <div className="leading-tight">
                 <p className="font-display text-base font-bold tracking-tight">Meridian</p>
-                <p className="rotulo text-[9.5px] text-muted-foreground/80">Inteligência Comercial</p>
+                <p className="rotulo text-[9.5px] text-muted-foreground/80">
+                  Inteligência Comercial
+                </p>
               </div>
             </div>
 
-            <div className="overflow-y-auto max-h-[calc(100vh-140px)] p-3 space-y-4">
-              {GRUPOS_NAV.map((grupo, gIdx) => {
-                const itensVisiveis = grupo.itens.filter((i) => !i.somenteAdmin || ehAdmin);
-                if (itensVisiveis.length === 0) return null;
-
-                return (
-                  <div key={grupo.rotulo || gIdx} className="space-y-1">
-                    {grupo.rotulo && (
-                      <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider rotulo text-muted-foreground/60">
-                        {grupo.rotulo}
-                      </div>
+            <div className="overflow-y-auto max-h-[calc(100vh-140px)] p-3 space-y-2">
+              <nav className="flex flex-col gap-1.5">
+                {ITENS_NAV.filter((item) => !item.somenteAdmin || ehAdmin).map((item) => (
+                  <Link
+                    key={item.para}
+                    to={item.para}
+                    onClick={() => setMobileAberto(false)}
+                    className="flex items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+                    activeProps={{
+                      className: "bg-foreground text-background font-semibold shadow-xs",
+                    }}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <item.icone className="size-4 shrink-0" />
+                      <span>{item.rotulo}</span>
+                    </div>
+                    {item.badge && (
+                      <Badge
+                        variant="outline"
+                        className="text-[9px] border-primary/40 text-primary rounded-full"
+                      >
+                        {item.badge}
+                      </Badge>
                     )}
-                    <nav className="flex flex-col gap-0.5">
-                      {itensVisiveis.map((item) => (
-                        <Link
-                          key={item.para}
-                          to={item.para}
-                          onClick={() => setMobileAberto(false)}
-                          className="flex items-center justify-between rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
-                          activeProps={{
-                            className: "bg-primary/15 text-foreground font-semibold border-l-2 border-l-primary",
-                          }}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <item.icone className="size-4 shrink-0 text-primary" />
-                            <span>{item.rotulo}</span>
-                          </div>
-                          {item.badge && (
-                            <Badge variant="outline" className="text-[9px] border-primary/40 text-primary">
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </Link>
-                      ))}
-                    </nav>
-                  </div>
-                );
-              })}
+                  </Link>
+                ))}
+              </nav>
             </div>
 
             <div className="absolute bottom-0 inset-x-0 border-t border-sidebar-border p-3.5 bg-sidebar">
               <p className="rotulo text-[9px]">Usuário Ativo</p>
-              <p className="truncate text-xs font-semibold text-foreground">{nome || user?.email}</p>
+              <p className="truncate text-xs font-semibold text-foreground">
+                {nome || user?.email}
+              </p>
               <Button
                 variant="ghost"
                 size="sm"

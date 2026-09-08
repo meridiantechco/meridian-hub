@@ -71,8 +71,6 @@ export const activitiesService = {
     });
 
     // Ordenar por data mais recente
-    return lista.sort(
-      (a, b) => new Date(b.data_hora).getTime() - new Date(a.data_hora).getTime(),
-    );
+    return lista.sort((a, b) => new Date(b.data_hora).getTime() - new Date(a.data_hora).getTime());
   },
 };

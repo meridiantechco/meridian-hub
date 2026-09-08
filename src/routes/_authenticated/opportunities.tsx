@@ -7,7 +7,8 @@ export const Route = createFileRoute("/_authenticated/opportunities")({
       { title: "Opportunity Center — Meridian" },
       {
         name: "description",
-        content: "Central de inteligência comercial e priorização de oportunidades de alta conversão",
+        content:
+          "Central de inteligência comercial e priorização de oportunidades de alta conversão",
       },
     ],
   }),

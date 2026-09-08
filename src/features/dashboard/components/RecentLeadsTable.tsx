@@ -25,7 +25,12 @@ export function RecentLeadsTable({ leads, onAbordar }: RecentLeadsTableProps) {
           </CardDescription>
         </div>
 
-        <Button variant="ghost" size="sm" asChild className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1"
+        >
           <Link to="/leads">
             <span>Ver base completa</span>
             <ArrowRight className="size-3" />

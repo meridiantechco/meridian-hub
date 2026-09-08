@@ -227,28 +227,36 @@ export function OpportunityMapView() {
 
               <div className="grid grid-cols-2 gap-2.5 text-xs dado">
                 <div className="p-2 rounded-lg bg-surface/50 border border-border/60">
-                  <span className="text-[10px] text-muted-foreground block rotulo">Total Mapeado</span>
+                  <span className="text-[10px] text-muted-foreground block rotulo">
+                    Total Mapeado
+                  </span>
                   <strong className="text-foreground text-sm font-display">
                     {resumoRegiao.totalEmpresas} contas
                   </strong>
                 </div>
 
                 <div className="p-2 rounded-lg bg-surface/50 border border-border/60">
-                  <span className="text-[10px] text-primary block rotulo font-bold">Oportunidades</span>
+                  <span className="text-[10px] text-primary block rotulo font-bold">
+                    Oportunidades
+                  </span>
                   <strong className="text-primary text-sm font-display">
                     {resumoRegiao.totalOportunidades} quentes
                   </strong>
                 </div>
 
                 <div className="p-2 rounded-lg bg-surface/50 border border-border/60">
-                  <span className="text-[10px] text-muted-foreground block rotulo">Score Médio</span>
+                  <span className="text-[10px] text-muted-foreground block rotulo">
+                    Score Médio
+                  </span>
                   <strong className="text-amber-400 text-sm font-display">
                     {resumoRegiao.scoreMedio} pts
                   </strong>
                 </div>
 
                 <div className="p-2 rounded-lg bg-surface/50 border border-border/60">
-                  <span className="text-[10px] text-muted-foreground block rotulo">Carência Web</span>
+                  <span className="text-[10px] text-muted-foreground block rotulo">
+                    Carência Web
+                  </span>
                   <strong className="text-emerald-400 text-sm font-display">
                     {resumoRegiao.semSitePercentual}% sem site
                   </strong>
@@ -287,7 +295,11 @@ export function OpportunityMapView() {
                 <div className="p-2.5 rounded-lg bg-surface/50 border border-border/60 text-xs space-y-1">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Presença Digital:</span>
-                    <strong className={!pontoSelecionado.lead.tem_site ? "text-primary" : "text-foreground"}>
+                    <strong
+                      className={
+                        !pontoSelecionado.lead.tem_site ? "text-primary" : "text-foreground"
+                      }
+                    >
                       {!pontoSelecionado.lead.tem_site ? "Sem site oficial" : "Possui site"}
                     </strong>
                   </div>

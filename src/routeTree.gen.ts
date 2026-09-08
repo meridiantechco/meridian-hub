@@ -12,28 +12,21 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedActivitiesRouteImport } from './routes/_authenticated/activities'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as AuthenticatedBuscasRouteImport } from './routes/_authenticated/buscas'
-import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedCompaniesRouteImport } from './routes/_authenticated/companies'
 import { Route as AuthenticatedContactsRouteImport } from './routes/_authenticated/contacts'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedFunilRouteImport } from './routes/_authenticated/funil'
-import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedNovaBuscaRouteImport } from './routes/_authenticated/nova-busca'
 import { Route as AuthenticatedOpportunitiesRouteImport } from './routes/_authenticated/opportunities'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
-import { Route as AuthenticatedRadarRouteImport } from './routes/_authenticated/radar'
-import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
-import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
-import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedAnalyticsGeoRouteImport } from './routes/_authenticated/analytics.geo'
 import { Route as AuthenticatedAnalyticsTeamRouteImport } from './routes/_authenticated/analytics.team'
@@ -53,11 +46,6 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedActivitiesRoute = AuthenticatedActivitiesRouteImport.update({
-  id: '/activities',
-  path: '/activities',
-  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   id: '/analytics',
@@ -80,11 +68,6 @@ const AuthenticatedBuscasRoute = AuthenticatedBuscasRouteImport.update({
   path: '/buscas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedCompaniesRoute = AuthenticatedCompaniesRouteImport.update({
   id: '/companies',
   path: '/companies',
@@ -103,11 +86,6 @@ const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
 const AuthenticatedFunilRoute = AuthenticatedFunilRouteImport.update({
   id: '/funil',
   path: '/funil',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedInsightsRoute = AuthenticatedInsightsRouteImport.update({
-  id: '/insights',
-  path: '/insights',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
@@ -142,29 +120,9 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedRadarRoute = AuthenticatedRadarRouteImport.update({
-  id: '/radar',
-  path: '/radar',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
-  id: '/today',
-  path: '/today',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
@@ -199,28 +157,21 @@ const AuthenticatedLeadsIdRoute = AuthenticatedLeadsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/activities': typeof AuthenticatedActivitiesRoute
   '/analytics': typeof AuthenticatedAnalyticsRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/buscas': typeof AuthenticatedBuscasRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
   '/companies': typeof AuthenticatedCompaniesRouteWithChildren
   '/contacts': typeof AuthenticatedContactsRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/funil': typeof AuthenticatedFunilRoute
-  '/insights': typeof AuthenticatedInsightsRoute
   '/leads': typeof AuthenticatedLeadsRouteWithChildren
   '/map': typeof AuthenticatedMapRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/nova-busca': typeof AuthenticatedNovaBuscaRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/radar': typeof AuthenticatedRadarRoute
-  '/reports': typeof AuthenticatedReportsRoute
-  '/tasks': typeof AuthenticatedTasksRoute
   '/templates': typeof AuthenticatedTemplatesRoute
-  '/today': typeof AuthenticatedTodayRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/analytics/geo': typeof AuthenticatedAnalyticsGeoRoute
   '/analytics/team': typeof AuthenticatedAnalyticsTeamRoute
@@ -230,28 +181,21 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/activities': typeof AuthenticatedActivitiesRoute
   '/analytics': typeof AuthenticatedAnalyticsRouteWithChildren
   '/assistant': typeof AuthenticatedAssistantRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/buscas': typeof AuthenticatedBuscasRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
   '/companies': typeof AuthenticatedCompaniesRouteWithChildren
   '/contacts': typeof AuthenticatedContactsRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/funil': typeof AuthenticatedFunilRoute
-  '/insights': typeof AuthenticatedInsightsRoute
   '/leads': typeof AuthenticatedLeadsRouteWithChildren
   '/map': typeof AuthenticatedMapRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/nova-busca': typeof AuthenticatedNovaBuscaRoute
   '/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/radar': typeof AuthenticatedRadarRoute
-  '/reports': typeof AuthenticatedReportsRoute
-  '/tasks': typeof AuthenticatedTasksRoute
   '/templates': typeof AuthenticatedTemplatesRoute
-  '/today': typeof AuthenticatedTodayRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/analytics/geo': typeof AuthenticatedAnalyticsGeoRoute
   '/analytics/team': typeof AuthenticatedAnalyticsTeamRoute
@@ -263,28 +207,21 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/activities': typeof AuthenticatedActivitiesRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRouteWithChildren
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/buscas': typeof AuthenticatedBuscasRoute
-  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/companies': typeof AuthenticatedCompaniesRouteWithChildren
   '/_authenticated/contacts': typeof AuthenticatedContactsRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/funil': typeof AuthenticatedFunilRoute
-  '/_authenticated/insights': typeof AuthenticatedInsightsRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRouteWithChildren
   '/_authenticated/map': typeof AuthenticatedMapRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/nova-busca': typeof AuthenticatedNovaBuscaRoute
   '/_authenticated/opportunities': typeof AuthenticatedOpportunitiesRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
-  '/_authenticated/radar': typeof AuthenticatedRadarRoute
-  '/_authenticated/reports': typeof AuthenticatedReportsRoute
-  '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
-  '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/analytics/geo': typeof AuthenticatedAnalyticsGeoRoute
   '/_authenticated/analytics/team': typeof AuthenticatedAnalyticsTeamRoute
@@ -296,28 +233,21 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/activities'
     | '/analytics'
     | '/assistant'
     | '/automations'
     | '/buscas'
-    | '/calendar'
     | '/companies'
     | '/contacts'
     | '/financeiro'
     | '/funil'
-    | '/insights'
     | '/leads'
     | '/map'
     | '/notifications'
     | '/nova-busca'
     | '/opportunities'
     | '/painel'
-    | '/radar'
-    | '/reports'
-    | '/tasks'
     | '/templates'
-    | '/today'
     | '/usuarios'
     | '/analytics/geo'
     | '/analytics/team'
@@ -327,28 +257,21 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/activities'
     | '/analytics'
     | '/assistant'
     | '/automations'
     | '/buscas'
-    | '/calendar'
     | '/companies'
     | '/contacts'
     | '/financeiro'
     | '/funil'
-    | '/insights'
     | '/leads'
     | '/map'
     | '/notifications'
     | '/nova-busca'
     | '/opportunities'
     | '/painel'
-    | '/radar'
-    | '/reports'
-    | '/tasks'
     | '/templates'
-    | '/today'
     | '/usuarios'
     | '/analytics/geo'
     | '/analytics/team'
@@ -359,28 +282,21 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/_authenticated/activities'
     | '/_authenticated/analytics'
     | '/_authenticated/assistant'
     | '/_authenticated/automations'
     | '/_authenticated/buscas'
-    | '/_authenticated/calendar'
     | '/_authenticated/companies'
     | '/_authenticated/contacts'
     | '/_authenticated/financeiro'
     | '/_authenticated/funil'
-    | '/_authenticated/insights'
     | '/_authenticated/leads'
     | '/_authenticated/map'
     | '/_authenticated/notifications'
     | '/_authenticated/nova-busca'
     | '/_authenticated/opportunities'
     | '/_authenticated/painel'
-    | '/_authenticated/radar'
-    | '/_authenticated/reports'
-    | '/_authenticated/tasks'
     | '/_authenticated/templates'
-    | '/_authenticated/today'
     | '/_authenticated/usuarios'
     | '/_authenticated/analytics/geo'
     | '/_authenticated/analytics/team'
@@ -417,13 +333,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/activities': {
-      id: '/_authenticated/activities'
-      path: '/activities'
-      fullPath: '/activities'
-      preLoaderRoute: typeof AuthenticatedActivitiesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/analytics': {
       id: '/_authenticated/analytics'
       path: '/analytics'
@@ -452,13 +361,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBuscasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/calendar': {
-      id: '/_authenticated/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/companies': {
       id: '/_authenticated/companies'
       path: '/companies'
@@ -485,13 +387,6 @@ declare module '@tanstack/react-router' {
       path: '/funil'
       fullPath: '/funil'
       preLoaderRoute: typeof AuthenticatedFunilRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/insights': {
-      id: '/_authenticated/insights'
-      path: '/insights'
-      fullPath: '/insights'
-      preLoaderRoute: typeof AuthenticatedInsightsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/leads': {
@@ -536,39 +431,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/radar': {
-      id: '/_authenticated/radar'
-      path: '/radar'
-      fullPath: '/radar'
-      preLoaderRoute: typeof AuthenticatedRadarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/reports': {
-      id: '/_authenticated/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof AuthenticatedReportsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tasks': {
-      id: '/_authenticated/tasks'
-      path: '/tasks'
-      fullPath: '/tasks'
-      preLoaderRoute: typeof AuthenticatedTasksRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/templates': {
       id: '/_authenticated/templates'
       path: '/templates'
       fullPath: '/templates'
       preLoaderRoute: typeof AuthenticatedTemplatesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/today': {
-      id: '/_authenticated/today'
-      path: '/today'
-      fullPath: '/today'
-      preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/usuarios': {
@@ -651,54 +518,40 @@ const AuthenticatedLeadsRouteWithChildren =
   AuthenticatedLeadsRoute._addFileChildren(AuthenticatedLeadsRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedActivitiesRoute: typeof AuthenticatedActivitiesRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRouteWithChildren
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedAutomationsRoute: typeof AuthenticatedAutomationsRoute
   AuthenticatedBuscasRoute: typeof AuthenticatedBuscasRoute
-  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedCompaniesRoute: typeof AuthenticatedCompaniesRouteWithChildren
   AuthenticatedContactsRoute: typeof AuthenticatedContactsRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedFunilRoute: typeof AuthenticatedFunilRoute
-  AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRouteWithChildren
   AuthenticatedMapRoute: typeof AuthenticatedMapRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedNovaBuscaRoute: typeof AuthenticatedNovaBuscaRoute
   AuthenticatedOpportunitiesRoute: typeof AuthenticatedOpportunitiesRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
-  AuthenticatedRadarRoute: typeof AuthenticatedRadarRoute
-  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
-  AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
-  AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedActivitiesRoute: AuthenticatedActivitiesRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRouteWithChildren,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedAutomationsRoute: AuthenticatedAutomationsRoute,
   AuthenticatedBuscasRoute: AuthenticatedBuscasRoute,
-  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedCompaniesRoute: AuthenticatedCompaniesRouteWithChildren,
   AuthenticatedContactsRoute: AuthenticatedContactsRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedFunilRoute: AuthenticatedFunilRoute,
-  AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRouteWithChildren,
   AuthenticatedMapRoute: AuthenticatedMapRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedNovaBuscaRoute: AuthenticatedNovaBuscaRoute,
   AuthenticatedOpportunitiesRoute: AuthenticatedOpportunitiesRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
-  AuthenticatedRadarRoute: AuthenticatedRadarRoute,
-  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
-  AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
-  AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
 }
 

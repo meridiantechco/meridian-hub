@@ -7,11 +7,13 @@ assignees: ""
 ---
 
 ## 🐞 Descrição do Problema
+
 Uma descrição clara e concisa sobre qual é o erro observado no Meridian Hub.
 
 ---
 
 ## 🧭 Módulo / Feature Afetada
+
 - [ ] `auth` (Autenticação / 1º Acesso)
 - [ ] `financial` (Financeiro / Lucro / Despesas)
 - [ ] `dashboard` (Painel Comercial / KPIs)
@@ -24,6 +26,7 @@ Uma descrição clara e concisa sobre qual é o erro observado no Meridian Hub.
 ---
 
 ## 🔢 Passos para Reproduzir
+
 1. Acessar a rota '...'
 2. Clicar em '....'
 3. Preencher o campo '....'
@@ -32,11 +35,13 @@ Uma descrição clara e concisa sobre qual é o erro observado no Meridian Hub.
 ---
 
 ## 🎯 Comportamento Esperado
+
 Uma explicação clara do que deveria acontecer.
 
 ---
 
 ## 🖥️ Informações do Ambiente
+
 - **Navegador**: [ex: Chrome 128, Firefox 130]
 - **Sistema Operacional**: [ex: Windows 11, macOS Sequoia, Linux]
 - **Dispositivo**: [ex: Desktop, Mobile Android/iOS]
@@ -44,4 +49,5 @@ Uma explicação clara do que deveria acontecer.
 ---
 
 ## 📸 Capturas de Tela / Logs do Console
+
 Se aplicável, anexe prints do erro ou logs do console do navegador (F12).

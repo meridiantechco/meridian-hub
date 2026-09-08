@@ -1,7 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,13 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Calendar,
-  Download,
-  TrendingDown,
-  TrendingUp,
-  AlertTriangle,
-} from "lucide-react";
+import { Calendar, Download, TrendingDown, TrendingUp, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { prospectaService } from "@/lib/prospecta-service";
 import type { LeadItem } from "@/lib/leads-mock";
@@ -46,10 +46,14 @@ export function FinancialView() {
     restaurarDemo,
   } = useFinancial();
 
-  const [abaAtiva, setAbaAtiva] = useState<"todas" | "despesas" | "receitas" | "pendentes">("todas");
+  const [abaAtiva, setAbaAtiva] = useState<"todas" | "despesas" | "receitas" | "pendentes">(
+    "todas",
+  );
   const [modalNovaDespesaAberto, setModalNovaDespesaAberto] = useState(false);
   const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
-  const [transacaoParaExcluir, setTransacaoParaExcluir] = useState<TransacaoFinanceira | null>(null);
+  const [transacaoParaExcluir, setTransacaoParaExcluir] = useState<TransacaoFinanceira | null>(
+    null,
+  );
   const [leadsDisponiveis, setLeadsDisponiveis] = useState<LeadItem[]>([]);
 
   useEffect(() => {
@@ -112,12 +116,12 @@ export function FinancialView() {
       titulo="Financeiro"
       descricao="Gestão de despesas operacionais, receitas e fluxo de caixa da operação"
       acoes={
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           <Button
             variant="outline"
             size="sm"
             onClick={exportarCSV}
-            className="h-8 px-2.5 gap-1.5 text-xs border-border/80 text-foreground"
+            className="h-8.5 px-3.5 rounded-full gap-1.5 text-xs border-border/80 text-foreground hover:bg-secondary/60"
           >
             <Download className="size-3.5" />
             <span className="hidden md:inline">Exportar </span>CSV
@@ -127,34 +131,40 @@ export function FinancialView() {
             variant="outline"
             size="sm"
             onClick={() => setModalNovaDespesaAberto(true)}
-            className="h-8 px-2.5 gap-1.5 text-xs border-pink-500/30 text-pink-400 hover:bg-pink-500/10 font-semibold"
+            className="h-8.5 px-3.5 rounded-full gap-1.5 text-xs border-pink-500/30 text-pink-400 hover:bg-pink-500/10 font-semibold"
           >
             <TrendingDown className="size-3.5" />
-            <span>Novo Gasto<span className="hidden sm:inline"> / Despesa</span></span>
+            <span>
+              Novo Gasto<span className="hidden sm:inline"> / Despesa</span>
+            </span>
           </Button>
 
           <Button
             size="sm"
             onClick={() => setModalNovaReceitaAberto(true)}
-            className="h-8 px-2.5 gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm"
+            className="h-8.5 px-4 rounded-full gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs"
           >
             <TrendingUp className="size-3.5" />
-            <span>Nova Receita<span className="hidden sm:inline"> / Fechamento</span></span>
+            <span>
+              Nova Receita<span className="hidden sm:inline"> / Fechamento</span>
+            </span>
           </Button>
         </div>
       }
     >
       <div className="space-y-6 max-w-7xl">
-        {/* BARRA DE SELEÇÃO DE PERÍODO */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border shadow-elev">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+        {/* BARRA DE SELEÇÃO DE PERÍODO (BENTO STYLE) */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/70 shadow-elev">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
             <Calendar className="size-4 text-primary shrink-0" />
-            <span className="text-xs font-semibold text-foreground whitespace-nowrap">Período:</span>
+            <span className="text-xs font-semibold text-foreground whitespace-nowrap">
+              Período:
+            </span>
             <Select value={filtroMes} onValueChange={setFiltroMes}>
-              <SelectTrigger className="w-full sm:w-44 h-8 text-xs bg-surface/50 border-border">
+              <SelectTrigger className="w-full sm:w-48 h-8.5 rounded-full text-xs bg-surface/50 border-border">
                 <SelectValue placeholder="Selecione o período" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-2xl bg-card border-border">
                 <SelectItem value="todos">Todo o Histórico</SelectItem>
                 {mesesDisponiveis.map((m) => (
                   <SelectItem key={m} value={m}>
@@ -165,15 +175,16 @@ export function FinancialView() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground flex-wrap">
-            <span className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2.5 sm:gap-3 text-xs text-muted-foreground flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
               <span className="size-2 rounded-full bg-emerald-400" />
-              Receita: <strong className="text-foreground">{formatarMoeda(metricas.receitaTotal)}</strong>
+              Receita:{" "}
+              <strong className="text-foreground">{formatarMoeda(metricas.receitaTotal)}</strong>
             </span>
-            <span>·</span>
-            <span className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400">
               <span className="size-2 rounded-full bg-pink-400" />
-              Gastos: <strong className="text-foreground">{formatarMoeda(metricas.despesaTotal)}</strong>
+              Gastos:{" "}
+              <strong className="text-foreground">{formatarMoeda(metricas.despesaTotal)}</strong>
             </span>
           </div>
         </div>
@@ -223,7 +234,7 @@ export function FinancialView() {
         open={Boolean(transacaoParaExcluir)}
         onOpenChange={(aberto) => !aberto && setTransacaoParaExcluir(null)}
       >
-        <AlertDialogContent className="bg-card border-border">
+        <AlertDialogContent className="bg-card border-border rounded-3xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-rose-400 flex items-center gap-2">
               <AlertTriangle className="size-5" />
@@ -231,7 +242,8 @@ export function FinancialView() {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs text-muted-foreground">
               Você está prestes a remover o registro de{" "}
-              <strong className="text-foreground">{transacaoParaExcluir?.titulo}</strong> no valor de{" "}
+              <strong className="text-foreground">{transacaoParaExcluir?.titulo}</strong> no valor
+              de{" "}
               <strong className="text-foreground">
                 {transacaoParaExcluir ? formatarMoeda(transacaoParaExcluir.valor) : ""}
               </strong>
@@ -239,10 +251,10 @@ export function FinancialView() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="text-xs">Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="text-xs rounded-full">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmarExclusao}
-              className="bg-rose-600 hover:bg-rose-500 text-white text-xs"
+              className="bg-rose-600 hover:bg-rose-500 text-white text-xs rounded-full font-semibold"
             >
               Sim, Excluir
             </AlertDialogAction>

@@ -44,4 +44,4 @@
 
 ---
 
-*Meridian Tech — Padrões de Código e Qualidade.*
+_Meridian Tech — Padrões de Código e Qualidade._
