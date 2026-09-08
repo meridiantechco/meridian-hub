@@ -31,7 +31,11 @@ export function GeoAnalyticsView() {
       titulo="Performance Geográfica & Territorial"
       descricao="Análise de penetração comercial por município, polo empresarial e bairros mapeados"
       acoes={
-        <Button asChild size="sm" className="h-8 text-xs bg-primary text-primary-foreground font-semibold gap-1.5 shadow-xs">
+        <Button
+          asChild
+          size="sm"
+          className="h-8 text-xs bg-primary text-primary-foreground font-semibold gap-1.5 shadow-xs"
+        >
           <Link to="/map">
             <Compass className="size-3.5" />
             <span>Abrir Mapa Interativo</span>
@@ -74,18 +78,6 @@ export function GeoAnalyticsView() {
             <Link to="/analytics/geo">
               <MapPin className="size-3.5 mr-1" />
               Performance Geográfica
-            </Link>
-          </Button>
-
-          <Button
-            size="sm"
-            variant="ghost"
-            asChild
-            className="h-7 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <Link to="/reports">
-              <FileSpreadsheet className="size-3.5 mr-1" />
-              Relatórios & Exportação
             </Link>
           </Button>
         </div>

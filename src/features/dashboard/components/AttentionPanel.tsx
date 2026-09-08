@@ -1,5 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { AlertCircle, Flame, MessageSquare, ArrowRight, Kanban, Clock, Sparkles } from "lucide-react";
+import {
+  AlertCircle,
+  Flame,
+  MessageSquare,
+  ArrowRight,
+  Kanban,
+  Clock,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BadgePriority } from "@/features/leads/components/BadgePriority";
@@ -64,7 +72,9 @@ export function AttentionPanel({ leads, onAbordar }: AttentionPanelProps) {
                       className="p-2 rounded-lg bg-card border border-border/60 flex items-center justify-between gap-2"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-foreground truncate">{lead.nome}</p>
+                        <p className="text-xs font-semibold text-foreground truncate">
+                          {lead.nome}
+                        </p>
                         <p className="text-[10px] text-muted-foreground truncate">
                           {lead.categoria} · 📍 {lead.bairro || lead.cidade}
                         </p>
@@ -125,7 +135,9 @@ export function AttentionPanel({ leads, onAbordar }: AttentionPanelProps) {
                       className="p-2 rounded-lg bg-card border border-border/60 flex items-center justify-between gap-2"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-foreground truncate">{lead.nome}</p>
+                        <p className="text-xs font-semibold text-foreground truncate">
+                          {lead.nome}
+                        </p>
                         <p className="text-[10px] text-muted-foreground truncate">
                           {lead.categoria} · Proposta enviada
                         </p>
@@ -183,7 +195,9 @@ export function AttentionPanel({ leads, onAbordar }: AttentionPanelProps) {
                       className="p-2 rounded-lg bg-card border border-border/60 flex items-center justify-between gap-2"
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-foreground truncate">{lead.nome}</p>
+                        <p className="text-xs font-semibold text-foreground truncate">
+                          {lead.nome}
+                        </p>
                         <p className="text-[10px] text-muted-foreground truncate">
                           {lead.categoria} · Contato inicial feito
                         </p>

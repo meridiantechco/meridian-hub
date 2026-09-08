@@ -1,5 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { MoveLeft, MoveRight, MessageSquare, ExternalLink, AlertCircle, Instagram, Star, Eye, Trash2 } from "lucide-react";
+import {
+  MoveLeft,
+  MoveRight,
+  MessageSquare,
+  ExternalLink,
+  AlertCircle,
+  Instagram,
+  Star,
+  Eye,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BadgePriority } from "@/features/leads";

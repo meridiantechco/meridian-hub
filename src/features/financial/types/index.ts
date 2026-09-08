@@ -32,6 +32,7 @@ export interface TransacaoFinanceira {
   status: StatusTransacao;
   lead_id?: string | null;
   lead_nome?: string | null;
+  usuario_id?: string | null;
   anexo_comprovante?: string | null;
   criado_em: string;
   atualizado_em?: string;

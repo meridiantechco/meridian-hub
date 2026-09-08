@@ -9,14 +9,14 @@
 
 Todas as tabelas, colunas, enums, constraints, índices e funções de banco de dados devem adotar **prioritariamente o Português do Brasil**, utilizando a convenção `snake_case`.
 
-| Elemento | Padrão / Convenção | Exemplos Corretos | Exemplos Proibidos ❌ |
-| :--- | :--- | :--- | :--- |
-| **Tabelas** | `snake_case`, substantivo claro (geralmente plural) | `leads`, `buscas`, `interacoes`, `transacoes_financeiras`, `auditoria_atividades`, `perfis` | `financial_transactions`, `activity_logs`, `search_history` |
-| **Colunas** | `snake_case`, termos em português | `nome`, `categoria`, `endereco`, `bairro`, `cidade`, `estado`, `valor`, `data_competencia` | `first_name`, `address_line`, `due_date`, `amount` |
-| **Timestamps** | `criado_em` e `atualizado_em` | `criado_em TIMESTAMPTZ`, `atualizado_em TIMESTAMPTZ` | `created_at`, `updated_at` |
-| **Chaves Estrangeiras** | `<entidade_singular>_id` | `lead_id`, `usuario_id`, `responsavel_id` | `fk_lead`, `user_uuid`, `owner_id` |
-| **Booleans** | `tem_<atributo>`, `eh_<atributo>` ou adjetivo direto | `tem_site`, `ativo`, `primeiro_acesso_pendente` | `has_website`, `is_active` |
-| **Enums** | Nome em `snake_case` com valores em português | `lead_status ('novo', 'contatado', 'fechado')`, `tipo_transacao ('receita', 'despesa')` | `lead_status ('new', 'contacted', 'closed')` |
+| Elemento                | Padrão / Convenção                                   | Exemplos Corretos                                                                           | Exemplos Proibidos ❌                                       |
+| :---------------------- | :--------------------------------------------------- | :------------------------------------------------------------------------------------------ | :---------------------------------------------------------- |
+| **Tabelas**             | `snake_case`, substantivo claro (geralmente plural)  | `leads`, `buscas`, `interacoes`, `transacoes_financeiras`, `auditoria_atividades`, `perfis` | `financial_transactions`, `activity_logs`, `search_history` |
+| **Colunas**             | `snake_case`, termos em português                    | `nome`, `categoria`, `endereco`, `bairro`, `cidade`, `estado`, `valor`, `data_competencia`  | `first_name`, `address_line`, `due_date`, `amount`          |
+| **Timestamps**          | `criado_em` e `atualizado_em`                        | `criado_em TIMESTAMPTZ`, `atualizado_em TIMESTAMPTZ`                                        | `created_at`, `updated_at`                                  |
+| **Chaves Estrangeiras** | `<entidade_singular>_id`                             | `lead_id`, `usuario_id`, `responsavel_id`                                                   | `fk_lead`, `user_uuid`, `owner_id`                          |
+| **Booleans**            | `tem_<atributo>`, `eh_<atributo>` ou adjetivo direto | `tem_site`, `ativo`, `primeiro_acesso_pendente`                                             | `has_website`, `is_active`                                  |
+| **Enums**               | Nome em `snake_case` com valores em português        | `lead_status ('novo', 'contatado', 'fechado')`, `tipo_transacao ('receita', 'despesa')`     | `lead_status ('new', 'contacted', 'closed')`                |
 
 > [!NOTE]
 > As únicas exceções permitidas para nomes em inglês são estruturas nativas do ecossistema Supabase/PostgreSQL (ex: schema `auth.users`, tipos PostGIS como `DOUBLE PRECISION`, `UUID`, `JSONB`).
@@ -65,10 +65,12 @@ FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 O Row Level Security (**RLS**) é **obrigatório** em todas as tabelas. Nenhuma tabela em `public` deve existir sem RLS ativado.
 
 ### Hierarquia de Papéis:
+
 - **`admin`**: Acesso completo de leitura, inserção, edição e exclusão.
 - **`vendedor`**: Acesso restrito aos próprios registros (`usuario_id = auth.uid()`) ou registros sem responsável atribuído (`responsavel_id IS NULL`).
 
 ### Padrão de Políticas:
+
 ```sql
 -- Leitura
 DROP POLICY IF EXISTS "minha_tabela_select" ON public.minha_tabela;
@@ -126,4 +128,4 @@ Após qualquer criação ou alteração de tabela/coluna no banco:
 
 ---
 
-*Meridian Tech — Padrões de Banco de Dados & Engenharia de Dados.*
+_Meridian Tech — Padrões de Banco de Dados & Engenharia de Dados._

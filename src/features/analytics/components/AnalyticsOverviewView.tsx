@@ -82,18 +82,6 @@ export function AnalyticsOverviewView() {
           <Button
             variant="outline"
             size="sm"
-            asChild
-            className="h-8 text-xs border-border/80 gap-1.5"
-          >
-            <Link to="/reports">
-              <FileSpreadsheet className="size-3.5" />
-              <span>Gerador de Relatórios</span>
-            </Link>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
             onClick={carregarDados}
             disabled={carregando}
             className="h-8 text-xs gap-1.5 border-border/80"
@@ -141,18 +129,6 @@ export function AnalyticsOverviewView() {
               Performance Geográfica
             </Link>
           </Button>
-
-          <Button
-            size="sm"
-            variant="ghost"
-            asChild
-            className="h-7 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <Link to="/reports">
-              <FileSpreadsheet className="size-3.5 mr-1" />
-              Relatórios & Exportação
-            </Link>
-          </Button>
         </div>
 
         {/* 6 CARDS DE KPIS EXECUTIVOS */}
@@ -174,7 +150,9 @@ export function AnalyticsOverviewView() {
           </Card>
 
           <Card className="bg-card border-emerald-500/30 shadow-elev p-3.5 space-y-1 ring-1 ring-emerald-500/20">
-            <span className="rotulo text-[9.5px] text-emerald-400 block font-bold">Conversão Geral</span>
+            <span className="rotulo text-[9.5px] text-emerald-400 block font-bold">
+              Conversão Geral
+            </span>
             <p className="text-2xl font-bold font-display dado text-emerald-400">
               {metricas?.taxaConversaoGeral ?? 0}%
             </p>
@@ -212,15 +190,22 @@ export function AnalyticsOverviewView() {
           <Card className="bg-card border-border/80 shadow-elev p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-bold text-sm text-foreground">Evolução Mensal de Receita (R$)</h4>
-                <p className="text-xs text-muted-foreground">Faturamento bruto fechado nos últimos 6 meses</p>
+                <h4 className="font-bold text-sm text-foreground">
+                  Evolução Mensal de Receita (R$)
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  Faturamento bruto fechado nos últimos 6 meses
+                </p>
               </div>
               <Coins className="size-4 text-emerald-400" />
             </div>
 
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={dadosEvolucaoMensal} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <AreaChart
+                  data={dadosEvolucaoMensal}
+                  margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                >
                   <defs>
                     <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
@@ -231,10 +216,22 @@ export function AnalyticsOverviewView() {
                   <XAxis dataKey="mes" stroke="#71717a" fontSize={11} tickLine={false} />
                   <YAxis stroke="#71717a" fontSize={11} tickLine={false} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: "#18181b", borderColor: "#3f3f46", borderRadius: "8px", fontSize: "12px" }}
+                    contentStyle={{
+                      backgroundColor: "#18181b",
+                      borderColor: "#3f3f46",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
                     formatter={(val: any) => [formatarMoeda(Number(val)), "Receita"]}
                   />
-                  <Area type="monotone" dataKey="receita" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#gradReceita)" />
+                  <Area
+                    type="monotone"
+                    dataKey="receita"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#gradReceita)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -244,8 +241,12 @@ export function AnalyticsOverviewView() {
           <Card className="bg-card border-border/80 shadow-elev p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-bold text-sm text-foreground">Eficiência de Conversão do Funil</h4>
-                <p className="text-xs text-muted-foreground">Gargalos e retenção entre cada etapa comercial</p>
+                <h4 className="font-bold text-sm text-foreground">
+                  Eficiência de Conversão do Funil
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  Gargalos e retenção entre cada etapa comercial
+                </p>
               </div>
               <Target className="size-4 text-primary" />
             </div>

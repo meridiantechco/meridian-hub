@@ -36,8 +36,15 @@ import {
   Compass,
 } from "lucide-react";
 import { toast } from "sonner";
-import { BadgePriority, BadgeStatus, WhatsAppModal, leadsService, type InteracaoItem } from "@/features/leads";
+import {
+  BadgePriority,
+  BadgeStatus,
+  WhatsAppModal,
+  leadsService,
+  type InteracaoItem,
+} from "@/features/leads";
 import { companiesService } from "../services/companiesService";
+import { sanitizarUrlExterna } from "@/lib/utils";
 import type { EmpresaItem, ResumoInteligencia } from "../types";
 
 interface CompanyProfileViewProps {
@@ -54,7 +61,9 @@ export function CompanyProfileView({ companyId }: CompanyProfileViewProps) {
 
   // Nova Interação
   const [descInteracao, setDescInteracao] = useState("");
-  const [tipoInteracao, setTipoInteracao] = useState<"whatsapp" | "ligacao" | "email" | "visita" | "outro">("whatsapp");
+  const [tipoInteracao, setTipoInteracao] = useState<
+    "whatsapp" | "ligacao" | "email" | "visita" | "outro"
+  >("whatsapp");
   const [salvandoInteracao, setSalvandoInteracao] = useState(false);
 
   // Modais
@@ -187,7 +196,8 @@ export function CompanyProfileView({ companyId }: CompanyProfileViewProps) {
               <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 dado">
                 <MapPin className="size-3.5 text-primary shrink-0" />
                 <span>
-                  {empresa.endereco || `${empresa.bairro ? `${empresa.bairro}, ` : ""}${empresa.cidade || "Brasil"}`}
+                  {empresa.endereco ||
+                    `${empresa.bairro ? `${empresa.bairro}, ` : ""}${empresa.cidade || "Brasil"}`}
                 </span>
               </p>
             </div>
@@ -264,9 +274,9 @@ export function CompanyProfileView({ companyId }: CompanyProfileViewProps) {
 
                   {empresa.instagram ? (
                     <a
-                      href={`https://instagram.com/${empresa.instagram.replace(/^@/, "")}`}
+                      href={`https://instagram.com/${empresa.instagram.replace(/^@/, "").replace(/[^a-zA-Z0-9_.-]/g, "")}`}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="p-2.5 rounded-lg bg-pink-500/10 border border-pink-500/20 text-pink-400 font-mono flex items-center justify-between hover:underline"
                     >
                       <span className="flex items-center gap-2">
@@ -289,15 +299,17 @@ export function CompanyProfileView({ companyId }: CompanyProfileViewProps) {
                       <span className="text-[10px] font-semibold text-primary bg-primary/15 px-2 py-0.5 rounded border border-primary/25">
                         Sem site próprio
                       </span>
-                    ) : (
+                    ) : sanitizarUrlExterna(empresa.site_url) ? (
                       <a
-                        href={empresa.site_url || "#"}
+                        href={sanitizarUrlExterna(empresa.site_url)!}
                         target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-muted-foreground hover:text-primary"
+                        rel="noopener noreferrer"
+                        className="text-xs text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
                       >
                         Acessar Site
                       </a>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">Site não informado</span>
                     )}
                   </div>
                 </CardContent>
@@ -319,7 +331,9 @@ export function CompanyProfileView({ companyId }: CompanyProfileViewProps) {
                   </div>
                   <div className="flex justify-between border-b border-border/50 pb-1.5">
                     <span>Total de Avaliações:</span>
-                    <strong className="text-foreground">{empresa.total_avaliacoes} avaliações</strong>
+                    <strong className="text-foreground">
+                      {empresa.total_avaliacoes} avaliações
+                    </strong>
                   </div>
                   <div className="flex justify-between border-b border-border/50 pb-1.5">
                     <span>Origem da Captura:</span>
@@ -347,7 +361,8 @@ export function CompanyProfileView({ companyId }: CompanyProfileViewProps) {
                       <MapPin className="size-3.5" />
                     </div>
                     <p className="text-[10px] text-muted-foreground font-mono">
-                      Lat: {empresa.latitude?.toFixed(4) ?? "-12.9714"} | Lng: {empresa.longitude?.toFixed(4) ?? "-38.5088"}
+                      Lat: {empresa.latitude?.toFixed(4) ?? "-12.9714"} | Lng:{" "}
+                      {empresa.longitude?.toFixed(4) ?? "-38.5088"}
                     </p>
                   </div>
                 </div>
@@ -425,13 +440,19 @@ export function CompanyProfileView({ companyId }: CompanyProfileViewProps) {
           {/* ABA 3: TIMELINE & INTERAÇÕES */}
           <TabsContent value="timeline" className="space-y-4 pt-4">
             <Card className="bg-card border-border/80 shadow-elev p-5 space-y-5">
-              <form onSubmit={registrarInteracao} className="p-3.5 rounded-xl bg-surface/50 border border-border/70 space-y-3">
+              <form
+                onSubmit={registrarInteracao}
+                className="p-3.5 rounded-xl bg-surface/50 border border-border/70 space-y-3"
+              >
                 <span className="text-xs font-bold text-foreground block">
                   + Registrar Nova Interação / Contato
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <Select value={tipoInteracao} onValueChange={(val) => setTipoInteracao(val as any)}>
+                  <Select
+                    value={tipoInteracao}
+                    onValueChange={(val) => setTipoInteracao(val as any)}
+                  >
                     <SelectTrigger className="h-8 text-xs bg-card border-border">
                       <SelectValue />
                     </SelectTrigger>
@@ -466,7 +487,10 @@ export function CompanyProfileView({ companyId }: CompanyProfileViewProps) {
               {/* TIMELINE DE EVENTOS */}
               <div className="space-y-3 pt-2">
                 {interacoes.map((item) => (
-                  <div key={item.id} className="p-3 rounded-xl bg-surface/40 border border-border/60 text-xs space-y-1">
+                  <div
+                    key={item.id}
+                    className="p-3 rounded-xl bg-surface/40 border border-border/60 text-xs space-y-1"
+                  >
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                       <span className="font-mono font-bold text-foreground uppercase">
                         {item.tipo}
@@ -476,7 +500,9 @@ export function CompanyProfileView({ companyId }: CompanyProfileViewProps) {
                         {new Date(item.criado_em).toLocaleString("pt-BR")}
                       </span>
                     </div>
-                    <p className="text-muted-foreground text-xs leading-relaxed">{item.descricao}</p>
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      {item.descricao}
+                    </p>
                   </div>
                 ))}
 
@@ -494,7 +520,9 @@ export function CompanyProfileView({ companyId }: CompanyProfileViewProps) {
             <Card className="bg-card border-border/80 shadow-elev p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">Observações Comerciais da Conta</h3>
+                  <h3 className="text-sm font-bold text-foreground">
+                    Observações Comerciais da Conta
+                  </h3>
                   <p className="text-xs text-muted-foreground">
                     Anotações sobre necessidades, objeções e tomadores de decisão
                   </p>

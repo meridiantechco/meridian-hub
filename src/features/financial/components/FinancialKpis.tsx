@@ -28,7 +28,7 @@ export function FinancialKpis({ metricas }: FinancialKpisProps) {
       {/* CARD 1: LUCRO LÍQUIDO */}
       <Card
         className={cn(
-          "bg-card border shadow-elev relative overflow-hidden transition-all duration-200",
+          "bg-card/85 backdrop-blur-sm border shadow-elev relative overflow-hidden transition-all duration-200 rounded-3xl",
           metricas.lucroLiquido >= 0
             ? "border-primary/50 shadow-[0_0_25px_-5px_rgba(168,85,247,0.25)]"
             : "border-rose-500/50 shadow-[0_0_25px_-5px_rgba(244,63,94,0.25)]",
@@ -46,13 +46,13 @@ export function FinancialKpis({ metricas }: FinancialKpisProps) {
           </CardTitle>
           <div
             className={cn(
-              "size-9 rounded-xl border flex items-center justify-center shadow-sm",
+              "size-10 rounded-2xl border flex items-center justify-center shadow-sm",
               metricas.lucroLiquido >= 0
                 ? "bg-primary/15 text-primary border-primary/30"
                 : "bg-rose-500/15 text-rose-400 border-rose-500/30",
             )}
           >
-            <PiggyBank className="size-4.5" />
+            <PiggyBank className="size-5" />
           </div>
         </CardHeader>
         <CardContent>
@@ -67,22 +67,22 @@ export function FinancialKpis({ metricas }: FinancialKpisProps) {
             </span>
           </div>
           <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-            <span className="font-mono font-semibold text-foreground">
+            <span className="font-mono font-semibold text-foreground px-2 py-0.5 rounded-full bg-secondary/80 border border-border/70">
               {metricas.margemLucroPercentual}%
             </span>{" "}
-            de margem líquida sobre vendas
+            margem líquida
           </div>
         </CardContent>
       </Card>
 
       {/* CARD 2: RECEITA BRUTA */}
-      <Card className="bg-card border-border shadow-elev">
+      <Card className="bg-card/85 backdrop-blur-sm border-border/70 shadow-elev rounded-3xl">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider rotulo">
-            Receita Total (Contratos)
+            Receita Total
           </CardTitle>
-          <div className="size-9 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
-            <TrendingUp className="size-4.5" />
+          <div className="size-10 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+            <TrendingUp className="size-5" />
           </div>
         </CardHeader>
         <CardContent>
@@ -104,13 +104,13 @@ export function FinancialKpis({ metricas }: FinancialKpisProps) {
       </Card>
 
       {/* CARD 3: DESPESAS TOTAIS */}
-      <Card className="bg-card border-border shadow-elev">
+      <Card className="bg-card/85 backdrop-blur-sm border-border/70 shadow-elev rounded-3xl">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider rotulo">
-            Despesas & Custos Totais
+            Despesas & Custos
           </CardTitle>
-          <div className="size-9 rounded-xl bg-pink-500/15 text-pink-400 border border-pink-500/30 flex items-center justify-center">
-            <TrendingDown className="size-4.5" />
+          <div className="size-10 rounded-2xl bg-pink-500/15 text-pink-400 border border-pink-500/30 flex items-center justify-center">
+            <TrendingDown className="size-5" />
           </div>
         </CardHeader>
         <CardContent>
@@ -132,13 +132,13 @@ export function FinancialKpis({ metricas }: FinancialKpisProps) {
       </Card>
 
       {/* CARD 4: RETORNO SOBRE INVESTIMENTO (ROI) */}
-      <Card className="bg-card border-border shadow-elev">
+      <Card className="bg-card/85 backdrop-blur-sm border-border/70 shadow-elev rounded-3xl">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider rotulo">
-            ROI da Operação B2B
+            ROI da Operação
           </CardTitle>
-          <div className="size-9 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center">
-            <Flame className="size-4.5" />
+          <div className="size-10 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+            <Flame className="size-5" />
           </div>
         </CardHeader>
         <CardContent>
@@ -147,7 +147,7 @@ export function FinancialKpis({ metricas }: FinancialKpisProps) {
           </div>
           <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
             <Sparkles className="size-3 text-primary shrink-0" />
-            <span>Para cada R$ 1 gasto, voltam R$ {metricas.roiMultiplicador}</span>
+            <span>Retorno de R$ {metricas.roiMultiplicador} por R$ 1 investido</span>
           </div>
         </CardContent>
       </Card>

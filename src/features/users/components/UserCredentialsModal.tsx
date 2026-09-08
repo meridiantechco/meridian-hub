@@ -56,7 +56,8 @@ export function UserCredentialsModal({
             Credenciais de Acesso Geradas
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Envie as credenciais abaixo para o novo membro da equipe acessar a plataforma no primeiro acesso.
+            Envie as credenciais abaixo para o novo membro da equipe acessar a plataforma no
+            primeiro acesso.
           </DialogDescription>
         </DialogHeader>
 

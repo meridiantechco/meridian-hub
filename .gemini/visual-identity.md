@@ -14,18 +14,18 @@ O **Meridian Hub** utiliza o tema **Obsidian & Neon Purple (Design System Preto,
 
 As variáveis fundamentais estão definidas em `src/styles.css`:
 
-| Token | Cor Hex | Uso / Significado |
-| :--- | :--- | :--- |
-| `--background` | `#09090b` | Fundo principal da aplicação (Preto Profundo / Obsidian). |
-| `--surface` | `#121215` | Fundo de painéis e tabelas. |
-| `--card` | `#18181b` | Cards, modais e containers elevados. |
-| `--primary` | `#9333ea` | Roxo Neon / Electric Purple (Ações principais, foco, KPIs). |
-| `--primary-foreground`| `#ffffff` | Texto sobre botões primários. |
-| `--foreground` | `#fafafa` | Tipografia principal (Branco Cristalino). |
-| `--muted-foreground` | `#a1a1aa` | Textos secundários, legendas e rótulos. |
-| `--border` | `#27272a` | Linhas de divisão e contornos de cards. |
-| `--color-alerta` | `#f97316` | Laranja vibrante para oportunidades sem site. |
-| `--color-sucesso` | `#10b981` | Verde esmeralda para fechamentos e receitas. |
+| Token                  | Cor Hex   | Uso / Significado                                           |
+| :--------------------- | :-------- | :---------------------------------------------------------- |
+| `--background`         | `#09090b` | Fundo principal da aplicação (Preto Profundo / Obsidian).   |
+| `--surface`            | `#121215` | Fundo de painéis e tabelas.                                 |
+| `--card`               | `#18181b` | Cards, modais e containers elevados.                        |
+| `--primary`            | `#9333ea` | Roxo Neon / Electric Purple (Ações principais, foco, KPIs). |
+| `--primary-foreground` | `#ffffff` | Texto sobre botões primários.                               |
+| `--foreground`         | `#fafafa` | Tipografia principal (Branco Cristalino).                   |
+| `--muted-foreground`   | `#a1a1aa` | Textos secundários, legendas e rótulos.                     |
+| `--border`             | `#27272a` | Linhas de divisão e contornos de cards.                     |
+| `--color-alerta`       | `#f97316` | Laranja vibrante para oportunidades sem site.               |
+| `--color-sucesso`      | `#10b981` | Verde esmeralda para fechamentos e receitas.                |
 
 ---
 
@@ -52,4 +52,4 @@ As variáveis fundamentais estão definidas em `src/styles.css`:
 
 ---
 
-*Meridian Tech — Design System & Experiência do Usuário.*
+_Meridian Tech — Design System & Experiência do Usuário._

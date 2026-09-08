@@ -68,18 +68,6 @@ export function TeamAnalyticsView() {
               Performance Geográfica
             </Link>
           </Button>
-
-          <Button
-            size="sm"
-            variant="ghost"
-            asChild
-            className="h-7 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <Link to="/reports">
-              <FileSpreadsheet className="size-3.5 mr-1" />
-              Relatórios & Exportação
-            </Link>
-          </Button>
         </div>
 
         {/* TABELA DE DESEMPENHO DA EQUIPE */}

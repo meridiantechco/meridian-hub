@@ -24,7 +24,14 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { BadgePriority, BadgeStatus, WhatsAppModal, LeadDrawer, leadsService, type LeadItem } from "@/features/leads";
+import {
+  BadgePriority,
+  BadgeStatus,
+  WhatsAppModal,
+  LeadDrawer,
+  leadsService,
+  type LeadItem,
+} from "@/features/leads";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { companiesService } from "../services/companiesService";
@@ -339,7 +346,11 @@ export function CompaniesView() {
         onOpenChange={(open) => !open && setEmpresaParaExcluir(null)}
         titulo="Excluir Empresa / Estabelecimento?"
         descricao="Esta ação removerá esta empresa permanentemente da sua carteira."
-        itemNome={empresaParaExcluir ? `${empresaParaExcluir.nome} (${empresaParaExcluir.categoria})` : undefined}
+        itemNome={
+          empresaParaExcluir
+            ? `${empresaParaExcluir.nome} (${empresaParaExcluir.categoria})`
+            : undefined
+        }
         carregando={excluindoEmpresa}
         onConfirmar={async () => {
           if (!empresaParaExcluir) return;

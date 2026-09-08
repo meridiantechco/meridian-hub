@@ -37,15 +37,12 @@ export function OpportunityMap({
         });
 
         // CartoDB Dark Matter tiles para estética dark mode ultra premium
-        L.tileLayer(
-          "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-          {
-            attribution:
-              '&copy; <a href="https://carto.com/attributions">CARTO</a> · &copy; OpenStreetMap',
-            maxZoom: 19,
-            subdomains: "abcd",
-          },
-        ).addTo(map);
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+          attribution:
+            '&copy; <a href="https://carto.com/attributions">CARTO</a> · &copy; OpenStreetMap',
+          maxZoom: 19,
+          subdomains: "abcd",
+        }).addTo(map);
 
         mapInstanceRef.current = map;
       }
@@ -141,11 +138,9 @@ export function OpportunityMap({
   // Centralizar quando um ponto for selecionado
   useEffect(() => {
     if (pontoSelecionado && mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo(
-        [pontoSelecionado.latitude, pontoSelecionado.longitude],
-        15,
-        { duration: 1.2 },
-      );
+      mapInstanceRef.current.flyTo([pontoSelecionado.latitude, pontoSelecionado.longitude], 15, {
+        duration: 1.2,
+      });
     }
   }, [pontoSelecionado]);
 

@@ -34,7 +34,11 @@ export function ForcePasswordForm({
         </div>
         <CardTitle className="text-xl font-bold">Primeiro Acesso — Definir Senha</CardTitle>
         <CardDescription>
-          Olá, <strong>{usuarioPrimeiroLogin?.user_metadata?.["nome"] || usuarioPrimeiroLogin?.email}</strong>. Por segurança, você deve definir sua senha definitiva para continuar no Meridian Hub.
+          Olá,{" "}
+          <strong>
+            {usuarioPrimeiroLogin?.user_metadata?.["nome"] || usuarioPrimeiroLogin?.email}
+          </strong>
+          . Por segurança, você deve definir sua senha definitiva para continuar no Meridian Hub.
         </CardDescription>
       </CardHeader>
       <CardContent>

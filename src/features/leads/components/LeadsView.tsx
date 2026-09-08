@@ -500,29 +500,55 @@ export function LeadsView() {
               {temFiltroAtivo && (
                 <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40 text-xs flex-wrap">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-muted-foreground text-[11px]">Filtros ativos ({leadsFiltrados.length} encontrados):</span>
+                    <span className="text-muted-foreground text-[11px]">
+                      Filtros ativos ({leadsFiltrados.length} encontrados):
+                    </span>
                     {busca && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary text-foreground text-[11px] border border-border/70">
                         Busca: "{busca}"
-                        <button type="button" onClick={() => setBusca("")} className="hover:text-destructive cursor-pointer font-bold">×</button>
+                        <button
+                          type="button"
+                          onClick={() => setBusca("")}
+                          className="hover:text-destructive cursor-pointer font-bold"
+                        >
+                          ×
+                        </button>
                       </span>
                     )}
                     {filtroCategoria !== "todas" && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary text-foreground text-[11px] border border-border/70">
                         {filtroCategoria}
-                        <button type="button" onClick={() => setFiltroCategoria("todas")} className="hover:text-destructive cursor-pointer font-bold">×</button>
+                        <button
+                          type="button"
+                          onClick={() => setFiltroCategoria("todas")}
+                          className="hover:text-destructive cursor-pointer font-bold"
+                        >
+                          ×
+                        </button>
                       </span>
                     )}
                     {filtroStatus !== "todos" && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary text-foreground text-[11px] border border-border/70">
                         Status: {filtroStatus}
-                        <button type="button" onClick={() => setFiltroStatus("todos")} className="hover:text-destructive cursor-pointer font-bold">×</button>
+                        <button
+                          type="button"
+                          onClick={() => setFiltroStatus("todos")}
+                          className="hover:text-destructive cursor-pointer font-bold"
+                        >
+                          ×
+                        </button>
                       </span>
                     )}
                     {apenasSemSite && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/15 text-primary text-[11px] border border-primary/30 font-semibold">
                         Apenas sem site
-                        <button type="button" onClick={() => setApenasSemSite(false)} className="hover:text-destructive cursor-pointer font-bold">×</button>
+                        <button
+                          type="button"
+                          onClick={() => setApenasSemSite(false)}
+                          className="hover:text-destructive cursor-pointer font-bold"
+                        >
+                          ×
+                        </button>
                       </span>
                     )}
                   </div>
@@ -545,7 +571,8 @@ export function LeadsView() {
                 <div className="flex items-center gap-2">
                   <CheckSquare className="size-4 text-primary" />
                   <span className="text-xs font-semibold text-foreground">
-                    <strong className="dado">{selecionados.size}</strong> de {leadsFiltrados.length} estabelecimentos selecionados
+                    <strong className="dado">{selecionados.size}</strong> de {leadsFiltrados.length}{" "}
+                    estabelecimentos selecionados
                   </span>
                 </div>
 
@@ -852,9 +879,7 @@ export function LeadsView() {
                         <div className="flex items-center justify-between">
                           <span className="text-muted-foreground text-[11px]">Presença:</span>
                           {!lead.tem_site ? (
-                            <span className="text-[10px] font-semibold text-primary">
-                              Sem site
-                            </span>
+                            <span className="text-[10px] font-semibold text-primary">Sem site</span>
                           ) : (
                             <span className="text-[10px] text-muted-foreground">Com site</span>
                           )}
@@ -919,7 +944,12 @@ export function LeadsView() {
                     <p className="text-xs text-muted-foreground">
                       Tente ajustar os termos de busca ou filtros aplicados.
                     </p>
-                    <Button variant="outline" size="sm" onClick={limparFiltros} className="mt-2 text-xs">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={limparFiltros}
+                      className="mt-2 text-xs"
+                    >
                       Limpar Filtros
                     </Button>
                   </div>
@@ -936,7 +966,11 @@ export function LeadsView() {
         onOpenChange={(open) => !open && setLeadParaExcluir(null)}
         titulo="Excluir Estabelecimento da Base?"
         descricao="Esta ação removerá este lead permanentemente da sua operação e dos relatórios analíticos."
-        itemNome={leadParaExcluir ? `${leadParaExcluir.nome} (${leadParaExcluir.categoria || "Geral"})` : undefined}
+        itemNome={
+          leadParaExcluir
+            ? `${leadParaExcluir.nome} (${leadParaExcluir.categoria || "Geral"})`
+            : undefined
+        }
         carregando={excluindoLead}
         onConfirmar={async () => {
           if (!leadParaExcluir) return;
@@ -959,8 +993,9 @@ export function LeadsView() {
               Zerar Base de Dados Comercial?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Esta ação removerá <strong className="text-foreground">{leads.length} estabelecimentos</strong> da
-              sua base de dados local. Você precisará realizar novas buscas para repovoar os dados.
+              Esta ação removerá{" "}
+              <strong className="text-foreground">{leads.length} estabelecimentos</strong> da sua
+              base de dados local. Você precisará realizar novas buscas para repovoar os dados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

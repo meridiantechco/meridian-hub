@@ -1,22 +1,22 @@
-import sharp from 'sharp';
-import fs from 'fs';
-import path from 'path';
+import sharp from "sharp";
+import fs from "fs";
+import path from "path";
 
 async function processLogos() {
-  console.log('Processing logos...');
-  const publicDir = path.resolve('public');
-  
-  const claraPath = path.join(publicDir, 'logo-clara.jpg');
-  const escuraPath = path.join(publicDir, 'logo-escura.jpg');
+  console.log("Processing logos...");
+  const publicDir = path.resolve("public");
+
+  const claraPath = path.join(publicDir, "logo-clara.jpg");
+  const escuraPath = path.join(publicDir, "logo-escura.jpg");
 
   if (!fs.existsSync(claraPath) || !fs.existsSync(escuraPath)) {
-    console.error('Logo files not found!');
+    console.error("Logo files not found!");
     return;
   }
 
   // 1. Process logo-escura (white logo on black bg -> white logo with transparent bg)
   const escuraMeta = await sharp(escuraPath).metadata();
-  console.log('Escura dimensions:', escuraMeta.width, 'x', escuraMeta.height);
+  console.log("Escura dimensions:", escuraMeta.width, "x", escuraMeta.height);
 
   const { data: escuraRaw, info: escuraInfo } = await sharp(escuraPath)
     .raw()
@@ -30,7 +30,10 @@ async function processLogos() {
   // Create RGBA buffer for black logo with transparency
   const darkLogoBuffer = Buffer.alloc(numPixels * 4);
 
-  let minX = escuraInfo.width, maxX = 0, minY = escuraInfo.height, maxY = 0;
+  let minX = escuraInfo.width,
+    maxX = 0,
+    minY = escuraInfo.height,
+    maxY = 0;
 
   for (let i = 0; i < numPixels; i++) {
     const srcIdx = i * escuraChannels;
@@ -38,10 +41,10 @@ async function processLogos() {
     const r = escuraRaw[srcIdx];
     const g = escuraRaw[srcIdx + 1];
     const b = escuraRaw[srcIdx + 2];
-    
+
     // Luminance
     const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-    
+
     // Smooth alpha threshold
     // Below 15 is background (black)
     // Above 180 is solid
@@ -73,7 +76,9 @@ async function processLogos() {
     darkLogoBuffer[dstIdx + 3] = alpha;
   }
 
-  console.log(`Bounding box detected: X: [${minX}, ${maxX}] (${maxX - minX + 1}px), Y: [${minY}, ${maxY}] (${maxY - minY + 1}px)`);
+  console.log(
+    `Bounding box detected: X: [${minX}, ${maxX}] (${maxX - minX + 1}px), Y: [${minY}, ${maxY}] (${maxY - minY + 1}px)`,
+  );
 
   const bboxWidth = maxX - minX + 1;
   const bboxHeight = maxY - minY + 1;
@@ -104,32 +109,44 @@ async function processLogos() {
     },
   }).extract({ left: cropX, top: cropY, width: cropW, height: cropH });
 
-  await lightSharp.clone().png({ compressionLevel: 9 }).toFile(path.join(publicDir, 'logo-light.png'));
-  console.log('Created public/logo-light.png');
+  await lightSharp
+    .clone()
+    .png({ compressionLevel: 9 })
+    .toFile(path.join(publicDir, "logo-light.png"));
+  console.log("Created public/logo-light.png");
 
-  await darkSharp.clone().png({ compressionLevel: 9 }).toFile(path.join(publicDir, 'logo-dark.png'));
-  console.log('Created public/logo-dark.png');
+  await darkSharp
+    .clone()
+    .png({ compressionLevel: 9 })
+    .toFile(path.join(publicDir, "logo-dark.png"));
+  console.log("Created public/logo-dark.png");
 
   // 2. Square versions for app icon / favicon / pwa (1:1 aspect ratio centered)
   const maxDim = Math.max(cropW, cropH);
   const squarePadX = Math.round((maxDim - cropW) / 2);
   const squarePadY = Math.round((maxDim - cropH) / 2);
 
-  const iconSquare = await lightSharp.clone().extend({
-    top: squarePadY + Math.round(maxDim * 0.06),
-    bottom: squarePadY + Math.round(maxDim * 0.06),
-    left: squarePadX + Math.round(maxDim * 0.06),
-    right: squarePadX + Math.round(maxDim * 0.06),
-    background: { r: 0, g: 0, b: 0, alpha: 0 }
-  }).toBuffer();
+  const iconSquare = await lightSharp
+    .clone()
+    .extend({
+      top: squarePadY + Math.round(maxDim * 0.06),
+      bottom: squarePadY + Math.round(maxDim * 0.06),
+      left: squarePadX + Math.round(maxDim * 0.06),
+      right: squarePadX + Math.round(maxDim * 0.06),
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .toBuffer();
 
   // Create favicon sizes
-  await sharp(iconSquare).resize(32, 32).png().toFile(path.join(publicDir, 'favicon-32x32.png'));
-  await sharp(iconSquare).resize(48, 48).png().toFile(path.join(publicDir, 'favicon.ico'));
-  await sharp(iconSquare).resize(180, 180).png().toFile(path.join(publicDir, 'apple-touch-icon.png'));
-  await sharp(iconSquare).resize(192, 192).png().toFile(path.join(publicDir, 'logo-192.png'));
-  await sharp(iconSquare).resize(512, 512).png().toFile(path.join(publicDir, 'logo-512.png'));
-  console.log('Created favicons & touch icons');
+  await sharp(iconSquare).resize(32, 32).png().toFile(path.join(publicDir, "favicon-32x32.png"));
+  await sharp(iconSquare).resize(48, 48).png().toFile(path.join(publicDir, "favicon.ico"));
+  await sharp(iconSquare)
+    .resize(180, 180)
+    .png()
+    .toFile(path.join(publicDir, "apple-touch-icon.png"));
+  await sharp(iconSquare).resize(192, 192).png().toFile(path.join(publicDir, "logo-192.png"));
+  await sharp(iconSquare).resize(512, 512).png().toFile(path.join(publicDir, "logo-512.png"));
+  console.log("Created favicons & touch icons");
 
   // Also create a styled version with neon purple / obsidian gradient badge
   const size = 512;
@@ -151,7 +168,7 @@ async function processLogos() {
       </radialGradient>
     </defs>
     <rect width="${size}" height="${size}" rx="112" fill="url(#bgGrad)" />
-    <circle cx="${size/2}" cy="${size/2}" r="${size*0.4}" fill="url(#glow)" />
+    <circle cx="${size / 2}" cy="${size / 2}" r="${size * 0.4}" fill="url(#glow)" />
     <rect x="2" y="2" width="${size - 4}" height="${size - 4}" rx="110" fill="none" stroke="url(#borderGrad)" stroke-width="3" />
   </svg>`;
 
@@ -160,9 +177,9 @@ async function processLogos() {
   await sharp(Buffer.from(badgeSvg))
     .composite([{ input: logoInner, top: 76, left: 76 }])
     .png()
-    .toFile(path.join(publicDir, 'logo-app-badge.png'));
+    .toFile(path.join(publicDir, "logo-app-badge.png"));
 
-  console.log('Created logo-app-badge.png');
+  console.log("Created logo-app-badge.png");
 }
 
 processLogos().catch(console.error);

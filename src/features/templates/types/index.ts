@@ -1,9 +1,5 @@
 export type CategoriaTemplate =
-  | "primeiro_contato"
-  | "follow_up"
-  | "proposta"
-  | "pos_reuniao"
-  | "reativacao";
+  "primeiro_contato" | "follow_up" | "proposta" | "pos_reuniao" | "reativacao";
 
 export interface TemplateMensagem {
   id: string;

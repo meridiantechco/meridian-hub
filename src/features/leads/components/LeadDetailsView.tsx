@@ -23,6 +23,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { leadsService } from "../services/leadsService";
 import { auditoriaService } from "@/features/audit";
+import { sanitizarUrlExterna } from "@/lib/utils";
 import { calcularScoreLead } from "../utils/score";
 import {
   sanitizarHandleInstagram,
@@ -296,9 +297,9 @@ export function LeadDetailsView({ leadId }: LeadDetailsViewProps) {
                 {lead.instagram ? (
                   <div className="flex items-center justify-between p-2.5 rounded bg-pink-500/10 border border-pink-500/20">
                     <a
-                      href={`https://instagram.com/${lead.instagram}`}
+                      href={`https://instagram.com/${lead.instagram.replace(/^@/, "").replace(/[^a-zA-Z0-9_.-]/g, "")}`}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="flex items-center gap-2 text-pink-400 hover:text-pink-300 transition-colors font-mono"
                     >
                       <Instagram className="size-3.5" />
@@ -323,7 +324,7 @@ export function LeadDetailsView({ leadId }: LeadDetailsViewProps) {
                       <a
                         href={gerarUrlBuscaInstagram(lead.nome, lead.cidade || lead.bairro)}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="text-[10px] text-pink-400 hover:text-pink-300 hover:underline flex items-center gap-0.5"
                       >
                         <Search className="size-2.5" /> Buscar @
@@ -341,9 +342,9 @@ export function LeadDetailsView({ leadId }: LeadDetailsViewProps) {
 
                 {lead.facebook && (
                   <a
-                    href={`https://facebook.com/${lead.facebook}`}
+                    href={`https://facebook.com/${lead.facebook.replace(/[^a-zA-Z0-9_.-]/g, "")}`}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-2 p-2.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:text-blue-300 transition-colors"
                   >
                     <Facebook className="size-3.5" />
@@ -352,11 +353,11 @@ export function LeadDetailsView({ leadId }: LeadDetailsViewProps) {
                   </a>
                 )}
 
-                {lead.site_url ? (
+                {sanitizarUrlExterna(lead.site_url) ? (
                   <a
-                    href={lead.site_url}
+                    href={sanitizarUrlExterna(lead.site_url)!}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-2 p-2.5 rounded bg-secondary/40 text-muted-foreground hover:text-foreground transition-colors truncate border border-border/50"
                   >
                     <Globe className="size-3.5 text-primary shrink-0" />
@@ -471,7 +472,8 @@ export function LeadDetailsView({ leadId }: LeadDetailsViewProps) {
                   Histórico de Contatos ({interacoes.length})
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Registro cronológico de todas as interações comerciais realizadas pela Meridian Tech
+                  Registro cronológico de todas as interações comerciais realizadas pela Meridian
+                  Tech
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -714,7 +716,7 @@ function ModalEditarRedesLead({
                 <a
                   href={gerarUrlBuscaInstagram(lead.nome, lead.cidade || lead.bairro)}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="text-[10px] text-pink-400 hover:underline flex items-center gap-0.5"
                 >
                   <Search className="size-2.5" /> Buscar no Google

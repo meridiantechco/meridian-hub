@@ -12,9 +12,7 @@ interface CommercialPerformanceChartProps {
   }[];
 }
 
-export function CommercialPerformanceChart({
-  dadosCategorias,
-}: CommercialPerformanceChartProps) {
+export function CommercialPerformanceChart({ dadosCategorias }: CommercialPerformanceChartProps) {
   const [metricaVisualizacao, setMetricaVisualizacao] = useState<"todas" | "semSite">("todas");
 
   return (
@@ -57,7 +55,12 @@ export function CommercialPerformanceChart({
               margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
               barGap={4}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} vertical={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="currentColor"
+                opacity={0.1}
+                vertical={false}
+              />
               <XAxis
                 dataKey="categoria"
                 stroke="currentColor"

@@ -55,8 +55,8 @@ export function FinancialCharts({ metricas }: FinancialChartsProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
       {/* GRÁFICO 1: EVOLUÇÃO MENSAL DE FLUXO DE CAIXA */}
-      <Card className="lg:col-span-2 bg-card border-border shadow-elev">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/60">
+      <Card className="lg:col-span-2 bg-card/85 backdrop-blur-sm border-border/70 shadow-elev rounded-3xl overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/60 p-4 sm:p-5">
           <div>
             <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
               <BarChart3 className="size-4 text-primary" />
@@ -85,7 +85,12 @@ export function FinancialCharts({ metricas }: FinancialChartsProps) {
                       <stop offset="95%" stopColor="#34d399" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} vertical={false} />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="currentColor"
+                    opacity={0.1}
+                    vertical={false}
+                  />
                   <XAxis
                     dataKey="mesRotulo"
                     stroke="currentColor"
@@ -103,7 +108,11 @@ export function FinancialCharts({ metricas }: FinancialChartsProps) {
                     tickFormatter={(v) => `R$${v}`}
                   />
                   <Tooltip
-                    cursor={{ stroke: "var(--color-primary)", strokeWidth: 1, strokeDasharray: "3 3" }}
+                    cursor={{
+                      stroke: "var(--color-primary)",
+                      strokeWidth: 1,
+                      strokeDasharray: "3 3",
+                    }}
                     contentStyle={{
                       backgroundColor: "var(--color-card)",
                       borderColor: "var(--color-border)",
@@ -160,8 +169,8 @@ export function FinancialCharts({ metricas }: FinancialChartsProps) {
       </Card>
 
       {/* GRÁFICO 2: COMPOSIÇÃO DOS GASTOS POR CATEGORIA */}
-      <Card className="bg-card border-border shadow-elev">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/60">
+      <Card className="bg-card/85 backdrop-blur-sm border-border/70 shadow-elev rounded-3xl overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/60 p-4 sm:p-5">
           <div>
             <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
               <PieChartIcon className="size-4 text-pink-400" />

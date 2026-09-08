@@ -33,7 +33,7 @@ Seguimos a especificação do **Conventional Commits**:
 - `style(<escopo>)`: Alterações de formatação visual, Tailwind ou tokens de cor.
 - `chore(<escopo>)`: Atualização de dependências, scripts do package.json ou configurações de build.
 
-*Exemplo*: `feat(financial): implementar calculo de margem liquida percentual`
+_Exemplo_: `feat(financial): implementar calculo de margem liquida percentual`
 
 ---
 
@@ -48,4 +48,4 @@ Antes de qualquer merge na branch `main`:
 
 ---
 
-*Meridian Tech — Governança e Processos de Engenharia.*
+_Meridian Tech — Governança e Processos de Engenharia._

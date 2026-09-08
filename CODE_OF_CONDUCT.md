@@ -12,19 +12,19 @@ Nos comprometemos a agir e interagir de maneiras que contribuam para uma comunid
 
 Exemplos de comportamento que contribuem para um ambiente positivo para a nossa comunidade incluem:
 
-* Demonstrar empatia e gentileza com outras pessoas;
-* Respeitar opiniões, pontos de vista e experiências divergentes;
-* Dar e receber feedback construtivo de maneira profissional;
-* Assumir responsabilidade e pedir desculpas àqueles afetados por nossos erros, aprendendo com a experiência;
-* Focar no que é melhor não apenas para nós como indivíduos, mas para toda a comunidade.
+- Demonstrar empatia e gentileza com outras pessoas;
+- Respeitar opiniões, pontos de vista e experiências divergentes;
+- Dar e receber feedback construtivo de maneira profissional;
+- Assumir responsabilidade e pedir desculpas àqueles afetados por nossos erros, aprendendo com a experiência;
+- Focar no que é melhor não apenas para nós como indivíduos, mas para toda a comunidade.
 
 Exemplos de comportamentos inaceitáveis incluem:
 
-* O uso de linguagem ou imagens de cunho sexual, bem como avanços sexuais de qualquer natureza;
-* Trolling, comentários insultuosos ou depreciativos e ataques pessoais ou políticos;
-* Assédio público ou privado;
-* Publicação de informações privadas de terceiros, como endereço físico ou de e-mail, sem permissão explícita;
-* Outras condutas que possam ser razoavelmente consideradas inadequadas em um ambiente profissional.
+- O uso de linguagem ou imagens de cunho sexual, bem como avanços sexuais de qualquer natureza;
+- Trolling, comentários insultuosos ou depreciativos e ataques pessoais ou políticos;
+- Assédio público ou privado;
+- Publicação de informações privadas de terceiros, como endereço físico ou de e-mail, sem permissão explícita;
+- Outras condutas que possam ser razoavelmente consideradas inadequadas em um ambiente profissional.
 
 ---
 
@@ -40,4 +40,4 @@ Instâncias de comportamento abusivo, de assédio ou inaceitável podem ser rela
 
 ---
 
-*Atribuição: Adaptado do Contributor Covenant, versão 2.1.*
+_Atribuição: Adaptado do Contributor Covenant, versão 2.1._

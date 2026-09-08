@@ -7,7 +7,8 @@ export const Route = createFileRoute("/_authenticated/funil")({
       { title: "Funil Comercial — Meridian" },
       {
         name: "description",
-        content: "Pipeline comercial interativo em tempo real para controle de estágios de negociação",
+        content:
+          "Pipeline comercial interativo em tempo real para controle de estágios de negociação",
       },
     ],
   }),

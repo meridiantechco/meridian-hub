@@ -161,15 +161,11 @@ export function WorkflowModal({ aberto, onOpenChange, onSalvar }: WorkflowModalP
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="criar_tarefa_followup">
-                    Criar Tarefa de Follow-up
-                  </SelectItem>
+                  <SelectItem value="criar_tarefa_followup">Criar Tarefa de Follow-up</SelectItem>
                   <SelectItem value="marcar_alta_prioridade">
                     Elevar Prioridade no Opportunity Center
                   </SelectItem>
-                  <SelectItem value="notificar_equipe">
-                    Enviar Notificação de Alerta
-                  </SelectItem>
+                  <SelectItem value="notificar_equipe">Enviar Notificação de Alerta</SelectItem>
                 </SelectContent>
               </Select>
             </div>

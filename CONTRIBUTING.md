@@ -28,7 +28,8 @@ src/
 ```
 
 ### Regras de Ouro:
-1. **Rotas Finas (*Thin Controllers*)**: Arquivos dentro de `src/routes/` NÃO devem conter lógica de negócio, chamadas diretas de banco de dados ou formulários complexos. Devem apenas invocar a View exportada de `src/features/<dominio>/`.
+
+1. **Rotas Finas (_Thin Controllers_)**: Arquivos dentro de `src/routes/` NÃO devem conter lógica de negócio, chamadas diretas de banco de dados ou formulários complexos. Devem apenas invocar a View exportada de `src/features/<dominio>/`.
 2. **Encapsulamento**: Cada feature deve expor publicamente apenas o que é necessário através do seu `index.ts`.
 3. **Single Responsibility Principle (SRP)**: Separe responsabilidade de visualização (UI), estado (Hooks), lógica remota (Services) e estruturas (Types).
 
@@ -37,10 +38,12 @@ src/
 ## 🛠️ 2. Configuração do Ambiente de Desenvolvimento
 
 ### Pré-requisitos
+
 - **Node.js**: `v20.x` ou superior (recomendado `v22.x`)
 - **NPM**: `v10.x` ou superior (ou `Bun` / `pnpm`)
 
 ### Instalação e Execução
+
 ```bash
 # 1. Clone o repositório
 git clone https://github.com/RayanSantsz/prospector-hub.git
@@ -96,6 +99,7 @@ npm run build
 ## 🚀 5. Checklist para Pull Requests (PR)
 
 Ao abrir um PR, certifique-se de cumprir todos os itens abaixo:
+
 - [ ] O código segue a estrutura **Feature-Based** em `src/features/<dominio>/`.
 - [ ] O commit segue a convenção de **Conventional Commits**.
 - [ ] A checagem de tipos (`npx tsc --noEmit`) passa sem nenhum erro ou warning ignorado.
@@ -106,4 +110,4 @@ Ao abrir um PR, certifique-se de cumprir todos os itens abaixo:
 
 ---
 
-*Meridian Tech — Excelência em Engenharia e Inteligência de Vendas B2B.*
+_Meridian Tech — Excelência em Engenharia e Inteligência de Vendas B2B._

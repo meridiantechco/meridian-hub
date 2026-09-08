@@ -42,17 +42,23 @@ export const companiesService = {
     if (!lead.tem_site) {
       pontosFortes.push("Carência evidente de portal web profissional para conversão.");
     } else {
-      riscos.push("Já possui site institucional ativo — abordagem deve focar em performance e SEO.");
+      riscos.push(
+        "Já possui site institucional ativo — abordagem deve focar em performance e SEO.",
+      );
     }
 
     if (lead.instagram) {
-      pontosFortes.push(`Presença digital ativa no Instagram (@${lead.instagram}) com público engajado.`);
+      pontosFortes.push(
+        `Presença digital ativa no Instagram (@${lead.instagram}) com público engajado.`,
+      );
     } else {
       riscos.push("Sem perfil no Instagram mapeado.");
     }
 
     if (lead.avaliacao_google && lead.avaliacao_google >= 4.0) {
-      pontosFortes.push(`Excelente reputação no Google (${lead.avaliacao_google.toFixed(1)} estrelas).`);
+      pontosFortes.push(
+        `Excelente reputação no Google (${lead.avaliacao_google.toFixed(1)} estrelas).`,
+      );
     }
 
     if (!lead.telefone) {

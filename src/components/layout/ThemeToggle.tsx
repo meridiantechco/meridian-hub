@@ -28,7 +28,7 @@ export function ThemeToggle({ className, variant = "dropdown" }: ThemeToggleProp
             onClick={toggleTheme}
             className={cn(
               "size-8.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface transition-all cursor-pointer",
-              className
+              className,
             )}
             aria-label="Alternar tema claro/escuro"
           >
@@ -58,7 +58,7 @@ export function ThemeToggle({ className, variant = "dropdown" }: ThemeToggleProp
               size="icon"
               className={cn(
                 "size-8.5 rounded-lg border border-border/80 bg-surface/50 text-muted-foreground hover:text-foreground hover:bg-surface hover:border-primary/40 transition-all cursor-pointer shadow-xs",
-                className
+                className,
               )}
               aria-label="Selecionar tema da interface"
             >
@@ -71,7 +71,10 @@ export function ThemeToggle({ className, variant = "dropdown" }: ThemeToggleProp
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom">
-          <p className="text-xs">Aparência do sistema ({theme === "system" ? "Automático" : theme === "dark" ? "Escuro" : "Claro"})</p>
+          <p className="text-xs">
+            Aparência do sistema (
+            {theme === "system" ? "Automático" : theme === "dark" ? "Escuro" : "Claro"})
+          </p>
         </TooltipContent>
       </Tooltip>
 
@@ -80,7 +83,7 @@ export function ThemeToggle({ className, variant = "dropdown" }: ThemeToggleProp
           onClick={() => setTheme("light")}
           className={cn(
             "text-xs flex items-center justify-between cursor-pointer py-1.5",
-            theme === "light" ? "text-primary font-semibold bg-primary/10" : "text-foreground"
+            theme === "light" ? "text-primary font-semibold bg-primary/10" : "text-foreground",
           )}
         >
           <div className="flex items-center gap-2">
@@ -94,7 +97,7 @@ export function ThemeToggle({ className, variant = "dropdown" }: ThemeToggleProp
           onClick={() => setTheme("dark")}
           className={cn(
             "text-xs flex items-center justify-between cursor-pointer py-1.5",
-            theme === "dark" ? "text-primary font-semibold bg-primary/10" : "text-foreground"
+            theme === "dark" ? "text-primary font-semibold bg-primary/10" : "text-foreground",
           )}
         >
           <div className="flex items-center gap-2">
@@ -108,7 +111,7 @@ export function ThemeToggle({ className, variant = "dropdown" }: ThemeToggleProp
           onClick={() => setTheme("system")}
           className={cn(
             "text-xs flex items-center justify-between cursor-pointer py-1.5",
-            theme === "system" ? "text-primary font-semibold bg-primary/10" : "text-foreground"
+            theme === "system" ? "text-primary font-semibold bg-primary/10" : "text-foreground",
           )}
         >
           <div className="flex items-center gap-2">

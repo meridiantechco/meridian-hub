@@ -37,7 +37,8 @@ export function FirstAccessForm({
           Ativação de Convite
         </p>
         <p>
-          Utilize a <strong>senha provisória</strong> enviada pelo administrador para definir sua senha permanente de acesso.
+          Utilize a <strong>senha provisória</strong> enviada pelo administrador para definir sua
+          senha permanente de acesso.
         </p>
       </div>
 
@@ -83,12 +84,12 @@ export function FirstAccessForm({
             <Input
               id="senha-definitiva"
               type="password"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 8 caracteres"
               className="pl-9 text-xs"
               value={senhaDefinitiva}
               onChange={(e) => setSenhaDefinitiva(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               autoComplete="new-password"
             />
           </div>
@@ -106,7 +107,7 @@ export function FirstAccessForm({
               value={confirmarSenhaDefinitiva}
               onChange={(e) => setConfirmarSenhaDefinitiva(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               autoComplete="new-password"
             />
           </div>

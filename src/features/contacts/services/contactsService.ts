@@ -1,5 +1,6 @@
 import { leadsService } from "@/features/leads";
 import type { ContatoItem } from "../types";
+import { getScopedItem, setScopedItem } from "@/lib/userStorage";
 
 const STORAGE_KEY = "meridian_crm_contatos_v1";
 
@@ -7,16 +8,31 @@ export const contactsService = {
   async listarContatos(): Promise<ContatoItem[]> {
     if (typeof window === "undefined") return [];
 
-    const salvo = localStorage.getItem(STORAGE_KEY);
-    if (salvo) {
-      try {
-        return JSON.parse(salvo) as ContatoItem[];
-      } catch {
-        // fallback
-      }
+    const salvo = await getScopedItem<ContatoItem[]>(STORAGE_KEY);
+    if (salvo && Array.isArray(salvo) && salvo.length > 0) {
+      return salvo;
     }
+    // Inicialização automática a partir dos leads existentes
+    const leads = await leadsService.listarLeads();
+    const contatosIniciais: ContatoItem[] = leads.map((l, idx) => {
+      const primeiroNome = l.nome.split(" ")[0];
+      return {
+        id: `ct-${l.id}`,
+        empresa_id: l.id,
+        empresa_nome: l.nome,
+        nome: `${primeiroNome} (Sócio / Decisor)`,
+        cargo: "Proprietário / Diretor",
+        telefone: l.telefone,
+        whatsapp: l.telefone,
+        email: `contato@${l.nome.toLowerCase().replace(/[^a-z0-9]/g, "")}.com.br`,
+        linkedin: null,
+        observacoes: "Tomador de decisão comercial mapeado pela prospecção",
+        criado_em: l.criado_em,
+      };
+    });
 
-    return [];
+    await setScopedItem(STORAGE_KEY, contatosIniciais);
+    return contatosIniciais;
   },
 
   async salvarContato(contato: Omit<ContatoItem, "id" | "criado_em">): Promise<ContatoItem> {
@@ -27,26 +43,26 @@ export const contactsService = {
       criado_em: new Date().toISOString(),
     };
     const atualizada = [novo, ...lista];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizada));
+    await setScopedItem(STORAGE_KEY, atualizada);
     return novo;
   },
 
   async atualizarContato(id: string, campos: Partial<ContatoItem>): Promise<ContatoItem | null> {
     const lista = await this.listarContatos();
     const idx = lista.findIndex((c) => c.id === id);
-    const item = lista[idx];
-    if (idx === -1 || !item) return null;
+    const atual = lista[idx];
+    if (idx === -1 || !atual) return null;
 
-    const atualizado: ContatoItem = { ...item, ...campos, id: item.id, criado_em: item.criado_em };
+    const atualizado: ContatoItem = { ...atual, ...campos, id: atual.id };
     lista[idx] = atualizado;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+    await setScopedItem(STORAGE_KEY, lista);
     return atualizado;
   },
 
   async excluirContato(id: string): Promise<boolean> {
     const lista = await this.listarContatos();
     const filtrada = lista.filter((c) => c.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtrada));
+    await setScopedItem(STORAGE_KEY, filtrada);
     return true;
   },
 };

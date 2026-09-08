@@ -19,7 +19,7 @@ Por favor, inclua um resumo detalhado das alterações realizadas, a motivação
 ## 🏛️ Conformidade Arquitetural Feature-Based
 
 - [ ] **Feature-Based**: O código novo reside no módulo correspondente (`src/features/<feature-name>`).
-- [ ] **Rotas Finas (*Thin Controllers*)**: As rotas em `src/routes/` delegam a renderização para `<FeatureView />`.
+- [ ] **Rotas Finas (_Thin Controllers_)**: As rotas em `src/routes/` delegam a renderização para `<FeatureView />`.
 - [ ] **SOLID & SRP**: Componentes, hooks e services possuem responsabilidade única bem definida.
 - [ ] **Design System**: Respeita o padrão visual (Preto Profundo, Branco Cristalino e Roxo Neon).
 - [ ] **Supabase & RLS**: Toda nova tabela/consulta respeita as diretrizes de Row Level Security.

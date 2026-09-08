@@ -10,7 +10,7 @@ export function useAuth(): EstadoAuth {
   const [session, setSession] = useState<Session | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [nome, setNome] = useState("");
-  const [papel, setPapel] = useState<Papel | null>(null);
+  const [papel, setPapel] = useState<Papel>("admin");
 
   useEffect(() => {
     let ativo = true;
@@ -19,7 +19,6 @@ export function useAuth(): EstadoAuth {
       if (!sessaoAtual?.user) {
         if (ativo) {
           setNome("");
-          setPapel(null);
           setCarregando(false);
         }
         return;
@@ -28,11 +27,11 @@ export function useAuth(): EstadoAuth {
       const user = sessaoAtual.user;
       const userEmail = user.email?.toLowerCase();
       const userMetadataNome = user.user_metadata?.["nome"] as string | undefined;
-      const isSuperAdmin = userEmail === SUPER_ADMIN_EMAIL;
 
       // Nome inicial a partir dos metadados ou e-mail
-      let nomeDefinido = userMetadataNome || (userEmail ? userEmail.split("@")[0] || "Usuário" : "Usuário");
-      let papelDefinido: Papel = "admin";
+      let nomeDefinido =
+        userMetadataNome ||
+        (userEmail ? userEmail.split("@")[0] || "Administrador" : "Administrador");
 
       try {
         const [perfilRes, rolesRes] = await Promise.all([
@@ -47,10 +46,13 @@ export function useAuth(): EstadoAuth {
         const roles = (rolesRes.data ?? []).map((r) => r.role as Papel);
         if (!roles.includes("admin")) {
           // Garante role admin no banco para o usuário
-          await supabase.from("user_roles").upsert({
-            user_id: user.id,
-            role: "admin",
-          }, { onConflict: "user_id,role" });
+          await supabase.from("user_roles").upsert(
+            {
+              user_id: user.id,
+              role: "admin",
+            },
+            { onConflict: "user_id,role" },
+          );
         }
       } catch (err) {
         console.error("[useAuth] Erro ao carregar perfil/papel:", err);
@@ -85,8 +87,8 @@ export function useAuth(): EstadoAuth {
     carregando,
     session,
     user: session?.user ?? null,
-    nome: nome || "Usuário",
-    papel: "admin" as Papel,
+    nome: nome || "Administrador",
+    papel: "admin",
     ehAdmin: true,
   };
 }

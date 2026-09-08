@@ -1,5 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { Building2, ArrowRight, AlertCircle, Globe, Instagram, MessageSquare, Trash2 } from "lucide-react";
+import {
+  Building2,
+  ArrowRight,
+  AlertCircle,
+  Globe,
+  Instagram,
+  MessageSquare,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BadgePriority } from "@/features/leads/components/BadgePriority";
@@ -26,7 +34,12 @@ export function RecentLeadsTable({ leads, onAbordar, onSolicitarExcluir }: Recen
           </CardDescription>
         </div>
 
-        <Button variant="ghost" size="sm" asChild className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1"
+        >
           <Link to="/leads">
             <span>Ver base completa</span>
             <ArrowRight className="size-3" />

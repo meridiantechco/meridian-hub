@@ -19,8 +19,7 @@ export const analyticsService = {
     const leadsGerados = leads.length;
     const leadsQualificados = leads.filter((l) => l.score >= 60).length;
     const fechados = leads.filter((l) => l.status === "fechado").length;
-    const taxaConversaoGeral =
-      leadsGerados > 0 ? Math.round((fechados / leadsGerados) * 100) : 0;
+    const taxaConversaoGeral = leadsGerados > 0 ? Math.round((fechados / leadsGerados) * 100) : 0;
 
     const pipelineEstimado = leads.reduce((acc, l) => {
       const cat = (l.categoria || "").toLowerCase();
@@ -34,7 +33,12 @@ export const analyticsService = {
       .filter((t) => t.tipo === "receita" && t.status === "pago")
       .reduce((acc, t) => acc + t.valor, 0);
 
-    const ticketMedio = fechados > 0 ? Math.round(receitaFechada / fechados) : (receitaFechada > 0 ? receitaFechada : 0);
+    const ticketMedio =
+      fechados > 0
+        ? Math.round(receitaFechada / fechados)
+        : receitaFechada > 0
+          ? receitaFechada
+          : 0;
 
     return {
       leadsGerados,
@@ -66,21 +70,30 @@ export const analyticsService = {
     }
 
     return perfis.map((p, idx) => {
-      const stats = metricasAuditoria[p.id] || metricasAuditoria[p.email] || {
-        total: 0,
-        whatsapp: 0,
-        mudancas_status: 0,
-        mineracoes: 0,
-      };
+      const stats = metricasAuditoria[p.id] ||
+        metricasAuditoria[p.email] || {
+          total: 0,
+          whatsapp: 0,
+          mudancas_status: 0,
+          mineracoes: 0,
+        };
 
-      const leadsTrabalhados = leads.filter((l) => (l as any).responsavel_id === p.id).length || (idx === 0 ? leads.length : 0);
-      const fechamentos = leads.filter((l) => (l as any).responsavel_id === p.id && l.status === "fechado").length || (idx === 0 ? fechadosTotal : 0);
+      const leadsTrabalhados =
+        leads.filter((l) => (l as any).responsavel_id === p.id).length ||
+        (idx === 0 ? leads.length : 0);
+      const fechamentos =
+        leads.filter((l) => (l as any).responsavel_id === p.id && l.status === "fechado").length ||
+        (idx === 0 ? fechadosTotal : 0);
       const contatosFeitos = stats.whatsapp || 0;
-      const receitaGerada = transacoes
-        .filter((t) => (t as any).usuario_id === p.id && t.tipo === "receita" && t.status === "pago")
-        .reduce((acc, t) => acc + t.valor, 0) || (idx === 0 ? receitaTotal : 0);
+      const receitaGerada =
+        transacoes
+          .filter(
+            (t) => (t as any).usuario_id === p.id && t.tipo === "receita" && t.status === "pago",
+          )
+          .reduce((acc, t) => acc + t.valor, 0) || (idx === 0 ? receitaTotal : 0);
 
-      const taxaConversao = leadsTrabalhados > 0 ? Math.round((fechamentos / leadsTrabalhados) * 100) : 0;
+      const taxaConversao =
+        leadsTrabalhados > 0 ? Math.round((fechamentos / leadsTrabalhados) * 100) : 0;
 
       return {
         id: p.id,
@@ -109,7 +122,10 @@ export const analyticsService = {
         ? Math.round(receitas.reduce((acc, t) => acc + t.valor, 0) / receitas.length)
         : 2500;
 
-    const grupos: Record<string, { total: number; semSite: number; somaScore: number; fechados: number }> = {};
+    const grupos: Record<
+      string,
+      { total: number; semSite: number; somaScore: number; fechados: number }
+    > = {};
 
     leads.forEach((l) => {
       const cidade = l.cidade || "Região Mapeada";

@@ -1,21 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Calendar,
-  Download,
-  TrendingDown,
-  TrendingUp,
-  AlertTriangle,
-  MoreHorizontal,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar, Download, TrendingDown, TrendingUp, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { leadsService, type LeadItem } from "@/features/leads";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
@@ -32,6 +25,7 @@ export function FinancialView() {
     transacoes,
     transacoesFiltradas,
     metricas,
+    carregando,
     filtroMes,
     setFiltroMes,
     filtroCategoria,
@@ -43,10 +37,14 @@ export function FinancialView() {
     excluirTransacao,
   } = useFinancial();
 
-  const [abaAtiva, setAbaAtiva] = useState<"todas" | "despesas" | "receitas" | "pendentes">("todas");
+  const [abaAtiva, setAbaAtiva] = useState<"todas" | "despesas" | "receitas" | "pendentes">(
+    "todas",
+  );
   const [modalNovaDespesaAberto, setModalNovaDespesaAberto] = useState(false);
   const [modalNovaReceitaAberto, setModalNovaReceitaAberto] = useState(false);
-  const [transacaoParaExcluir, setTransacaoParaExcluir] = useState<TransacaoFinanceira | null>(null);
+  const [transacaoParaExcluir, setTransacaoParaExcluir] = useState<TransacaoFinanceira | null>(
+    null,
+  );
   const [leadsDisponiveis, setLeadsDisponiveis] = useState<LeadItem[]>([]);
 
   useEffect(() => {
@@ -109,109 +107,104 @@ export function FinancialView() {
       titulo="Financeiro"
       descricao="Gestão de despesas operacionais, receitas e fluxo de caixa da operação"
       acoes={
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8.5 px-2.5 gap-1.5 text-xs border-border/80 text-foreground"
-              >
-                <MoreHorizontal className="size-3.5" />
-                <span className="hidden sm:inline">Opções</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-card border-border shadow-elev">
-              <DropdownMenuItem
-                onClick={exportarCSV}
-                className="text-xs cursor-pointer gap-2"
-              >
-                <Download className="size-3.5 text-primary" />
-                Exportar CSV
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportarCSV}
+            className="h-8.5 px-3.5 rounded-full gap-1.5 text-xs border-border/80 text-foreground hover:bg-secondary/60"
+          >
+            <Download className="size-3.5" />
+            <span className="hidden md:inline">Exportar </span>CSV
+          </Button>
 
           <Button
             variant="outline"
             size="sm"
             onClick={() => setModalNovaDespesaAberto(true)}
-            className="h-8.5 px-3 gap-1.5 text-xs border-pink-500/30 text-pink-400 hover:bg-pink-500/10 font-semibold"
+            className="h-8.5 px-3.5 rounded-full gap-1.5 text-xs border-pink-500/30 text-pink-400 hover:bg-pink-500/10 font-semibold"
           >
             <TrendingDown className="size-3.5" />
-            <span>Novo Gasto</span>
+            <span>
+              Novo Gasto<span className="hidden sm:inline"> / Despesa</span>
+            </span>
           </Button>
 
           <Button
             size="sm"
             onClick={() => setModalNovaReceitaAberto(true)}
-            className="h-8.5 px-3 gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs"
+            className="h-8.5 px-4 rounded-full gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-xs"
           >
             <TrendingUp className="size-3.5" />
-            <span>Nova Receita</span>
+            <span>
+              Nova Receita<span className="hidden sm:inline"> / Fechamento</span>
+            </span>
           </Button>
         </div>
       }
     >
-      {transacoes.length === 0 ? (
+      {transacoes.length === 0 && carregando ? (
         <div className="space-y-6 max-w-7xl animate-fade-in">
           <MetricCardsSkeleton quantidade={4} colunas="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" />
           <TableSkeleton colunas={7} linhas={6} mostrarFiltros={true} />
         </div>
       ) : (
         <div className="space-y-6 max-w-7xl animate-fade-in">
-          {/* BARRA DE SELEÇÃO DE PERÍODO */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border shadow-elev">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Calendar className="size-4 text-primary shrink-0" />
-            <span className="text-xs font-semibold text-foreground whitespace-nowrap">Período:</span>
-            <Select value={filtroMes} onValueChange={setFiltroMes}>
-              <SelectTrigger className="w-full sm:w-44 h-8 text-xs bg-surface/50 border-border">
-                <SelectValue placeholder="Selecione o período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todo o Histórico</SelectItem>
-                {mesesDisponiveis.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* BARRA DE SELEÇÃO DE PERÍODO (BENTO STYLE) */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/70 shadow-elev">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <Calendar className="size-4 text-primary shrink-0" />
+              <span className="text-xs font-semibold text-foreground whitespace-nowrap">
+                Período:
+              </span>
+              <Select value={filtroMes} onValueChange={setFiltroMes}>
+                <SelectTrigger className="w-full sm:w-48 h-8.5 rounded-full text-xs bg-surface/50 border-border">
+                  <SelectValue placeholder="Selecione o período" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl bg-card border-border">
+                  <SelectItem value="todos">Todo o Histórico</SelectItem>
+                  {mesesDisponiveis.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2.5 sm:gap-3 text-xs text-muted-foreground flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                <span className="size-2 rounded-full bg-emerald-400" />
+                Receita:{" "}
+                <strong className="text-foreground">{formatarMoeda(metricas.receitaTotal)}</strong>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400">
+                <span className="size-2 rounded-full bg-pink-400" />
+                Gastos:{" "}
+                <strong className="text-foreground">{formatarMoeda(metricas.despesaTotal)}</strong>
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted-foreground flex-wrap">
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-emerald-400" />
-              Receita: <strong className="text-foreground">{formatarMoeda(metricas.receitaTotal)}</strong>
-            </span>
-            <span>·</span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-pink-400" />
-              Gastos: <strong className="text-foreground">{formatarMoeda(metricas.despesaTotal)}</strong>
-            </span>
-          </div>
+          {/* CARDS PRINCIPAIS DE KPI & LUCRO */}
+          <FinancialKpis metricas={metricas} />
+
+          {/* GRÁFICOS */}
+          <FinancialCharts metricas={metricas} />
+
+          {/* TABELA DE LANÇAMENTOS */}
+          <TransactionsTable
+            transacoes={transacoesFiltradas}
+            abaAtiva={abaAtiva}
+            setAbaAtiva={setAbaAtiva}
+            busca={buscaTermo}
+            setBusca={setBuscaTermo}
+            filtroCategoria={filtroCategoria}
+            setFiltroCategoria={setFiltroCategoria}
+            onAlternarStatus={alternarStatus}
+            onSolicitarExclusao={(tx) => setTransacaoParaExcluir(tx)}
+          />
         </div>
-
-        {/* CARDS PRINCIPAIS DE KPI & LUCRO */}
-        <FinancialKpis metricas={metricas} />
-
-        {/* GRÁFICOS */}
-        <FinancialCharts metricas={metricas} />
-
-        {/* TABELA DE LANÇAMENTOS */}
-        <TransactionsTable
-          transacoes={transacoesFiltradas}
-          abaAtiva={abaAtiva}
-          setAbaAtiva={setAbaAtiva}
-          busca={buscaTermo}
-          setBusca={setBuscaTermo}
-          filtroCategoria={filtroCategoria}
-          setFiltroCategoria={setFiltroCategoria}
-          onAlternarStatus={alternarStatus}
-          onSolicitarExclusao={(tx) => setTransacaoParaExcluir(tx)}
-        />
-      </div>
       )}
 
       {/* MODAL CRIAR DESPESA */}
@@ -239,7 +232,11 @@ export function FinancialView() {
         onOpenChange={(aberto) => !aberto && setTransacaoParaExcluir(null)}
         titulo="Excluir Lançamento Financeiro?"
         descricao="Esta ação removerá permanentemente esta transação e recalculará as métricas financeiras."
-        itemNome={transacaoParaExcluir ? `${transacaoParaExcluir.titulo} (${formatarMoeda(transacaoParaExcluir.valor)})` : undefined}
+        itemNome={
+          transacaoParaExcluir
+            ? `${transacaoParaExcluir.titulo} (${formatarMoeda(transacaoParaExcluir.valor)})`
+            : undefined
+        }
         onConfirmar={confirmarExclusao}
       />
     </AppShell>

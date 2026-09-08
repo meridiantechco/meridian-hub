@@ -88,7 +88,7 @@ export const MeridianBrandBadge: React.FC<MeridianBrandProps> = ({
         className={cn(
           "relative flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/25 via-primary/10 to-transparent text-primary border border-primary/30 shadow-[0_0_20px_rgba(168,85,247,0.35)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] group-hover:border-primary/50",
           isSm ? "size-9 rounded-lg" : isLg ? "size-12 rounded-2xl" : "size-10",
-          badgeClassName
+          badgeClassName,
         )}
       >
         <MeridianLogo
@@ -96,7 +96,7 @@ export const MeridianBrandBadge: React.FC<MeridianBrandProps> = ({
           size="custom"
           className={cn(
             "drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]",
-            isSm ? "size-5" : isLg ? "size-7" : "size-6"
+            isSm ? "size-5" : isLg ? "size-7" : "size-6",
           )}
         />
         <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 border-2 border-sidebar shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
@@ -106,7 +106,7 @@ export const MeridianBrandBadge: React.FC<MeridianBrandProps> = ({
         <p
           className={cn(
             "font-display font-bold tracking-tight text-foreground group-hover:text-primary transition-colors",
-            isSm ? "text-sm" : isLg ? "text-lg" : "text-base"
+            isSm ? "text-sm" : isLg ? "text-lg" : "text-base",
           )}
         >
           Meridian Hub

@@ -35,6 +35,8 @@ export function ProspectingView() {
     setRaioKm,
     buscando,
     salvando,
+    salvandoId,
+    salvosSet,
     carregandoMais,
     resultados,
     setResultados,
@@ -51,6 +53,7 @@ export function ProspectingView() {
     selecionarTodos,
     selecionarApenasSemSite,
     salvarLeadsSelecionados,
+    salvarLeadIndividual,
   } = useProspecting();
 
   const [leadEditandoRede, setLeadEditandoRede] = useState<LeadEncontrado | null>(null);
@@ -100,8 +103,8 @@ export function ProspectingView() {
 
   return (
     <AppShell
-      titulo="Detectar Empresas"
-      descricao="Varredura geográfica para identificar estabelecimentos locais e oportunidades sem site"
+      titulo="Buscar Clientes"
+      descricao="Varredura no Google Maps para identificar estabelecimentos e oportunidades sem site"
     >
       <div className="space-y-6 max-w-6xl">
         <ProspectingForm
@@ -125,11 +128,14 @@ export function ProspectingView() {
             setFiltroLista={setFiltroLista}
             origemBusca={origemBusca}
             salvando={salvando}
+            salvandoId={salvandoId}
+            salvosSet={salvosSet}
             carregandoMais={carregandoMais}
             onAlternarSelecao={alternarSelecao}
             onSelecionarTodos={selecionarTodos}
             onSelecionarApenasSemSite={selecionarApenasSemSite}
             onSalvarImportacao={salvarLeadsSelecionados}
+            onSalvarIndividual={salvarLeadIndividual}
             onCarregarMais={carregarMaisEstabelecimentos}
             onEditarRede={handleAbrirEdicao}
           />
@@ -206,7 +212,7 @@ function ModalEditarRedeSimulada({
                 <a
                   href={gerarUrlBuscaInstagram(lead.nome, lead.cidade || lead.bairro)}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="text-[10px] text-pink-400 hover:underline flex items-center gap-0.5"
                 >
                   <Search className="size-2.5" /> Buscar no Google

@@ -68,12 +68,12 @@ export function RegisterForm({
           <Input
             id="senha-nova"
             type="password"
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Mínimo 8 caracteres"
             className="pl-9"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
             autoComplete="new-password"
           />
         </div>

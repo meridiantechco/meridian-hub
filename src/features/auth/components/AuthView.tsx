@@ -35,7 +35,7 @@ export function AuthView() {
           setUsuarioPrimeiroLogin(data.session.user);
           setModoDefinirSenhaObrigatoria(true);
         } else {
-          void navigate({ to: "/painel" });
+          void navigate({ to: "/nova-busca" });
         }
       }
     });
@@ -62,7 +62,8 @@ export function AuthView() {
         setEmailConfirmacaoPendente(emailLimpo);
       } else if (error.message.includes("Invalid login credentials")) {
         toast.error("Credenciais incorretas", {
-          description: "E-mail ou senha incorretos. Verifique os dados fornecidos pelo administrador.",
+          description:
+            "E-mail ou senha incorretos. Verifique os dados fornecidos pelo administrador.",
         });
       } else {
         toast.error("Não foi possível entrar", { description: error.message });
@@ -88,7 +89,7 @@ export function AuthView() {
       });
 
       toast.success("Login realizado com sucesso!");
-      void navigate({ to: "/painel" });
+      void navigate({ to: "/nova-busca" });
     }
   }
 
@@ -112,9 +113,9 @@ export function AuthView() {
   async function salvarSenhaObrigatoria(e: React.FormEvent) {
     e.preventDefault();
 
-    if (senhaDefinitiva.length < 6) {
+    if (senhaDefinitiva.length < 8) {
       toast.error("Senha muito curta", {
-        description: "A nova senha deve ter no mínimo 6 caracteres.",
+        description: "A nova senha deve ter no mínimo 8 caracteres para maior segurança.",
       });
       return;
     }
@@ -153,7 +154,7 @@ export function AuthView() {
       description: "Bem-vindo ao Meridian Hub!",
     });
     setModoDefinirSenhaObrigatoria(false);
-    void navigate({ to: "/painel" });
+    void navigate({ to: "/nova-busca" });
   }
 
   async function deslogar() {
@@ -186,9 +187,9 @@ export function AuthView() {
           <p className="text-xs text-muted-foreground max-w-xs mx-auto">
             Plataforma de inteligência comercial e prospecção corporativa da Meridian Tech
           </p>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary/80 text-[11px] text-muted-foreground border border-border">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/80 text-[11px] text-muted-foreground border border-border">
             <ShieldCheck className="size-3 text-primary" />
-            <span>Sistema Interno · Acesso Restrito</span>
+            <span>Acesso Administrativo · Operador Privativo</span>
           </div>
         </div>
 
@@ -204,8 +205,8 @@ export function AuthView() {
             onLogout={deslogar}
           />
         ) : (
-          <Card className="bg-card border-border shadow-elev">
-            <CardContent className="pt-6">
+          <Card className="bg-card/90 backdrop-blur-xl border-border/80 shadow-2xl rounded-3xl">
+            <CardContent className="p-6">
               <LoginForm
                 email={email}
                 setEmail={setEmail}

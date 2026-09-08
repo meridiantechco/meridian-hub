@@ -34,6 +34,7 @@ import { BadgePriority } from "./BadgePriority";
 import { BadgeStatus } from "./BadgeStatus";
 import { leadsService } from "../services/leadsService";
 import { auditoriaService } from "@/features/audit";
+import { sanitizarUrlExterna } from "@/lib/utils";
 import type { LeadItem, InteracaoItem } from "../types";
 
 interface LeadDrawerProps {
@@ -141,7 +142,8 @@ export function LeadDrawer({
           <SheetDescription className="text-xs text-muted-foreground text-left flex items-center gap-1">
             <MapPin className="size-3 text-primary shrink-0" />
             <span className="truncate">
-              {lead.endereco || `${lead.bairro ? `${lead.bairro}, ` : ""}${lead.cidade || "Brasil"}`}
+              {lead.endereco ||
+                `${lead.bairro ? `${lead.bairro}, ` : ""}${lead.cidade || "Brasil"}`}
             </span>
           </SheetDescription>
         </SheetHeader>
@@ -197,9 +199,9 @@ export function LeadDrawer({
               {lead.instagram ? (
                 <div className="p-2.5 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-between text-pink-400 font-mono">
                   <a
-                    href={`https://instagram.com/${lead.instagram.replace(/^@/, "")}`}
+                    href={`https://instagram.com/${lead.instagram.replace(/^@/, "").replace(/[^a-zA-Z0-9_.-]/g, "")}`}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-2 hover:underline"
                   >
                     <Instagram className="size-3.5" />
@@ -222,16 +224,18 @@ export function LeadDrawer({
                   <span className="text-[10px] font-semibold text-primary bg-primary/15 px-2 py-0.5 rounded border border-primary/25">
                     Sem site próprio
                   </span>
-                ) : (
+                ) : sanitizarUrlExterna(lead.site_url) ? (
                   <a
-                    href={lead.site_url || "#"}
+                    href={sanitizarUrlExterna(lead.site_url)!}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
                   >
                     <span>Acessar</span>
                     <ExternalLink className="size-3" />
                   </a>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground">Site não informado</span>
                 )}
               </div>
 

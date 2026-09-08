@@ -1,4 +1,5 @@
 import type { TemplateMensagem, CategoriaTemplate } from "../types";
+import { getScopedItem, setScopedItem } from "@/lib/userStorage";
 
 const STORAGE_KEY = "meridian_templates_mensagens_v1";
 
@@ -6,13 +7,9 @@ export const templatesService = {
   async listarTemplates(): Promise<TemplateMensagem[]> {
     if (typeof window === "undefined") return [];
 
-    const salvo = localStorage.getItem(STORAGE_KEY);
-    if (salvo) {
-      try {
-        return JSON.parse(salvo) as TemplateMensagem[];
-      } catch {
-        // fallback
-      }
+    const salvo = await getScopedItem<TemplateMensagem[]>(STORAGE_KEY);
+    if (salvo && Array.isArray(salvo) && salvo.length > 0) {
+      return salvo;
     }
 
     const iniciais: TemplateMensagem[] = [
@@ -54,11 +51,14 @@ export const templatesService = {
       },
     ];
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(iniciais));
+    await setScopedItem(STORAGE_KEY, iniciais);
     return iniciais;
   },
 
-  interpolar(texto: string, dados: { nome?: string; empresa?: string; segmento?: string; responsavel?: string }): string {
+  interpolar(
+    texto: string,
+    dados: { nome?: string; empresa?: string; segmento?: string; responsavel?: string },
+  ): string {
     return texto
       .replace(/{nome}/g, dados.nome || "Decisor")
       .replace(/{empresa}/g, dados.empresa || "sua empresa")
@@ -66,7 +66,9 @@ export const templatesService = {
       .replace(/{responsavel}/g, dados.responsavel || "da equipe comercial");
   },
 
-  async salvarTemplate(tpl: Omit<TemplateMensagem, "id" | "variaveisSuportadas">): Promise<TemplateMensagem> {
+  async salvarTemplate(
+    tpl: Omit<TemplateMensagem, "id" | "variaveisSuportadas">,
+  ): Promise<TemplateMensagem> {
     const lista = await this.listarTemplates();
     const novo: TemplateMensagem = {
       ...tpl,
@@ -74,11 +76,14 @@ export const templatesService = {
       variaveisSuportadas: ["{nome}", "{empresa}", "{segmento}", "{responsavel}"],
     };
     const atualizada = [novo, ...lista];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizada));
+    await setScopedItem(STORAGE_KEY, atualizada);
     return novo;
   },
 
-  async atualizarTemplate(id: string, campos: Partial<TemplateMensagem>): Promise<TemplateMensagem | null> {
+  async atualizarTemplate(
+    id: string,
+    campos: Partial<TemplateMensagem>,
+  ): Promise<TemplateMensagem | null> {
     const lista = await this.listarTemplates();
     const idx = lista.findIndex((t) => t.id === id);
     const item = lista[idx];
@@ -86,14 +91,14 @@ export const templatesService = {
 
     const atualizado: TemplateMensagem = { ...item, ...campos, id: item.id };
     lista[idx] = atualizado;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(lista));
+    await setScopedItem(STORAGE_KEY, lista);
     return atualizado;
   },
 
   async excluirTemplate(id: string): Promise<boolean> {
     const lista = await this.listarTemplates();
     const filtrada = lista.filter((t) => t.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtrada));
+    await setScopedItem(STORAGE_KEY, filtrada);
     return true;
   },
 };

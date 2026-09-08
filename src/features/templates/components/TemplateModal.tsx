@@ -98,7 +98,7 @@ export function TemplateModal({
 
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg bg-card border-border shadow-2xl">
+      <DialogContent className="max-w-lg bg-card/95 backdrop-blur-sm border-border rounded-3xl p-6 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
             <MessageSquare className="size-4 text-primary" />
@@ -109,8 +109,8 @@ export function TemplateModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3.5 py-2">
-          <div className="space-y-1">
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          <div className="space-y-1.5">
             <Label htmlFor="tpl-titulo" className="text-xs font-semibold text-foreground">
               Título do Script *
             </Label>
@@ -119,13 +119,13 @@ export function TemplateModal({
               value={titulo}
               onChange={(e) => setTitulo(e.target.value)}
               placeholder="Ex: Abordagem Inicial — Restaurantes"
-              className="text-xs h-8.5 bg-surface/50"
+              className="text-xs h-9 rounded-full bg-surface/50 px-3.5"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="tpl-cat" className="text-xs font-semibold text-foreground">
                 Categoria / Etapa
               </Label>
@@ -133,10 +133,10 @@ export function TemplateModal({
                 value={categoria}
                 onValueChange={(val) => setCategoria(val as CategoriaTemplate)}
               >
-                <SelectTrigger id="tpl-cat" className="text-xs h-8.5 bg-surface/50">
+                <SelectTrigger id="tpl-cat" className="text-xs h-9 rounded-full bg-surface/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl bg-card border-border">
                   <SelectItem value="primeiro_contato">Primeiro Contato</SelectItem>
                   <SelectItem value="follow_up">Follow-up</SelectItem>
                   <SelectItem value="proposta">Proposta Comercial</SelectItem>
@@ -146,18 +146,15 @@ export function TemplateModal({
               </Select>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="tpl-canal" className="text-xs font-semibold text-foreground">
                 Canal de Disparo
               </Label>
-              <Select
-                value={canal}
-                onValueChange={(val) => setCanal(val as "whatsapp" | "email")}
-              >
-                <SelectTrigger id="tpl-canal" className="text-xs h-8.5 bg-surface/50">
+              <Select value={canal} onValueChange={(val) => setCanal(val as "whatsapp" | "email")}>
+                <SelectTrigger id="tpl-canal" className="text-xs h-9 rounded-full bg-surface/50">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl bg-card border-border">
                   <SelectItem value="whatsapp">WhatsApp</SelectItem>
                   <SelectItem value="email">E-mail</SelectItem>
                 </SelectContent>
@@ -166,7 +163,7 @@ export function TemplateModal({
           </div>
 
           {/* CHIPS DE VARIÁVEIS DINÂMICAS */}
-          <div className="space-y-1.5 p-2.5 rounded-xl bg-surface/50 border border-border/70">
+          <div className="space-y-2 p-3 rounded-2xl bg-surface/50 border border-border/70">
             <span className="text-[10px] font-bold text-muted-foreground uppercase rotulo flex items-center gap-1">
               <Tag className="size-3 text-primary" />
               Clique para inserir variável no texto:
@@ -182,7 +179,7 @@ export function TemplateModal({
                   key={item.tag}
                   type="button"
                   onClick={() => inserirVariavel(item.tag)}
-                  className="px-2 py-0.5 rounded-md text-[11px] font-mono bg-card border border-border hover:border-primary/50 text-foreground hover:text-primary transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-full text-xs font-mono bg-card border border-border hover:border-primary/50 text-foreground hover:text-primary transition-colors cursor-pointer"
                   title={item.desc}
                 >
                   {item.tag}
@@ -191,7 +188,7 @@ export function TemplateModal({
             </div>
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <Label htmlFor="tpl-texto" className="text-xs font-semibold text-foreground">
               Texto da Mensagem *
             </Label>
@@ -201,7 +198,7 @@ export function TemplateModal({
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
               placeholder="Digite o modelo de mensagem. Use as tags acima para personalizar automaticamente..."
-              className="text-xs min-h-[120px] bg-surface/50 leading-relaxed resize-none"
+              className="text-xs min-h-[120px] rounded-2xl bg-surface/50 leading-relaxed resize-none p-3"
               required
             />
           </div>
@@ -212,7 +209,7 @@ export function TemplateModal({
               variant="ghost"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="text-xs h-8"
+              className="text-xs h-8.5 rounded-full"
             >
               Cancelar
             </Button>
@@ -220,7 +217,7 @@ export function TemplateModal({
               type="submit"
               size="sm"
               disabled={salvando}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs h-8 px-4"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs h-8.5 px-5 rounded-full"
             >
               {salvando ? "Salvando..." : templateParaEditar ? "Salvar Alterações" : "Criar Script"}
             </Button>
