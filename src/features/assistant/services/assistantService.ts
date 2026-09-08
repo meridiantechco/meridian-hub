@@ -86,11 +86,21 @@ export const assistantService = {
       termo.includes("equipe") ||
       termo.includes("produtividade")
     ) {
-      resposta =
-        `Análise de produtividade da equipe comercial:\n\n` +
-        `- **Rayan Silva**: Responsável pela maior taxa de conversão (33%) e condução dos leads de alta prioridade.\n` +
-        `- **Equipe SDR**: Focada na qualificação de volume e primeiro contato via radar.\n\n` +
-        `Para detalhes completos de reuniões e receita, consulte a página **Performance da Equipe** no menu Analytics.`;
+      const { analyticsService } = await import("@/features/analytics");
+      const equipe = await analyticsService.obterDesempenhoEquipe();
+      if (equipe.length > 0) {
+        resposta =
+          `Análise de produtividade da equipe comercial:\n\n` +
+          equipe
+            .map(
+              (v) =>
+                `- **${v.nome}** (${v.papel}): ${v.leadsTrabalhados} leads trabalhados · ${v.fechamentos} fechamentos (${v.taxaConversao}% de conversão) · R$ ${v.receitaGerada.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+            )
+            .join("\n") +
+          `\n\nPara detalhes completos, consulte a página **Performance da Equipe** no menu Analytics.`;
+      } else {
+        resposta = `Nenhum dado de equipe encontrado. Cadastre novos membros na aba **Gestão de Usuários**.`;
+      }
     } else {
       resposta =
         `Com base nos **${leads.length} estabelecimentos** cadastrados no Meridian Hub:\n\n` +

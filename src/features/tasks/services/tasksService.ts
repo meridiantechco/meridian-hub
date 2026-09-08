@@ -39,11 +39,11 @@ export const tasksService = {
       },
       {
         id: "task-2",
-        titulo: `Follow-up de demonstração com ${lead2?.nome || "Barbearia Imperial"}`,
-        descricao: "Confirmar recebimento do orçamento enviado e alinhar prazo de entrega",
+        titulo: `Follow-up de proposta enviada para ${lead2?.nome || "Barbearia Imperial"}`,
+        descricao: "Checar se analisaram a condição de parcelamento sem juros",
         prioridade: "alta",
-        status: "em_andamento",
-        prazo: hoje,
+        status: "pendente",
+        prazo: amanha,
         empresa_id: lead2?.id || null,
         empresa_nome: lead2?.nome || "Barbearia Imperial",
         responsavel: "Equipe Comercial",
@@ -51,11 +51,11 @@ export const tasksService = {
       },
       {
         id: "task-3",
-        titulo: `Qualificar dados de decisor de ${lead3?.nome || "Clínica Vida"}`,
-        descricao: "Buscar telefone direto da administração para agendamento de apresentação",
+        titulo: `Ligar para decisor de ${lead3?.nome || "Clínica Vida"}`,
+        descricao: "Agendar demonstração do sistema de agendamento online",
         prioridade: "media",
         status: "pendente",
-        prazo: amanha,
+        prazo: hoje,
         empresa_id: lead3?.id || null,
         empresa_nome: lead3?.nome || "Clínica Vida",
         responsavel: "Equipe Comercial",
@@ -63,8 +63,8 @@ export const tasksService = {
       },
       {
         id: "task-4",
-        titulo: "Revisar relatório de conversão de prospecção do mês",
-        descricao: "Analisar taxa de fechamento por nicho no módulo de Analytics",
+        titulo: "Revisar lista de nichos quentes no Opportunity Radar",
+        descricao: "Identificar nova leva de prospecção para alimentação e serviços locais",
         prioridade: "baixa",
         status: "concluida",
         prazo: ontem,
@@ -95,15 +95,13 @@ export const tasksService = {
   async atualizarTarefa(id: string, campos: Partial<TarefaItem>): Promise<TarefaItem | null> {
     const lista = await this.listarTarefas();
     const idx = lista.findIndex((t) => t.id === id);
-    if (idx === -1) return null;
+    const item = lista[idx];
+    if (idx === -1 || !item) return null;
 
-    const atual = lista[idx];
-    if (!atual) return null;
-
-    const atualizada: TarefaItem = { ...atual, ...campos, id: atual.id };
-    lista[idx] = atualizada;
+    const atualizado: TarefaItem = { ...item, ...campos, id: item.id };
+    lista[idx] = atualizado;
     await setScopedItem(STORAGE_KEY, lista);
-    return atualizada;
+    return atualizado;
   },
 
   async alternarStatus(id: string, novoStatus: StatusTarefa): Promise<TarefaItem | null> {

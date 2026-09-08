@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface TopbarProps {
   titulo: string;
@@ -40,7 +41,7 @@ export function Topbar({ titulo, descricao, acoes, onAbrirMobile, onAbrirBusca }
         </div>
       </div>
 
-      {/* LADO DIREITO: TRIGGER DE BUSCA RÁPIDA / PALETTE + STATUS + AÇÕES */}
+      {/* Lado Direito: Command Palette trigger + Status + Theme Toggle + Ações */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
         <button
           type="button"
@@ -60,6 +61,9 @@ export function Topbar({ titulo, descricao, acoes, onAbrirMobile, onAbrirBusca }
           <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
           <span>Admin Privativo</span>
         </div>
+
+        {/* Theme Toggle (Claro / Escuro / Sistema) */}
+        <ThemeToggle />
 
         {/* Slot de Ações Customizadas da Página */}
         {acoes && <div className="flex items-center gap-1.5 sm:gap-2">{acoes}</div>}

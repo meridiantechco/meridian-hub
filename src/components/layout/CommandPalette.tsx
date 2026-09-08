@@ -9,6 +9,8 @@ import {
   Users2,
   Kanban,
   Sun,
+  Moon,
+  Laptop,
   CheckSquare,
   Calendar,
   History,
@@ -38,6 +40,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { prospectaService, BadgePriority, type LeadItem } from "@/features/leads";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface CommandPaletteProps {
   aberto: boolean;
@@ -55,6 +58,7 @@ interface ActionItem {
 
 export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
   const navigate = useNavigate();
+  const { setTheme } = useTheme();
   const [termo, setTermo] = useState("");
   const [leads, setLeads] = useState<LeadItem[]>([]);
   const [carregandoLeads, setCarregandoLeads] = useState(false);
@@ -85,6 +89,20 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
         rota: "/nova-busca",
       },
       {
+        id: "nav-painel",
+        titulo: "Dashboard Comercial (Métricas & Funil)",
+        categoria: "Visão Geral",
+        icone: LayoutDashboard,
+        rota: "/painel",
+      },
+      {
+        id: "nav-funil",
+        titulo: "Quadro Kanban (Status de Contato)",
+        categoria: "CRM",
+        icone: Kanban,
+        rota: "/funil",
+      },
+      {
         id: "nav-leads",
         titulo: "Meus Clientes (Carteira & WhatsApp)",
         categoria: "CRM",
@@ -99,15 +117,8 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
         rota: "/templates",
       },
       {
-        id: "nav-painel",
-        titulo: "Dashboard Comercial (Métricas & Funil)",
-        categoria: "Visão Geral",
-        icone: LayoutDashboard,
-        rota: "/painel",
-      },
-      {
         id: "nav-financial",
-        titulo: "Painel Financeiro (Fluxo de Caixa)",
+        titulo: "Painel Financeiro (Fluxo de Caixa & Custos)",
         categoria: "Financeiro",
         icone: Wallet,
         rota: "/financeiro",
@@ -126,11 +137,39 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
   const acoesRapidas: ActionItem[] = useMemo(
     () => [
       {
+        id: "act-tema-claro",
+        titulo: "Mudar Tema para Claro",
+        categoria: "Aparência",
+        icone: Sun,
+        acao: () => setTheme("light"),
+      },
+      {
+        id: "act-tema-escuro",
+        titulo: "Mudar Tema para Escuro",
+        categoria: "Aparência",
+        icone: Moon,
+        acao: () => setTheme("dark"),
+      },
+      {
+        id: "act-tema-sistema",
+        titulo: "Usar Tema do Sistema",
+        categoria: "Aparência",
+        icone: Laptop,
+        acao: () => setTheme("system"),
+      },
+      {
         id: "act-prospeccao",
         titulo: "Iniciar Nova Busca de Empresas no Google Maps",
         categoria: "Ações",
         icone: Search,
         rota: "/nova-busca",
+      },
+      {
+        id: "act-funil",
+        titulo: "Abrir Quadro Kanban de Prospecção",
+        categoria: "Ações",
+        icone: Kanban,
+        rota: "/funil",
       },
       {
         id: "act-leads",
@@ -154,7 +193,7 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
         rota: "/financeiro",
       },
     ],
-    [],
+    [setTheme],
   );
 
   const paginasFiltradas = useMemo(() => {
@@ -168,7 +207,9 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
   const acoesFiltradas = useMemo(() => {
     if (!termo.trim()) return acoesRapidas;
     const t = termo.toLowerCase();
-    return acoesRapidas.filter((a) => a.titulo.toLowerCase().includes(t));
+    return acoesRapidas.filter(
+      (a) => a.titulo.toLowerCase().includes(t) || a.categoria.toLowerCase().includes(t),
+    );
   }, [acoesRapidas, termo]);
 
   const leadsFiltrados = useMemo(() => {
@@ -191,7 +232,9 @@ export function CommandPalette({ aberto, onOpenChange }: CommandPaletteProps) {
 
   const executarItem = (item: ActionItem) => {
     onOpenChange(false);
-    if (item.rota) {
+    if (item.acao) {
+      item.acao();
+    } else if (item.rota) {
       void navigate({ to: item.rota as any });
     }
   };

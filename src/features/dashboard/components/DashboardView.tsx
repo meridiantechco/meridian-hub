@@ -18,8 +18,9 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
-import { WhatsAppModal, type LeadItem } from "@/features/leads";
-import { prospectaService } from "@/lib/prospecta-service";
+import { WhatsAppModal, leadsService, type LeadItem } from "@/features/leads";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { toast } from "sonner";
 import { financialService, type MetricasFinanceiras } from "@/features/financial";
 import { cn } from "@/lib/utils";
 
@@ -31,12 +32,14 @@ export function DashboardView() {
   // WhatsApp 1-Click Modal
   const [leadParaWhatsApp, setLeadParaWhatsApp] = useState<LeadItem | null>(null);
   const [modalWhatsAppAberto, setModalWhatsAppAberto] = useState(false);
+  const [leadParaExcluir, setLeadParaExcluir] = useState<LeadItem | null>(null);
+  const [excluindoLead, setExcluindoLead] = useState(false);
 
   const carregarDados = async () => {
     setCarregando(true);
     try {
       const [listaLeads, listaTx] = await Promise.all([
-        prospectaService.listarLeads(),
+        leadsService.listarLeads(),
         financialService.listarTransacoes(),
       ]);
       setLeads(listaLeads);
@@ -552,6 +555,32 @@ export function DashboardView() {
         aberto={modalWhatsAppAberto}
         onOpenChange={setModalWhatsAppAberto}
         onMensagemEnviada={carregarDados}
+      />
+
+      {/* DIÁLOGO CONFIRMAÇÃO DE EXCLUSÃO DE LEAD */}
+      <ConfirmDeleteDialog
+        open={Boolean(leadParaExcluir)}
+        onOpenChange={(open) => !open && setLeadParaExcluir(null)}
+        titulo="Excluir Estabelecimento?"
+        descricao="Esta ação removerá este lead permanentemente de todos os módulos e relatórios."
+        itemNome={
+          leadParaExcluir
+            ? `${leadParaExcluir.nome} (${leadParaExcluir.categoria || "Geral"})`
+            : undefined
+        }
+        carregando={excluindoLead}
+        onConfirmar={async () => {
+          if (!leadParaExcluir) return;
+          setExcluindoLead(true);
+          try {
+            await leadsService.removerLead(leadParaExcluir.id);
+            toast.success("Estabelecimento excluído com sucesso!");
+            await carregarDados();
+            setLeadParaExcluir(null);
+          } finally {
+            setExcluindoLead(false);
+          }
+        }}
       />
     </AppShell>
   );

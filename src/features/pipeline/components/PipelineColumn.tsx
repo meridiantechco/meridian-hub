@@ -13,7 +13,8 @@ interface PipelineColumnProps {
   onDrop: (e: React.DragEvent, statusDestino: LeadItem["status"]) => void;
   onMoverStatus: (leadId: string, novoStatus: LeadItem["status"]) => void;
   onAbordar: (lead: LeadItem) => void;
-  onPreviewLead?: (lead: LeadItem) => void;
+  onPreviewLead?: ((lead: LeadItem) => void) | undefined;
+  onSolicitarExcluir?: ((lead: LeadItem) => void) | undefined;
   onDragStart: (e: React.DragEvent, leadId: string) => void;
 }
 
@@ -29,6 +30,7 @@ export function PipelineColumn({
   onMoverStatus,
   onAbordar,
   onPreviewLead,
+  onSolicitarExcluir,
   onDragStart,
 }: PipelineColumnProps) {
   const scoreMedio =
@@ -79,6 +81,7 @@ export function PipelineColumn({
             onMoverStatus={onMoverStatus}
             onAbordar={onAbordar}
             onPreviewLead={onPreviewLead}
+            onSolicitarExcluir={onSolicitarExcluir}
             onDragStart={onDragStart}
           />
         ))}

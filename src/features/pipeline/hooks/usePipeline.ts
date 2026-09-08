@@ -129,6 +129,26 @@ export function usePipeline() {
     }
   };
 
+  const removerLead = async (id: string, nome?: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== id));
+    const sucesso = await leadsService.removerLead(id);
+    if (sucesso) {
+      await auditoriaService.registrarAtividade({
+        tipo: "edicao_lead",
+        titulo: `Estabelecimento excluído: ${nome || id}`,
+        descricao: `Estabelecimento "${nome || id}" removido do funil comercial.`,
+        lead_id: id,
+        lead_nome: nome,
+      });
+      toast.success("Estabelecimento removido com sucesso!");
+      return true;
+    } else {
+      toast.error("Erro ao remover estabelecimento.");
+      void carregarDados();
+      return false;
+    }
+  };
+
   return {
     leads,
     carregando,
@@ -138,5 +158,6 @@ export function usePipeline() {
     moverStatus,
     reiniciarFunil,
     zerarBase,
+    removerLead,
   };
 }

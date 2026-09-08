@@ -12,7 +12,6 @@ export const contactsService = {
     if (salvo && Array.isArray(salvo) && salvo.length > 0) {
       return salvo;
     }
-
     // Inicialização automática a partir dos leads existentes
     const leads = await leadsService.listarLeads();
     const contatosIniciais: ContatoItem[] = leads.map((l, idx) => {
@@ -51,10 +50,8 @@ export const contactsService = {
   async atualizarContato(id: string, campos: Partial<ContatoItem>): Promise<ContatoItem | null> {
     const lista = await this.listarContatos();
     const idx = lista.findIndex((c) => c.id === id);
-    if (idx === -1) return null;
-
     const atual = lista[idx];
-    if (!atual) return null;
+    if (idx === -1 || !atual) return null;
 
     const atualizado: ContatoItem = { ...atual, ...campos, id: atual.id };
     lista[idx] = atualizado;

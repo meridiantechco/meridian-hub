@@ -10,63 +10,78 @@ export function useAuth(): EstadoAuth {
   const [session, setSession] = useState<Session | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [nome, setNome] = useState("");
-  const [papel] = useState<Papel>("admin");
+  const [papel, setPapel] = useState<Papel>("admin");
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_evento, novaSessao) => {
-      setSession(novaSessao);
-      if (!novaSessao) {
-        setNome("");
-        setCarregando(false);
-      }
-    });
-
-    void supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setCarregando(false);
-    });
-
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
-  const userId = session?.user?.id;
-  const userMetadataNome = session?.user?.user_metadata?.["nome"] as string | undefined;
-  const userEmail = session?.user?.email?.toLowerCase();
-
-  useEffect(() => {
-    if (!userId) {
-      setNome("");
-      return;
-    }
-
     let ativo = true;
 
-    // Preencher provisoriamente com metadata do signup enquanto busca no banco
-    if (userMetadataNome) {
-      setNome(userMetadataNome);
-    } else if (userEmail) {
-      setNome(userEmail.split("@")[0] || "Administrador");
-    }
+    async function carregarPermissoes(sessaoAtual: Session | null) {
+      if (!sessaoAtual?.user) {
+        if (ativo) {
+          setNome("");
+          setCarregando(false);
+        }
+        return;
+      }
 
-    void (async () => {
+      const user = sessaoAtual.user;
+      const userEmail = user.email?.toLowerCase();
+      const userMetadataNome = user.user_metadata?.["nome"] as string | undefined;
+
+      // Nome inicial a partir dos metadados ou e-mail
+      let nomeDefinido =
+        userMetadataNome ||
+        (userEmail ? userEmail.split("@")[0] || "Administrador" : "Administrador");
+
       try {
-        const perfil = await supabase
-          .from("profiles")
-          .select("nome")
-          .eq("id", userId)
-          .maybeSingle();
-        if (ativo && perfil.data?.nome) {
-          setNome(perfil.data.nome);
+        const [perfilRes, rolesRes] = await Promise.all([
+          supabase.from("profiles").select("nome").eq("id", user.id).maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", user.id),
+        ]);
+
+        if (perfilRes.data?.nome) {
+          nomeDefinido = perfilRes.data.nome;
+        }
+
+        const roles = (rolesRes.data ?? []).map((r) => r.role as Papel);
+        if (!roles.includes("admin")) {
+          // Garante role admin no banco para o usuário
+          await supabase.from("user_roles").upsert(
+            {
+              user_id: user.id,
+              role: "admin",
+            },
+            { onConflict: "user_id,role" },
+          );
         }
       } catch (err) {
-        console.error("Erro ao carregar perfil do usuário:", err);
+        console.error("[useAuth] Erro ao carregar perfil/papel:", err);
+      } finally {
+        if (ativo) {
+          setNome(nomeDefinido);
+          setPapel("admin");
+          setCarregando(false);
+        }
       }
-    })();
+    }
+
+    // 1. Ouvir mudanças no estado de autenticação
+    const { data: sub } = supabase.auth.onAuthStateChange((_evento, novaSessao) => {
+      setSession(novaSessao);
+      void carregarPermissoes(novaSessao);
+    });
+
+    // 2. Carregar sessão inicial
+    void supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      void carregarPermissoes(data.session);
+    });
 
     return () => {
       ativo = false;
+      sub.subscription.unsubscribe();
     };
-  }, [userId, userMetadataNome, userEmail]);
+  }, []);
 
   return {
     carregando,

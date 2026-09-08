@@ -86,12 +86,10 @@ export const templatesService = {
   ): Promise<TemplateMensagem | null> {
     const lista = await this.listarTemplates();
     const idx = lista.findIndex((t) => t.id === id);
-    if (idx === -1) return null;
+    const item = lista[idx];
+    if (idx === -1 || !item) return null;
 
-    const atual = lista[idx];
-    if (!atual) return null;
-
-    const atualizado: TemplateMensagem = { ...atual, ...campos, id: atual.id };
+    const atualizado: TemplateMensagem = { ...item, ...campos, id: item.id };
     lista[idx] = atualizado;
     await setScopedItem(STORAGE_KEY, lista);
     return atualizado;

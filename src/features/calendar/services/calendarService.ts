@@ -77,11 +77,10 @@ export const calendarService = {
     criarFollowUpAuto = false,
   ): Promise<ReuniaoItem | null> {
     const lista = await this.listarReunioes();
-    const idx = lista.findIndex((r) => r.id === id);
-    if (idx === -1) return null;
-
+    const idx = lista.findIndex((item) => item.id === id);
     const r = lista[idx];
-    if (!r) return null;
+    if (idx === -1 || !r) return null;
+
     r.status = status;
     await setScopedItem(STORAGE_KEY, lista);
 

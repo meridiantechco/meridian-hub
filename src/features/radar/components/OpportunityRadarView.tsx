@@ -95,7 +95,6 @@ export function OpportunityRadarView() {
             </Link>
           </Button>
         </div>
-
         {/* GRID DE SINAIS DE MERCADO POR NICHO */}
         <div className="space-y-3">
           <h3 className="text-xs font-bold text-foreground uppercase tracking-wider rotulo">

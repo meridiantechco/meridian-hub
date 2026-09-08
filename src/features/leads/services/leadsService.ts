@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import type { BuscaItem, InteracaoItem, LeadItem } from "../types";
 import { calcularScoreLead } from "../utils/score";
+import { memoryCache } from "@/lib/memoryCache";
 
 async function obterUidAtivo(): Promise<string | null> {
   try {
@@ -22,37 +23,51 @@ export const leadsService = {
     const uid = await obterUidAtivo();
     if (!uid) return [];
 
-    const { data, error } = await supabase
-      .from("leads")
-      .select("*")
-      .eq("responsavel_id", uid)
-      .order("score", { ascending: false })
-      .order("criado_em", { ascending: false });
+    return memoryCache.fetchWithCache(
+      `leads:lista:${uid}`,
+      async () => {
+        const { data, error } = await supabase
+          .from("leads")
+          .select("*")
+          .eq("responsavel_id", uid)
+          .order("score", { ascending: false })
+          .order("criado_em", { ascending: false });
 
-    if (error) {
-      console.error("Erro ao listar leads:", error);
-      return [];
-    }
+        if (error) {
+          console.error("Erro ao listar leads:", error);
+          return [];
+        }
 
-    return (data as LeadItem[]) || [];
+        return (data as LeadItem[]) || [];
+      },
+      15,
+      ["leads"],
+    );
   },
 
   async obterLeadPorId(id: string): Promise<LeadItem | null> {
     const uid = await obterUidAtivo();
 
-    let query = supabase.from("leads").select("*").eq("id", id);
-    if (uid) {
-      query = query.eq("responsavel_id", uid);
-    }
+    return memoryCache.fetchWithCache(
+      `lead:${id}`,
+      async () => {
+        let query = supabase.from("leads").select("*").eq("id", id);
+        if (uid) {
+          query = query.eq("responsavel_id", uid);
+        }
 
-    const { data, error } = await query.maybeSingle();
+        const { data, error } = await query.maybeSingle();
 
-    if (error) {
-      console.error("Erro ao obter lead por ID:", error);
-      return null;
-    }
+        if (error) {
+          console.error("Erro ao obter lead por ID:", error);
+          return null;
+        }
 
-    return (data as LeadItem) || null;
+        return (data as LeadItem) || null;
+      },
+      20,
+      ["leads", `lead:${id}`],
+    );
   },
 
   async atualizarStatusLead(id: string, status: LeadItem["status"]): Promise<void> {
@@ -66,6 +81,7 @@ export const leadsService = {
       console.error("Erro ao atualizar status do lead:", error);
       throw error;
     }
+    memoryCache.invalidateTag("leads");
   },
 
   async atualizarLead(id: string, dados: Partial<TablesUpdate<"leads">>): Promise<LeadItem | null> {
@@ -81,6 +97,7 @@ export const leadsService = {
       throw error;
     }
 
+    memoryCache.invalidateTag("leads");
     return (data as LeadItem) || null;
   },
 
@@ -90,6 +107,7 @@ export const leadsService = {
       console.error("Erro ao remover lead:", error);
       return false;
     }
+    memoryCache.invalidateTag("leads");
     return true;
   },
 
@@ -110,6 +128,7 @@ export const leadsService = {
       } catch (buscaErr) {
         console.warn("Aviso ao registrar histórico de busca:", buscaErr);
       }
+      memoryCache.invalidateTag("buscas");
     }
 
     if (novosLeads.length > 0) {
@@ -132,6 +151,7 @@ export const leadsService = {
             "Não foi possível salvar os estabelecimentos selecionados.",
         );
       }
+      memoryCache.invalidateTag("leads");
     }
 
     return { importados };
@@ -252,18 +272,25 @@ export const leadsService = {
     const uid = sessionData?.session?.user?.id;
     if (!uid) return [];
 
-    const { data, error } = await supabase
-      .from("buscas")
-      .select("*")
-      .eq("executada_por", uid)
-      .order("criada_em", { ascending: false });
+    return memoryCache.fetchWithCache(
+      `buscas:lista:${uid}`,
+      async () => {
+        const { data, error } = await supabase
+          .from("buscas")
+          .select("*")
+          .eq("executada_por", uid)
+          .order("criada_em", { ascending: false });
 
-    if (error) {
-      console.error("Erro ao listar buscas:", error);
-      return [];
-    }
+        if (error) {
+          console.error("Erro ao listar buscas:", error);
+          return [];
+        }
 
-    return (data as BuscaItem[]) || [];
+        return (data as BuscaItem[]) || [];
+      },
+      15,
+      ["buscas"],
+    );
   },
 
   // INTERAÇÕES
@@ -318,6 +345,7 @@ export const leadsService = {
     if (error) {
       console.error("Erro ao zerar leads do operador no Supabase:", error);
     }
+    memoryCache.invalidateTag("leads");
     return count ?? 0;
   },
 
@@ -335,11 +363,13 @@ export const leadsService = {
     if (error) {
       console.error("Erro ao reiniciar funil de leads do operador:", error);
     }
+    memoryCache.invalidateTag("leads");
     return count ?? 0;
   },
 
   limparDadosLocais(): void {
     if (typeof window === "undefined") return;
+    memoryCache.clear();
     localStorage.removeItem("meridian_leads_v1");
     localStorage.removeItem("prospecta_leads_v4");
     localStorage.removeItem("meridian_buscas_v1");

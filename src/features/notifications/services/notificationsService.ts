@@ -65,7 +65,7 @@ export const notificationsService = {
     const lista = await this.listarNotificacoes();
     const idx = lista.findIndex((n) => n.id === id);
     const item = lista[idx];
-    if (item) {
+    if (idx !== -1 && item) {
       item.lida = true;
       await setScopedItem(STORAGE_KEY, lista);
     }

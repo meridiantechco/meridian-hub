@@ -133,6 +133,14 @@ export function useLeads() {
     ordenacao,
   ]);
 
+  const removerLead = async (id: string) => {
+    const ok = await leadsService.removerLead(id);
+    if (ok) {
+      setLeads((prev) => prev.filter((l) => l.id !== id));
+    }
+    return ok;
+  };
+
   return {
     leads,
     leadsFiltrados,
@@ -154,6 +162,7 @@ export function useLeads() {
     categoriasDisponiveis,
     mudarStatus,
     zerarBase,
+    removerLead,
     recarregar: carregarDados,
   };
 }

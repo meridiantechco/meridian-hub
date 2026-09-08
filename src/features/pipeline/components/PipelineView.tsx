@@ -34,6 +34,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { WhatsAppModal, LeadDrawer, type LeadItem } from "@/features/leads";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { KanbanSkeleton } from "@/components/ui/skeletons";
 import { usePipeline } from "../hooks/usePipeline";
 import { COLUNAS_PIPELINE } from "../types";
 import { PipelineColumn } from "./PipelineColumn";
@@ -48,6 +50,7 @@ export function PipelineView() {
     moverStatus,
     reiniciarFunil,
     zerarBase,
+    removerLead,
   } = usePipeline();
 
   const [departamentoSelecionado, setDepartamentoSelecionado] = useState<string>("todos");
@@ -57,6 +60,8 @@ export function PipelineView() {
   const [leadParaWhatsApp, setLeadParaWhatsApp] = useState<LeadItem | null>(null);
   const [modalWhatsAppAberto, setModalWhatsAppAberto] = useState(false);
   const [modalZerarFunilAberto, setModalZerarFunilAberto] = useState(false);
+  const [leadParaExcluir, setLeadParaExcluir] = useState<LeadItem | null>(null);
+  const [excluindoLead, setExcluindoLead] = useState(false);
 
   // Drawer de preview do lead
   const [leadDrawer, setLeadDrawer] = useState<LeadItem | null>(null);
@@ -186,148 +191,175 @@ export function PipelineView() {
         </div>
       }
     >
-      <div className="space-y-4">
-        {/* KPIS DE STATUS DE CONTATO POR DEPARTAMENTO */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-xs">
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Total Mapeado
-            </p>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-2xl font-bold font-display text-foreground">
-                {contagem.total}
-              </span>
-              <Building2 className="size-4 text-muted-foreground" />
+      {carregando && leads.length === 0 ? (
+        <KanbanSkeleton colunas={5} cardsPorColuna={3} />
+      ) : (
+        <div className="space-y-4 animate-fade-in">
+          {/* KPIS DE STATUS DE CONTATO POR DEPARTAMENTO */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-xs">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Total Mapeado
+              </p>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-2xl font-bold font-display text-foreground">
+                  {contagem.total}
+                </span>
+                <Building2 className="size-4 text-muted-foreground" />
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-card border border-purple-500/30 shadow-xs bg-purple-500/5">
+              <p className="text-[11px] font-semibold text-purple-300 uppercase tracking-wider">
+                A Contatar
+              </p>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-2xl font-bold font-display text-purple-400">
+                  {contagem.novos}
+                </span>
+                <Clock className="size-4 text-purple-400" />
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-card border border-amber-500/30 shadow-xs bg-amber-500/5">
+              <p className="text-[11px] font-semibold text-amber-300 uppercase tracking-wider">
+                Contatados
+              </p>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-2xl font-bold font-display text-amber-400">
+                  {contagem.contatados}
+                </span>
+                <MessageSquare className="size-4 text-amber-400" />
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-card border border-indigo-500/30 shadow-xs bg-indigo-500/5">
+              <p className="text-[11px] font-semibold text-indigo-300 uppercase tracking-wider">
+                Em Proposta
+              </p>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-2xl font-bold font-display text-indigo-400">
+                  {contagem.proposta}
+                </span>
+                <TrendingUp className="size-4 text-indigo-400" />
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-card border border-emerald-500/30 shadow-xs bg-emerald-500/5 col-span-2 sm:col-span-1">
+              <p className="text-[11px] font-semibold text-emerald-300 uppercase tracking-wider">
+                Fechados (Ganhos)
+              </p>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-2xl font-bold font-display text-emerald-400">
+                  {contagem.fechados}
+                </span>
+                <CheckCircle2 className="size-4 text-emerald-400" />
+              </div>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-card border border-purple-500/30 shadow-xs bg-purple-500/5">
-            <p className="text-[11px] font-semibold text-purple-300 uppercase tracking-wider">
-              A Contatar
-            </p>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-2xl font-bold font-display text-purple-400">
-                {contagem.novos}
-              </span>
-              <Clock className="size-4 text-purple-400" />
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-card border border-amber-500/30 shadow-xs bg-amber-500/5">
-            <p className="text-[11px] font-semibold text-amber-300 uppercase tracking-wider">
-              Contatados
-            </p>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-2xl font-bold font-display text-amber-400">
-                {contagem.contatados}
-              </span>
-              <MessageSquare className="size-4 text-amber-400" />
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-card border border-indigo-500/30 shadow-xs bg-indigo-500/5">
-            <p className="text-[11px] font-semibold text-indigo-300 uppercase tracking-wider">
-              Em Proposta
-            </p>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-2xl font-bold font-display text-indigo-400">
-                {contagem.proposta}
-              </span>
-              <TrendingUp className="size-4 text-indigo-400" />
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-card border border-emerald-500/30 shadow-xs bg-emerald-500/5 col-span-2 sm:col-span-1">
-            <p className="text-[11px] font-semibold text-emerald-300 uppercase tracking-wider">
-              Fechados (Ganhos)
-            </p>
-            <div className="flex items-baseline justify-between mt-1">
-              <span className="text-2xl font-bold font-display text-emerald-400">
-                {contagem.fechados}
-              </span>
-              <CheckCircle2 className="size-4 text-emerald-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* BARRA DE FILTROS POR DEPARTAMENTO & BUSCA */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border/70 shadow-xs">
-          <div className="flex flex-1 items-center gap-2 max-w-md">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 size-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Buscar estabelecimento, bairro ou cidade..."
-                value={termoBusca}
-                onChange={(e) => setTermoBusca(e.target.value)}
-                className="pl-9 text-xs h-9 bg-surface/50"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Select value={departamentoSelecionado} onValueChange={setDepartamentoSelecionado}>
-              <SelectTrigger className="w-[230px] text-xs h-9 bg-surface/50 border-border/80">
-                <div className="flex items-center gap-2 truncate">
-                  <Filter className="size-3.5 text-primary shrink-0" />
-                  <SelectValue placeholder="Filtrar por Departamento" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="bg-card border-border">
-                <SelectItem value="todos" className="text-xs">
-                  Todos os Departamentos ({leads.length})
-                </SelectItem>
-                {departamentos.map(([dep, total]) => (
-                  <SelectItem key={dep} value={dep} className="text-xs">
-                    {dep} ({total})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {(departamentoSelecionado !== "todos" || termoBusca) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setDepartamentoSelecionado("todos");
-                  setTermoBusca("");
-                }}
-                className="text-xs h-9 text-muted-foreground hover:text-foreground"
-              >
-                Limpar
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* COLUNAS KANBAN */}
-        <div className="overflow-x-auto pb-4 scroll-smooth">
-          <div className="flex gap-3.5 sm:gap-4 min-w-max lg:min-w-full items-start">
-            {COLUNAS_PIPELINE.map((coluna, colIdx) => {
-              const leadsDaColuna = leadsFiltrados.filter((l) => l.status === coluna.id);
-              const isHover = colunaHover === coluna.id;
-
-              return (
-                <PipelineColumn
-                  key={coluna.id}
-                  coluna={coluna}
-                  colIdx={colIdx}
-                  todasColunas={COLUNAS_PIPELINE}
-                  leads={leadsDaColuna}
-                  isHover={isHover}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onMoverStatus={moverStatus}
-                  onAbordar={handleAbordar}
-                  onPreviewLead={handlePreviewLead}
-                  onDragStart={handleDragStart}
+          {/* BARRA DE FILTROS POR DEPARTAMENTO & BUSCA */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border/70 shadow-xs">
+            <div className="flex flex-1 items-center gap-2 max-w-md">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-2.5 size-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar estabelecimento, bairro ou cidade..."
+                  value={termoBusca}
+                  onChange={(e) => setTermoBusca(e.target.value)}
+                  className="pl-9 text-xs h-9 bg-surface/50"
                 />
-              );
-            })}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Select value={departamentoSelecionado} onValueChange={setDepartamentoSelecionado}>
+                <SelectTrigger className="w-[230px] text-xs h-9 bg-surface/50 border-border/80">
+                  <div className="flex items-center gap-2 truncate">
+                    <Filter className="size-3.5 text-primary shrink-0" />
+                    <SelectValue placeholder="Filtrar por Departamento" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border">
+                  <SelectItem value="todos" className="text-xs">
+                    Todos os Departamentos ({leads.length})
+                  </SelectItem>
+                  {departamentos.map(([dep, total]) => (
+                    <SelectItem key={dep} value={dep} className="text-xs">
+                      {dep} ({total})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {(departamentoSelecionado !== "todos" || termoBusca) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setDepartamentoSelecionado("todos");
+                    setTermoBusca("");
+                  }}
+                  className="text-xs h-9 text-muted-foreground hover:text-foreground"
+                >
+                  Limpar
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* COLUNAS KANBAN */}
+          <div className="overflow-x-auto pb-4 scroll-smooth">
+            <div className="flex gap-3.5 sm:gap-4 min-w-max lg:min-w-full items-start">
+              {COLUNAS_PIPELINE.map((coluna, colIdx) => {
+                const leadsDaColuna = leadsFiltrados.filter((l) => l.status === coluna.id);
+                const isHover = colunaHover === coluna.id;
+
+                return (
+                  <PipelineColumn
+                    key={coluna.id}
+                    coluna={coluna}
+                    colIdx={colIdx}
+                    todasColunas={COLUNAS_PIPELINE}
+                    leads={leadsDaColuna}
+                    isHover={isHover}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onMoverStatus={moverStatus}
+                    onAbordar={handleAbordar}
+                    onPreviewLead={handlePreviewLead}
+                    onSolicitarExcluir={(lead) => setLeadParaExcluir(lead)}
+                    onDragStart={handleDragStart}
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO INDIVIDUAL DE LEAD */}
+      <ConfirmDeleteDialog
+        open={Boolean(leadParaExcluir)}
+        onOpenChange={(open) => !open && setLeadParaExcluir(null)}
+        titulo="Excluir Estabelecimento do Funil?"
+        descricao="Você está prestes a remover este lead permanentemente do seu funil comercial e da base de dados."
+        itemNome={
+          leadParaExcluir ? `${leadParaExcluir.nome} (${leadParaExcluir.categoria})` : undefined
+        }
+        carregando={excluindoLead}
+        onConfirmar={async () => {
+          if (!leadParaExcluir) return;
+          setExcluindoLead(true);
+          try {
+            await removerLead(leadParaExcluir.id, leadParaExcluir.nome);
+            setLeadParaExcluir(null);
+          } finally {
+            setExcluindoLead(false);
+          }
+        }}
+      />
 
       {/* MODAL WHATSAPP */}
       <WhatsAppModal

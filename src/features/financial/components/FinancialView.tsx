@@ -8,20 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Calendar, Download, TrendingDown, TrendingUp, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { prospectaService } from "@/lib/prospecta-service";
-import type { LeadItem } from "@/lib/leads-mock";
+import { leadsService, type LeadItem } from "@/features/leads";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { MetricCardsSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import { useFinancial } from "../hooks/useFinancial";
 import { FinancialKpis } from "./FinancialKpis";
 import { FinancialCharts } from "./FinancialCharts";
@@ -34,6 +25,7 @@ export function FinancialView() {
     transacoes,
     transacoesFiltradas,
     metricas,
+    carregando,
     filtroMes,
     setFiltroMes,
     filtroCategoria,
@@ -43,7 +35,6 @@ export function FinancialView() {
     criarTransacao,
     atualizarTransacao,
     excluirTransacao,
-    restaurarDemo,
   } = useFinancial();
 
   const [abaAtiva, setAbaAtiva] = useState<"todas" | "despesas" | "receitas" | "pendentes">(
@@ -57,7 +48,7 @@ export function FinancialView() {
   const [leadsDisponiveis, setLeadsDisponiveis] = useState<LeadItem[]>([]);
 
   useEffect(() => {
-    void prospectaService.listarLeads().then(setLeadsDisponiveis);
+    void leadsService.listarLeads().then(setLeadsDisponiveis);
   }, []);
 
   const mesesDisponiveis = useMemo(() => {
@@ -152,63 +143,69 @@ export function FinancialView() {
         </div>
       }
     >
-      <div className="space-y-6 max-w-7xl">
-        {/* BARRA DE SELEÇÃO DE PERÍODO (BENTO STYLE) */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/70 shadow-elev">
-          <div className="flex items-center gap-2.5 w-full sm:w-auto">
-            <Calendar className="size-4 text-primary shrink-0" />
-            <span className="text-xs font-semibold text-foreground whitespace-nowrap">
-              Período:
-            </span>
-            <Select value={filtroMes} onValueChange={setFiltroMes}>
-              <SelectTrigger className="w-full sm:w-48 h-8.5 rounded-full text-xs bg-surface/50 border-border">
-                <SelectValue placeholder="Selecione o período" />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl bg-card border-border">
-                <SelectItem value="todos">Todo o Histórico</SelectItem>
-                {mesesDisponiveis.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-2.5 sm:gap-3 text-xs text-muted-foreground flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-              <span className="size-2 rounded-full bg-emerald-400" />
-              Receita:{" "}
-              <strong className="text-foreground">{formatarMoeda(metricas.receitaTotal)}</strong>
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400">
-              <span className="size-2 rounded-full bg-pink-400" />
-              Gastos:{" "}
-              <strong className="text-foreground">{formatarMoeda(metricas.despesaTotal)}</strong>
-            </span>
-          </div>
+      {transacoes.length === 0 && carregando ? (
+        <div className="space-y-6 max-w-7xl animate-fade-in">
+          <MetricCardsSkeleton quantidade={4} colunas="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" />
+          <TableSkeleton colunas={7} linhas={6} mostrarFiltros={true} />
         </div>
+      ) : (
+        <div className="space-y-6 max-w-7xl animate-fade-in">
+          {/* BARRA DE SELEÇÃO DE PERÍODO (BENTO STYLE) */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/70 shadow-elev">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <Calendar className="size-4 text-primary shrink-0" />
+              <span className="text-xs font-semibold text-foreground whitespace-nowrap">
+                Período:
+              </span>
+              <Select value={filtroMes} onValueChange={setFiltroMes}>
+                <SelectTrigger className="w-full sm:w-48 h-8.5 rounded-full text-xs bg-surface/50 border-border">
+                  <SelectValue placeholder="Selecione o período" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl bg-card border-border">
+                  <SelectItem value="todos">Todo o Histórico</SelectItem>
+                  {mesesDisponiveis.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        {/* CARDS PRINCIPAIS DE KPI & LUCRO */}
-        <FinancialKpis metricas={metricas} />
+            <div className="flex items-center gap-2.5 sm:gap-3 text-xs text-muted-foreground flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                <span className="size-2 rounded-full bg-emerald-400" />
+                Receita:{" "}
+                <strong className="text-foreground">{formatarMoeda(metricas.receitaTotal)}</strong>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400">
+                <span className="size-2 rounded-full bg-pink-400" />
+                Gastos:{" "}
+                <strong className="text-foreground">{formatarMoeda(metricas.despesaTotal)}</strong>
+              </span>
+            </div>
+          </div>
 
-        {/* GRÁFICOS */}
-        <FinancialCharts metricas={metricas} />
+          {/* CARDS PRINCIPAIS DE KPI & LUCRO */}
+          <FinancialKpis metricas={metricas} />
 
-        {/* TABELA DE LANÇAMENTOS */}
-        <TransactionsTable
-          transacoes={transacoesFiltradas}
-          abaAtiva={abaAtiva}
-          setAbaAtiva={setAbaAtiva}
-          busca={buscaTermo}
-          setBusca={setBuscaTermo}
-          filtroCategoria={filtroCategoria}
-          setFiltroCategoria={setFiltroCategoria}
-          onAlternarStatus={alternarStatus}
-          onSolicitarExclusao={(tx) => setTransacaoParaExcluir(tx)}
-          onRestaurarDemo={restaurarDemo}
-        />
-      </div>
+          {/* GRÁFICOS */}
+          <FinancialCharts metricas={metricas} />
+
+          {/* TABELA DE LANÇAMENTOS */}
+          <TransactionsTable
+            transacoes={transacoesFiltradas}
+            abaAtiva={abaAtiva}
+            setAbaAtiva={setAbaAtiva}
+            busca={buscaTermo}
+            setBusca={setBuscaTermo}
+            filtroCategoria={filtroCategoria}
+            setFiltroCategoria={setFiltroCategoria}
+            onAlternarStatus={alternarStatus}
+            onSolicitarExclusao={(tx) => setTransacaoParaExcluir(tx)}
+          />
+        </div>
+      )}
 
       {/* MODAL CRIAR DESPESA */}
       <ModalNovaDespesa
@@ -230,37 +227,18 @@ export function FinancialView() {
       />
 
       {/* DIÁLOGO CONFIRMAÇÃO DE EXCLUSÃO */}
-      <AlertDialog
+      <ConfirmDeleteDialog
         open={Boolean(transacaoParaExcluir)}
         onOpenChange={(aberto) => !aberto && setTransacaoParaExcluir(null)}
-      >
-        <AlertDialogContent className="bg-card border-border rounded-3xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-rose-400 flex items-center gap-2">
-              <AlertTriangle className="size-5" />
-              Excluir Lançamento Financeiro?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground">
-              Você está prestes a remover o registro de{" "}
-              <strong className="text-foreground">{transacaoParaExcluir?.titulo}</strong> no valor
-              de{" "}
-              <strong className="text-foreground">
-                {transacaoParaExcluir ? formatarMoeda(transacaoParaExcluir.valor) : ""}
-              </strong>
-              . Esta ação recalculará as métricas de lucro.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="text-xs rounded-full">Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmarExclusao}
-              className="bg-rose-600 hover:bg-rose-500 text-white text-xs rounded-full font-semibold"
-            >
-              Sim, Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        titulo="Excluir Lançamento Financeiro?"
+        descricao="Esta ação removerá permanentemente esta transação e recalculará as métricas financeiras."
+        itemNome={
+          transacaoParaExcluir
+            ? `${transacaoParaExcluir.titulo} (${formatarMoeda(transacaoParaExcluir.valor)})`
+            : undefined
+        }
+        onConfirmar={confirmarExclusao}
+      />
     </AppShell>
   );
 }

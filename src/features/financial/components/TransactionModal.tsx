@@ -26,7 +26,7 @@ import type {
   StatusTransacao,
   TransacaoFinanceira,
 } from "../types";
-import type { LeadItem } from "@/lib/leads-mock";
+import type { LeadItem } from "@/features/leads";
 
 interface ModalNovaDespesaProps {
   aberto: boolean;
