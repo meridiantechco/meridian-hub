@@ -1,32 +1,26 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { financialService } from "../services/financialService";
 import type { TransacaoFinanceira } from "../types";
 import { auditoriaService } from "@/features/audit";
 
 export function useFinancial() {
-  const [transacoes, setTransacoes] = useState<TransacaoFinanceira[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const queryClient = useQueryClient();
+
+  const {
+    data: transacoes = [],
+    isPending: carregando,
+    refetch,
+  } = useQuery({
+    queryKey: ["financial", "transactions"],
+    queryFn: financialService.listarTransacoes,
+  });
+
   const [filtroMes, setFiltroMes] = useState<string>("todos");
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todos");
   const [buscaTermo, setBuscaTermo] = useState<string>("");
-
-  const carregarDados = async () => {
-    try {
-      setCarregando(true);
-      const lista = await financialService.listarTransacoes();
-      setTransacoes(lista);
-    } catch (err) {
-      toast.error("Erro ao carregar dados financeiros");
-    } finally {
-      setCarregando(false);
-    }
-  };
-
-  useEffect(() => {
-    void carregarDados();
-  }, []);
 
   const metricas = useMemo(() => {
     return financialService.calcularMetricas(transacoes, filtroMes);
@@ -56,7 +50,10 @@ export function useFinancial() {
 
   const criarTransacao = async (dados: Omit<TransacaoFinanceira, "id" | "criado_em">) => {
     const nova = await financialService.criarTransacao(dados);
-    setTransacoes((prev) => [nova, ...prev]);
+    queryClient.setQueryData<TransacaoFinanceira[]>(["financial", "transactions"], (prev = []) => [
+      nova,
+      ...prev,
+    ]);
 
     await auditoriaService.registrarAtividade({
       tipo: "financeiro",
@@ -74,15 +71,19 @@ export function useFinancial() {
   ) => {
     const atualizada = await financialService.atualizarTransacao(id, dados);
     if (atualizada) {
-      setTransacoes((prev) => prev.map((t) => (t.id === id ? atualizada : t)));
+      queryClient.setQueryData<TransacaoFinanceira[]>(["financial", "transactions"], (prev = []) =>
+        prev.map((t) => (t.id === id ? atualizada : t)),
+      );
       toast.success("Transação atualizada com sucesso!");
     }
     return atualizada;
   };
 
   const excluirTransacao = async (id: string, titulo?: string) => {
+    queryClient.setQueryData<TransacaoFinanceira[]>(["financial", "transactions"], (prev = []) =>
+      prev.filter((t) => t.id !== id),
+    );
     await financialService.excluirTransacao(id);
-    setTransacoes((prev) => prev.filter((t) => t.id !== id));
 
     await auditoriaService.registrarAtividade({
       tipo: "financeiro",
@@ -95,7 +96,7 @@ export function useFinancial() {
 
   const zerarBase = async () => {
     await financialService.zerarTransacoes();
-    setTransacoes([]);
+    queryClient.setQueryData<TransacaoFinanceira[]>(["financial", "transactions"], []);
     toast.success("Base de dados financeiros zerada.");
   };
 
@@ -116,6 +117,6 @@ export function useFinancial() {
     atualizarTransacao,
     excluirTransacao,
     zerarBase,
-    recarregar: carregarDados,
+    recarregar: () => refetch(),
   };
 }

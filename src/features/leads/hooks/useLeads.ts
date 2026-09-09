@@ -1,12 +1,22 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { leadsService } from "../services/leadsService";
 import { auditoriaService } from "@/features/audit";
 import type { LeadItem } from "../types";
 import { toast } from "sonner";
 
 export function useLeads() {
-  const [leads, setLeads] = useState<LeadItem[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const queryClient = useQueryClient();
+
+  const {
+    data: leads = [],
+    isPending: carregando,
+    refetch,
+  } = useQuery({
+    queryKey: ["leads"],
+    queryFn: leadsService.listarLeads,
+  });
+
   const [busca, setBusca] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todas");
   const [filtroStatus, setFiltroStatus] = useState<string>("todos");
@@ -14,22 +24,6 @@ export function useLeads() {
   const [filtroInstagram, setFiltroInstagram] = useState<"todos" | "com" | "sem">("todos");
   const [apenasSemSite, setApenasSemSite] = useState(false);
   const [ordenacao, setOrdenacao] = useState<"score" | "avaliacao" | "data">("score");
-
-  const carregarDados = async () => {
-    try {
-      setCarregando(true);
-      const lista = await leadsService.listarLeads();
-      setLeads(lista);
-    } catch {
-      toast.error("Erro ao carregar lista de estabelecimentos");
-    } finally {
-      setCarregando(false);
-    }
-  };
-
-  useEffect(() => {
-    void carregarDados();
-  }, []);
 
   const categoriasDisponiveis = useMemo(() => {
     const set = new Set(leads.map((l) => l.categoria).filter(Boolean));
@@ -39,32 +33,46 @@ export function useLeads() {
   const mudarStatus = async (leadId: string, novoStatus: LeadItem["status"]) => {
     const leadAlvo = leads.find((l) => l.id === leadId);
 
-    await leadsService.atualizarStatusLead(leadId, novoStatus);
-    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: novoStatus } : l)));
+    // Atualização otimista imediata no cache compartilhado
+    queryClient.setQueryData<LeadItem[]>(["leads"], (antigos = []) =>
+      antigos.map((l) => (l.id === leadId ? { ...l, status: novoStatus } : l)),
+    );
 
-    await auditoriaService.registrarAtividade({
-      tipo: "mudanca_status",
-      titulo: `Status: ${leadAlvo?.nome || "Lead"} -> ${novoStatus.toUpperCase()}`,
-      descricao: `Status comercial atualizado para "${novoStatus.toUpperCase()}"`,
-      lead_id: leadId,
-      lead_nome: leadAlvo?.nome,
-      metadados: { novo_status: novoStatus },
-    });
+    try {
+      await leadsService.atualizarStatusLead(leadId, novoStatus);
 
-    toast.success(`Status de "${leadAlvo?.nome}" atualizado!`);
+      await auditoriaService.registrarAtividade({
+        tipo: "mudanca_status",
+        titulo: `Status: ${leadAlvo?.nome || "Lead"} -> ${novoStatus.toUpperCase()}`,
+        descricao: `Status comercial atualizado para "${novoStatus.toUpperCase()}"`,
+        lead_id: leadId,
+        lead_nome: leadAlvo?.nome,
+        metadados: { novo_status: novoStatus },
+      });
+
+      toast.success(`Status de "${leadAlvo?.nome}" atualizado!`);
+    } catch {
+      toast.error("Erro ao atualizar status do estabelecimento");
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
+    }
   };
 
   const zerarBase = async () => {
-    const total = await leadsService.zerarBaseLeads();
-    setLeads([]);
+    try {
+      const total = await leadsService.zerarBaseLeads();
+      queryClient.setQueryData<LeadItem[]>(["leads"], []);
 
-    await auditoriaService.registrarAtividade({
-      tipo: "edicao_lead",
-      titulo: "Base de Leads Zerada",
-      descricao: `Todos os ${total} estabelecimentos foram removidos do sistema.`,
-    });
+      await auditoriaService.registrarAtividade({
+        tipo: "edicao_lead",
+        titulo: "Base de Leads Zerada",
+        descricao: `Todos os ${total} estabelecimentos foram removidos do sistema.`,
+      });
 
-    toast.success(`Base zerada! ${total} estabelecimentos removidos.`);
+      toast.success(`Base zerada! ${total} estabelecimentos removidos.`);
+    } catch {
+      toast.error("Erro ao zerar base de estabelecimentos");
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
+    }
   };
 
   const leadsFiltrados = useMemo(() => {
@@ -134,9 +142,14 @@ export function useLeads() {
   ]);
 
   const removerLead = async (id: string) => {
+    queryClient.setQueryData<LeadItem[]>(["leads"], (antigos = []) =>
+      antigos.filter((l) => l.id !== id),
+    );
+
     const ok = await leadsService.removerLead(id);
-    if (ok) {
-      setLeads((prev) => prev.filter((l) => l.id !== id));
+    if (!ok) {
+      toast.error("Erro ao remover lead");
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
     }
     return ok;
   };
@@ -163,6 +176,6 @@ export function useLeads() {
     mudarStatus,
     zerarBase,
     removerLead,
-    recarregar: carregarDados,
+    recarregar: () => refetch(),
   };
 }

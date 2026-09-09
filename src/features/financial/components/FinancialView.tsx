@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,11 +46,10 @@ export function FinancialView() {
   const [transacaoParaExcluir, setTransacaoParaExcluir] = useState<TransacaoFinanceira | null>(
     null,
   );
-  const [leadsDisponiveis, setLeadsDisponiveis] = useState<LeadItem[]>([]);
-
-  useEffect(() => {
-    void leadsService.listarLeads().then(setLeadsDisponiveis);
-  }, []);
+  const { data: leadsDisponiveis = [] } = useQuery({
+    queryKey: ["leads"],
+    queryFn: leadsService.listarLeads,
+  });
 
   const mesesDisponiveis = useMemo(() => {
     const set = new Set(transacoes.map((t) => t.data_competencia.slice(0, 7)));

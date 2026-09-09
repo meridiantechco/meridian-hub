@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,27 +23,22 @@ import type { NotificacaoItem, TipoNotificacao } from "../types";
 import { cn } from "@/lib/utils";
 
 export function NotificationsView() {
-  const [notificacoes, setNotificacoes] = useState<NotificacaoItem[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const queryClient = useQueryClient();
+
+  const {
+    data: notificacoes = [],
+    isPending: carregando,
+    refetch,
+  } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: notificationsService.listarNotificacoes,
+  });
+
   const [filtroAba, setFiltroAba] = useState<string>("todas");
   const [notificacaoParaExcluir, setNotificacaoParaExcluir] = useState<NotificacaoItem | null>(
     null,
   );
   const [excluindoNotif, setExcluindoNotif] = useState(false);
-
-  const carregarDados = async () => {
-    setCarregando(true);
-    try {
-      const lista = await notificationsService.listarNotificacoes();
-      setNotificacoes(lista);
-    } finally {
-      setCarregando(false);
-    }
-  };
-
-  useEffect(() => {
-    void carregarDados();
-  }, []);
 
   const totalNaoLidas = useMemo(() => notificacoes.filter((n) => !n.lida).length, [notificacoes]);
 
@@ -58,19 +54,25 @@ export function NotificationsView() {
   }, [notificacoes, filtroAba]);
 
   const handleMarcarLida = async (id: string) => {
+    queryClient.setQueryData<NotificacaoItem[]>(["notifications"], (prev = []) =>
+      prev.map((n) => (n.id === id ? { ...n, lida: true } : n)),
+    );
     await notificationsService.marcarComoLida(id);
-    await carregarDados();
   };
 
   const handleMarcarTodasLidas = async () => {
+    queryClient.setQueryData<NotificacaoItem[]>(["notifications"], (prev = []) =>
+      prev.map((n) => ({ ...n, lida: true })),
+    );
     await notificationsService.marcarTodasComoLidas();
-    await carregarDados();
     toast.success("Todas as notificações foram marcadas como lidas!");
   };
 
   const handleExcluir = async (id: string) => {
+    queryClient.setQueryData<NotificacaoItem[]>(["notifications"], (prev = []) =>
+      prev.filter((n) => n.id !== id),
+    );
     await notificationsService.excluirNotificacao(id);
-    await carregarDados();
   };
 
   const iconeNotif = (tipo: TipoNotificacao) => {

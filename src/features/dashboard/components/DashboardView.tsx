@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
   Zap,
@@ -21,13 +22,36 @@ import { Button } from "@/components/ui/button";
 import { WhatsAppModal, leadsService, type LeadItem } from "@/features/leads";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { toast } from "sonner";
-import { financialService, type MetricasFinanceiras } from "@/features/financial";
+import { financialService } from "@/features/financial";
 import { cn } from "@/lib/utils";
 
 export function DashboardView() {
-  const [leads, setLeads] = useState<LeadItem[]>([]);
-  const [metricasFin, setMetricasFin] = useState<MetricasFinanceiras | null>(null);
-  const [carregando, setCarregando] = useState(true);
+  const queryClient = useQueryClient();
+
+  const {
+    data: leads = [],
+    isPending: carregandoLeads,
+    isFetching: buscandoLeads,
+  } = useQuery({
+    queryKey: ["leads"],
+    queryFn: leadsService.listarLeads,
+  });
+
+  const {
+    data: transacoes = [],
+    isPending: carregandoTx,
+    isFetching: buscandoTx,
+  } = useQuery({
+    queryKey: ["financial", "transactions"],
+    queryFn: financialService.listarTransacoes,
+  });
+
+  const carregando = carregandoLeads || carregandoTx;
+  const atualizando = buscandoLeads || buscandoTx;
+
+  const metricasFin = useMemo(() => {
+    return financialService.calcularMetricas(transacoes);
+  }, [transacoes]);
 
   // WhatsApp 1-Click Modal
   const [leadParaWhatsApp, setLeadParaWhatsApp] = useState<LeadItem | null>(null);
@@ -35,23 +59,10 @@ export function DashboardView() {
   const [leadParaExcluir, setLeadParaExcluir] = useState<LeadItem | null>(null);
   const [excluindoLead, setExcluindoLead] = useState(false);
 
-  const carregarDados = async () => {
-    setCarregando(true);
-    try {
-      const [listaLeads, listaTx] = await Promise.all([
-        leadsService.listarLeads(),
-        financialService.listarTransacoes(),
-      ]);
-      setLeads(listaLeads);
-      setMetricasFin(financialService.calcularMetricas(listaTx));
-    } finally {
-      setCarregando(false);
-    }
+  const carregarDados = () => {
+    void queryClient.invalidateQueries({ queryKey: ["leads"] });
+    void queryClient.invalidateQueries({ queryKey: ["financial", "transactions"] });
   };
-
-  useEffect(() => {
-    void carregarDados();
-  }, []);
 
   const totalLeads = leads.length;
   const leadsSemSite = leads.filter((l) => !l.tem_site).length;
@@ -95,10 +106,10 @@ export function DashboardView() {
             variant="outline"
             size="sm"
             onClick={carregarDados}
-            disabled={carregando}
+            disabled={atualizando}
             className="h-9 px-4 text-xs rounded-full gap-2 border-border/80 cursor-pointer hover:bg-secondary/60 transition-all"
           >
-            <RefreshCw className={cn("size-3.5", carregando && "animate-spin")} />
+            <RefreshCw className={cn("size-3.5", atualizando && "animate-spin")} />
             <span>Atualizar</span>
           </Button>
 

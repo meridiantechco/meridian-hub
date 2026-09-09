@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { leadsService } from "@/features/leads";
 import { auditoriaService } from "@/features/audit";
 import { prospectingService } from "../services/prospectingService";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 
 export function useProspecting() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [categoria, setCategoria] = useState("Restaurante");
   const [regiao, setRegiao] = useState("São Paulo, SP");
@@ -170,6 +172,8 @@ export function useProspecting() {
         },
       });
 
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
+
       toast.success(`🎉 ${res.importados} estabelecimentos importados com sucesso!`, {
         description: "Redirecionando para a sua base consolidada...",
       });
@@ -223,6 +227,8 @@ export function useProspecting() {
         titulo: `Cliente adicionado: ${item.nome}`,
         descricao: `${item.nome} (${item.categoria || "Comércio"}) cadastrado diretamente na carteira privativa.`,
       });
+
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
 
       toast.success(`"${item.nome}" adicionado a Meus Clientes!`);
     } catch (err: any) {
