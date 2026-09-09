@@ -9,6 +9,11 @@ import { LogOut } from "lucide-react";
 import { useAuth } from "@/features/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import {
+  PageHeaderProvider,
+  usePageHeaderContext,
+  usePageHeader,
+} from "@/contexts/PageHeaderContext";
 
 import { Sidebar, ITENS_NAV } from "./Sidebar";
 import { Topbar } from "./Topbar";
@@ -22,9 +27,22 @@ interface AppShellProps {
   children: ReactNode;
 }
 
-export function AppShell({ titulo, descricao, acoes, children }: AppShellProps) {
+/**
+ * Layout persistente de alto desempenho montado na rota raiz autenticada.
+ * A Sidebar, Topbar, atalhos de teclado e Sheet mobile NUNCA são destruídos ao navegar.
+ */
+export function AppPersistentLayout({ children }: { children: ReactNode }) {
+  return (
+    <PageHeaderProvider>
+      <AppPersistentLayoutInner>{children}</AppPersistentLayoutInner>
+    </PageHeaderProvider>
+  );
+}
+
+function AppPersistentLayoutInner({ children }: { children: ReactNode }) {
   const { ehAdmin, nome, user } = useAuth();
   const navigate = useNavigate();
+  const { header } = usePageHeaderContext();
 
   // Estado da barra lateral (expandida ou colapsada) com persistência em localStorage
   const [colapsada, setColapsada] = useState<boolean>(() => {
@@ -40,7 +58,7 @@ export function AppShell({ titulo, descricao, acoes, children }: AppShellProps) 
   const [mobileAberto, setMobileAberto] = useState(false);
   const [buscaAberta, setBuscaAberta] = useState(false);
 
-  // Atalho global Cmd+K / Ctrl+K
+  // Atalho global Cmd+K / Ctrl+K registrado uma única vez no ciclo de vida
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -72,7 +90,7 @@ export function AppShell({ titulo, descricao, acoes, children }: AppShellProps) 
   return (
     <TooltipProvider delayDuration={150}>
       <div className="min-h-screen bg-background text-foreground flex antialiased selection:bg-primary/25">
-        {/* SIDEBAR DESKTOP */}
+        {/* SIDEBAR DESKTOP FIXA E PERSISTENTE */}
         <Sidebar colapsada={colapsada} onToggle={toggleSidebar} onSair={handleSair} />
 
         {/* CONTAINER PRINCIPAL */}
@@ -82,22 +100,22 @@ export function AppShell({ titulo, descricao, acoes, children }: AppShellProps) 
             colapsada ? "lg:pl-[72px]" : "lg:pl-64",
           )}
         >
-          {/* TOPBAR */}
+          {/* TOPBAR DINÂMICA ALIMENTADA PELO CONTEXTO DA PÁGINA ATIVA */}
           <Topbar
-            titulo={titulo}
-            descricao={descricao}
-            acoes={acoes}
+            titulo={header.titulo}
+            descricao={header.descricao}
+            acoes={header.acoes}
             onAbrirMobile={() => setMobileAberto(true)}
             onAbrirBusca={() => setBuscaAberta(true)}
           />
 
-          {/* MAIN CONTENT WRAPPER COM MAX-WIDTH 1600PX PARA ULTRA-WIDE E DESKTOP */}
+          {/* ÁREA DE CONTEÚDO COM TRANSIÇÃO ULTRA-FLUIDA */}
           <main className="flex-1 min-h-[calc(100vh-64px)] p-3 sm:p-5 md:p-6 lg:p-7 min-w-0">
             <div className="max-w-[1600px] mx-auto w-full space-y-6">{children}</div>
           </main>
         </div>
 
-        {/* SHEET DE NAVEGAÇÃO PARA VIEWPORTS MENORES */}
+        {/* SHEET DE NAVEGAÇÃO MOBILE */}
         <Sheet open={mobileAberto} onOpenChange={setMobileAberto}>
           <SheetContent side="left" className="w-72 bg-sidebar p-0 border-r border-sidebar-border">
             <SheetTitle className="sr-only">Navegação Principal</SheetTitle>
@@ -168,5 +186,27 @@ export function AppShell({ titulo, descricao, acoes, children }: AppShellProps) 
         <CommandPalette aberto={buscaAberta} onOpenChange={setBuscaAberta} />
       </div>
     </TooltipProvider>
+  );
+}
+
+/**
+ * Componente AppShell compatível com todas as páginas do sistema.
+ * Quando montado dentro de AppPersistentLayout, apenas atualiza o cabeçalho
+ * e exibe o conteúdo com transição suave de 0ms sem remontar a casca externa.
+ */
+export function AppShell({ titulo, descricao, acoes, children }: AppShellProps) {
+  const { isPersistentLayout } = usePageHeader({ titulo, descricao, acoes });
+
+  if (isPersistentLayout) {
+    return (
+      <div className="animate-in fade-in-50 duration-150 ease-out space-y-6 w-full">{children}</div>
+    );
+  }
+
+  // Fallback seguro caso o componente seja renderizado fora do layout persistente
+  return (
+    <AppPersistentLayout>
+      <div className="animate-in fade-in-50 duration-150 ease-out space-y-6 w-full">{children}</div>
+    </AppPersistentLayout>
   );
 }
