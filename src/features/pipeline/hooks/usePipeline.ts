@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { leadsService, type LeadItem } from "@/features/leads";
 import { auditoriaService } from "@/features/audit";
 import { financialService } from "@/features/financial";
@@ -6,35 +7,42 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function usePipeline() {
-  const [leads, setLeads] = useState<LeadItem[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const queryClient = useQueryClient();
+
+  const {
+    data: leads = [],
+    isPending: carregando,
+    refetch,
+  } = useQuery({
+    queryKey: ["leads"],
+    queryFn: leadsService.listarLeads,
+  });
+
   const [conectadoRealtime, setConectadoRealtime] = useState(false);
   const [processandoAcaoFunil, setProcessandoAcaoFunil] = useState(false);
 
-  const carregarDados = async () => {
-    setCarregando(true);
-    const lista = await leadsService.listarLeads();
-    setLeads(lista);
-    setCarregando(false);
-  };
-
   useEffect(() => {
-    void carregarDados();
-
     const channel = supabase
       .channel("leads-funil-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, (payload) => {
         if (payload.eventType === "INSERT") {
           const novo = payload.new as LeadItem;
-          setLeads((prev) => [novo, ...prev.filter((l) => l.id !== novo.id)]);
+          queryClient.setQueryData<LeadItem[]>(["leads"], (prev = []) => [
+            novo,
+            ...prev.filter((l) => l.id !== novo.id),
+          ]);
           toast.info(`Novo lead recebido: ${novo.nome}`);
         } else if (payload.eventType === "UPDATE") {
           const atualizado = payload.new as LeadItem;
-          setLeads((prev) => prev.map((l) => (l.id === atualizado.id ? atualizado : l)));
+          queryClient.setQueryData<LeadItem[]>(["leads"], (prev = []) =>
+            prev.map((l) => (l.id === atualizado.id ? atualizado : l)),
+          );
         } else if (payload.eventType === "DELETE") {
           const deletadoId = (payload.old as { id: string })?.id;
           if (deletadoId) {
-            setLeads((prev) => prev.filter((l) => l.id !== deletadoId));
+            queryClient.setQueryData<LeadItem[]>(["leads"], (prev = []) =>
+              prev.filter((l) => l.id !== deletadoId),
+            );
           }
         }
       })
@@ -45,47 +53,55 @@ export function usePipeline() {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, []);
+  }, [queryClient]);
 
   const moverStatus = async (leadId: string, novoStatus: LeadItem["status"]) => {
     const leadAlvo = leads.find((l) => l.id === leadId);
 
-    // Otimista
-    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: novoStatus } : l)));
+    // Atualização otimista imediata no cache compartilhado
+    queryClient.setQueryData<LeadItem[]>(["leads"], (prev = []) =>
+      prev.map((l) => (l.id === leadId ? { ...l, status: novoStatus } : l)),
+    );
 
-    await leadsService.atualizarStatusLead(leadId, novoStatus);
+    try {
+      await leadsService.atualizarStatusLead(leadId, novoStatus);
 
-    await auditoriaService.registrarAtividade({
-      tipo: "mudanca_status",
-      titulo: `Funil: ${leadAlvo?.nome || "Lead"} -> ${novoStatus.toUpperCase()}`,
-      descricao: `Status do estabelecimento alterado para "${novoStatus.toUpperCase()}"`,
-      lead_id: leadId,
-      lead_nome: leadAlvo?.nome,
-      metadados: {
-        status_anterior: leadAlvo?.status,
-        novo_status: novoStatus,
-      },
-    });
-
-    if (novoStatus === "fechado" && leadAlvo) {
-      toast.success(`🎉 Contrato Fechado com ${leadAlvo.nome}!`, {
-        description: "Deseja lançar a receita deste contrato no Financeiro da Meridian Tech?",
-        action: {
-          label: "Lançar Receita",
-          onClick: () => {
-            void financialService.registrarReceitaLeadFechado(
-              leadAlvo.id,
-              leadAlvo.nome,
-              2500.0,
-              "venda_site",
-              "pontual",
-            );
-            toast.success(`Receita de R$ 2.500,00 lançada no Financeiro para ${leadAlvo.nome}!`);
-          },
+      await auditoriaService.registrarAtividade({
+        tipo: "mudanca_status",
+        titulo: `Funil: ${leadAlvo?.nome || "Lead"} -> ${novoStatus.toUpperCase()}`,
+        descricao: `Status do estabelecimento alterado para "${novoStatus.toUpperCase()}"`,
+        lead_id: leadId,
+        lead_nome: leadAlvo?.nome,
+        metadados: {
+          status_anterior: leadAlvo?.status,
+          novo_status: novoStatus,
         },
       });
-    } else {
-      toast.success(`Estágio alterado para "${novoStatus}"`);
+
+      if (novoStatus === "fechado" && leadAlvo) {
+        toast.success(`🎉 Contrato Fechado com ${leadAlvo.nome}!`, {
+          description: "Deseja lançar a receita deste contrato no Financeiro da Meridian Tech?",
+          action: {
+            label: "Lançar Receita",
+            onClick: () => {
+              void financialService.registrarReceitaLeadFechado(
+                leadAlvo.id,
+                leadAlvo.nome,
+                2500.0,
+                "venda_site",
+                "pontual",
+              );
+              void queryClient.invalidateQueries({ queryKey: ["financial"] });
+              toast.success(`Receita de R$ 2.500,00 lançada no Financeiro para ${leadAlvo.nome}!`);
+            },
+          },
+        });
+      } else {
+        toast.success(`Estágio alterado para "${novoStatus}"`);
+      }
+    } catch {
+      toast.error("Erro ao atualizar estágio do funil");
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
     }
   };
 
@@ -93,7 +109,9 @@ export function usePipeline() {
     setProcessandoAcaoFunil(true);
     try {
       const total = await leadsService.reiniciarFunilLeads();
-      setLeads((prev) => prev.map((l) => ({ ...l, status: "novo" })));
+      queryClient.setQueryData<LeadItem[]>(["leads"], (prev = []) =>
+        prev.map((l) => ({ ...l, status: "novo" })),
+      );
 
       await auditoriaService.registrarAtividade({
         tipo: "mudanca_status",
@@ -104,6 +122,7 @@ export function usePipeline() {
       toast.success("Todos os leads foram movidos para a etapa 'Novo'!");
     } catch (err: any) {
       toast.error("Erro ao reiniciar funil", { description: err?.message || String(err) });
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
     } finally {
       setProcessandoAcaoFunil(false);
     }
@@ -113,7 +132,7 @@ export function usePipeline() {
     setProcessandoAcaoFunil(true);
     try {
       const total = await leadsService.zerarBaseLeads();
-      setLeads([]);
+      queryClient.setQueryData<LeadItem[]>(["leads"], []);
 
       await auditoriaService.registrarAtividade({
         tipo: "edicao_lead",
@@ -124,13 +143,14 @@ export function usePipeline() {
       toast.success("Funil e base de estabelecimentos zerados com sucesso!");
     } catch (err: any) {
       toast.error("Erro ao zerar funil", { description: err?.message || String(err) });
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
     } finally {
       setProcessandoAcaoFunil(false);
     }
   };
 
   const removerLead = async (id: string, nome?: string) => {
-    setLeads((prev) => prev.filter((l) => l.id !== id));
+    queryClient.setQueryData<LeadItem[]>(["leads"], (prev = []) => prev.filter((l) => l.id !== id));
     const sucesso = await leadsService.removerLead(id);
     if (sucesso) {
       await auditoriaService.registrarAtividade({
@@ -144,7 +164,7 @@ export function usePipeline() {
       return true;
     } else {
       toast.error("Erro ao remover estabelecimento.");
-      void carregarDados();
+      void queryClient.invalidateQueries({ queryKey: ["leads"] });
       return false;
     }
   };
@@ -154,7 +174,7 @@ export function usePipeline() {
     carregando,
     conectadoRealtime,
     processandoAcaoFunil,
-    carregarDados,
+    carregarDados: () => refetch(),
     moverStatus,
     reiniciarFunil,
     zerarBase,

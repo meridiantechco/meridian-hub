@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,8 +25,22 @@ import type { TemplateMensagem, CategoriaTemplate } from "../types";
 import { cn } from "@/lib/utils";
 
 export function TemplatesView() {
-  const [templates, setTemplates] = useState<TemplateMensagem[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const queryClient = useQueryClient();
+
+  const {
+    data: templates = [],
+    isPending: carregando,
+    refetch: refetchTemplates,
+  } = useQuery({
+    queryKey: ["templates"],
+    queryFn: templatesService.listarTemplates,
+  });
+
+  const { data: leads = [] } = useQuery({
+    queryKey: ["leads"],
+    queryFn: leadsService.listarLeads,
+  });
+
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>("todos");
 
   // Modais
@@ -40,29 +55,16 @@ export function TemplatesView() {
   const [simSegmento, setSimSegmento] = useState("Gastronomia");
   const [simResponsavel, setSimResponsavel] = useState("Equipe Comercial");
 
-  const carregarDados = async () => {
-    setCarregando(true);
-    try {
-      const lista = await templatesService.listarTemplates();
-      setTemplates(lista);
-    } finally {
-      setCarregando(false);
-    }
-  };
-
   useEffect(() => {
-    void carregarDados();
-    void leadsService.listarLeads().then((leads) => {
-      if (leads.length > 0) {
-        const lead = leads[0];
-        if (lead) {
-          setSimEmpresa(lead.nome);
-          setSimSegmento(lead.categoria || "Geral");
-          setSimNome(lead.nome.split(" ")[0] || "Decisor");
-        }
+    if (leads.length > 0) {
+      const lead = leads[0];
+      if (lead) {
+        setSimEmpresa(lead.nome);
+        setSimSegmento(lead.categoria || "Geral");
+        setSimNome(lead.nome.split(" ")[0] || "Decisor");
       }
-    });
-  }, []);
+    }
+  }, [leads]);
 
   const templatesFiltrados = useMemo(() => {
     return templates.filter((t) => {
@@ -89,7 +91,7 @@ export function TemplatesView() {
     } else {
       await templatesService.salvarTemplate(dados);
     }
-    await carregarDados();
+    void queryClient.invalidateQueries({ queryKey: ["templates"] });
   };
 
   return (
@@ -336,7 +338,7 @@ export function TemplatesView() {
           try {
             await templatesService.excluirTemplate(templateParaExcluir.id);
             toast.success("Script removido com sucesso!");
-            await carregarDados();
+            void queryClient.invalidateQueries({ queryKey: ["templates"] });
             setTemplateParaExcluir(null);
           } finally {
             setExcluindoTpl(false);

@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,12 +29,25 @@ import {
 } from "lucide-react";
 import { prospectaService, WhatsAppModal, LeadDrawer, type LeadItem } from "@/features/leads";
 import { mapService } from "../services/mapService";
-import { OpportunityMap } from "./OpportunityMap";
 import type { PontoMapa, ResumoRegiaoMapa } from "../types";
 
+const OpportunityMap = lazy(() =>
+  import("./OpportunityMap").then((m) => ({ default: m.OpportunityMap })),
+);
+
 export function OpportunityMapView() {
-  const [leads, setLeads] = useState<LeadItem[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const queryClient = useQueryClient();
+
+  const {
+    data: leads = [],
+    isPending: carregando,
+    isFetching: atualizando,
+    refetch,
+  } = useQuery({
+    queryKey: ["leads"],
+    queryFn: prospectaService.listarLeads,
+  });
+
   const [busca, setBusca] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("todas");
   const [filtroPresenca, setFiltroPresenca] = useState("todas");
@@ -46,19 +60,9 @@ export function OpportunityMapView() {
   const [leadDrawer, setLeadDrawer] = useState<LeadItem | null>(null);
   const [drawerAberto, setDrawerAberto] = useState(false);
 
-  const carregarDados = async () => {
-    setCarregando(true);
-    try {
-      const lista = await prospectaService.listarLeads();
-      setLeads(lista);
-    } finally {
-      setCarregando(false);
-    }
+  const carregarDados = () => {
+    void queryClient.invalidateQueries({ queryKey: ["leads"] });
   };
-
-  useEffect(() => {
-    void carregarDados();
-  }, []);
 
   const todosPontos = useMemo(() => {
     return mapService.processarPontosMapa(leads);
@@ -200,11 +204,20 @@ export function OpportunityMapView() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 min-h-[640px]">
           {/* ÁREA DO MAPA (COL-8) */}
           <div className="lg:col-span-8 flex flex-col min-h-[500px]">
-            <OpportunityMap
-              pontos={pontosFiltrados}
-              pontoSelecionado={pontoSelecionado}
-              onSelecionarPonto={(p) => setPontoSelecionado(p)}
-            />
+            <Suspense
+              fallback={
+                <div className="w-full h-full min-h-[500px] rounded-2xl border border-border/80 bg-card/60 flex flex-col items-center justify-center text-muted-foreground gap-3">
+                  <MapPin className="size-8 text-primary animate-pulse" />
+                  <span className="text-xs font-mono">Carregando mapa interativo...</span>
+                </div>
+              }
+            >
+              <OpportunityMap
+                pontos={pontosFiltrados}
+                pontoSelecionado={pontoSelecionado}
+                onSelecionarPonto={(p) => setPontoSelecionado(p)}
+              />
+            </Suspense>
           </div>
 
           {/* PAINEL LATERAL DE INTELIGÊNCIA REGIONAL (COL-4) */}

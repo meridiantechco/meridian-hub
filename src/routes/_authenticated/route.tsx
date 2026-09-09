@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { AppPersistentLayout } from "@/components/layout/AppShell";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -35,5 +36,9 @@ export const Route = createFileRoute("/_authenticated")({
     // 3. Se não houver sessão ativa, redirecionar para a tela de autenticação
     throw redirect({ to: "/auth" });
   },
-  component: () => <Outlet />,
+  component: () => (
+    <AppPersistentLayout>
+      <Outlet />
+    </AppPersistentLayout>
+  ),
 });

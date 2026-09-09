@@ -1,29 +1,32 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usersService } from "../services/usersService";
 import { auditoriaService, type AtividadeUsuario } from "@/features/audit";
 import type { UsuarioEquipe } from "../types";
 import { toast } from "sonner";
 
 export function useUsers() {
-  const [usuarios, setUsuarios] = useState<UsuarioEquipe[]>([]);
-  const [atividades, setAtividades] = useState<AtividadeUsuario[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const queryClient = useQueryClient();
 
-  const carregarDados = async () => {
-    setCarregando(true);
-    const [listaUsers, listaAtividades] = await Promise.all([
-      usersService.listarUsuarios(),
-      auditoriaService.listarAtividades(),
-    ]);
+  const {
+    data: usuarios = [],
+    isPending: carregandoUsers,
+    refetch: refetchUsers,
+  } = useQuery({
+    queryKey: ["users"],
+    queryFn: usersService.listarUsuarios,
+  });
 
-    setUsuarios(listaUsers);
-    setAtividades(listaAtividades);
-    setCarregando(false);
-  };
+  const {
+    data: atividades = [],
+    isPending: carregandoAtividades,
+    refetch: refetchAtividades,
+  } = useQuery({
+    queryKey: ["activities"],
+    queryFn: auditoriaService.listarAtividades,
+  });
 
-  useEffect(() => {
-    void carregarDados();
-  }, []);
+  const carregando = carregandoUsers || carregandoAtividades;
 
   const criarUsuario = async (dados: {
     nome: string;
@@ -32,23 +35,30 @@ export function useUsers() {
     senhaProvisoria?: string;
   }) => {
     const res = await usersService.criarNovoUsuario(dados);
-    setUsuarios((prev) => [res.usuario, ...prev.filter((u) => u.email !== res.usuario.email)]);
-    void auditoriaService.listarAtividades().then(setAtividades);
+    queryClient.setQueryData<UsuarioEquipe[]>(["users"], (prev = []) => [
+      res.usuario,
+      ...prev.filter((u) => u.email !== res.usuario.email),
+    ]);
+    void queryClient.invalidateQueries({ queryKey: ["activities"] });
     return res;
   };
 
   const alterarPapel = async (userId: string, papel: "admin" | "vendedor") => {
     await usersService.alterarPapel(userId, papel);
-    setUsuarios((prev) => prev.map((u) => (u.id === userId ? { ...u, papel } : u)));
-    void auditoriaService.listarAtividades().then(setAtividades);
+    queryClient.setQueryData<UsuarioEquipe[]>(["users"], (prev = []) =>
+      prev.map((u) => (u.id === userId ? { ...u, papel } : u)),
+    );
+    void queryClient.invalidateQueries({ queryKey: ["activities"] });
     toast.success("Função do usuário atualizada!");
   };
 
   const removerUsuario = async (userId: string, nome?: string, email?: string) => {
     try {
       await usersService.removerUsuario(userId, nome, email);
-      setUsuarios((prev) => prev.filter((u) => u.id !== userId));
-      void auditoriaService.listarAtividades().then(setAtividades);
+      queryClient.setQueryData<UsuarioEquipe[]>(["users"], (prev = []) =>
+        prev.filter((u) => u.id !== userId),
+      );
+      void queryClient.invalidateQueries({ queryKey: ["activities"] });
       toast.success(`Usuário ${nome || ""} removido com sucesso!`);
     } catch (err: any) {
       console.error("Erro ao remover usuário:", err);
@@ -58,11 +68,11 @@ export function useUsers() {
   };
 
   const totalUsuarios = usuarios.length;
-  const totalAdmins = usuarios.filter((u) => u.papel === "admin").length;
-  const totalVendedores = usuarios.filter((u) => u.papel === "vendedor").length;
-  const totalWhatsApp = atividades.filter((a) => a.tipo === "whatsapp").length;
-  const totalStatusMovidos = atividades.filter((a) => a.tipo === "mudanca_status").length;
-  const totalFechados = atividades.filter((a) => a.metadados?.["novo_status"] === "fechado").length;
+  const totalAdmins = useMemo(() => usuarios.filter((u) => u.papel === "admin").length, [usuarios]);
+  const totalVendedores = useMemo(
+    () => usuarios.filter((u) => u.papel === "vendedor").length,
+    [usuarios],
+  );
 
   return {
     usuarios,
@@ -71,12 +81,12 @@ export function useUsers() {
     totalUsuarios,
     totalAdmins,
     totalVendedores,
-    totalWhatsApp,
-    totalStatusMovidos,
-    totalFechados,
     criarUsuario,
     alterarPapel,
     removerUsuario,
-    recarregar: carregarDados,
+    recarregar: () => {
+      void refetchUsers();
+      void refetchAtividades();
+    },
   };
 }
